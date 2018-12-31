@@ -12,20 +12,6 @@ func waitCustomChecker(options JudgeOption, pid uintptr, rst *JudgeResult, isInt
 		status syscall.WaitStatus
 		ru syscall.Rusage
 	)
-	//if isInteractive {
-	//	_, err := syscall.Wait4(int(pid), &status, syscall.WNOHANG, &ru)
-	//	if err != nil {
-	//		return err
-	//	}
-	//	fmt.Println(status.Exited())
-	//} else {
-	//	_, err := syscall.Wait4(int(pid), &status, syscall.WUNTRACED, &ru)
-	//	if err != nil {
-	//		return err
-	//	}
-	//}
-	//r1, r2, e1 := syscall.RawSyscall(syscall.SYS_WAITID, uintptr(pid), uintptr(unsafe.Pointer(&status)), uintptr(syscall.WUNTRACED))
-	//println(r1, r2, e1)
 	_, err := syscall.Wait4(int(pid), &status, syscall.WUNTRACED, &ru)
 	if err != nil {
 		return err
@@ -221,7 +207,6 @@ func InteractiveChecker(options JudgeOption, result *JudgeResult) (error) {
 
 		} else {
 
-			//fmt.Println(status.Exited())
 			err = waitCustomChecker(options, pidJudger, result, true)
 			if err != nil {
 				result.JudgeResult = JUDGE_FLAG_SE

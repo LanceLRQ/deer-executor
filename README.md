@@ -53,8 +53,8 @@ type JudgeResult struct {
 	TimeUsed int				// Maximum time used (ms)
 	MemoryUsed int				// Maximum memory used  (kb)
 	ReSignum int				// Runtime error signal number
-	SameLines int				// sameLines when WA
-	TotalLines int				// totalLines when WA
+	SameLines int				// Same Lines when WA
+	TotalLines int				// Total Lines when WA
 	SeInfo string				// SeInfo When System Error
 	CeInfo string				// CeInfo When CeInfo
 }
@@ -95,7 +95,7 @@ Special judge checker report the judge result with it's exit code. like this (ch
 #define REQUIRE_DEFAULT_CHECKER 12
 
 int main() {
-    // Do anythings you want.
+    // Do anything you want.
     
     return RESULT_AC;
 }
