@@ -1,7 +1,7 @@
 <h1 align="center">Deer Executor</h1>
 <p align="center">A program executor for online judge written by golang.</p>
 
-English | [简体中文](./README-zh_CN.md)
+[English](./README.md) | 简体中文
 
 ## ✨ Features
  - Most languages supported.
