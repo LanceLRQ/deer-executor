@@ -1,1 +1,1 @@
-module deer-executor
+module github.com/LanceLRQ/deer-executor

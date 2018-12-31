@@ -5,7 +5,7 @@
 
 ## ✨ Features
  - Most languages supported.
- - You can standalone build and run it
+ - You can standalone build and run it.
  - Support Linux and Darwin(MacOS), maybe Windows in the future.
  
 ## 📦 Get && Install
@@ -36,7 +36,7 @@ judgeOptions := deer.JudgeOption {__
     ProgramError:  "/tmp/user.err",          // Program's stderr file path
     
     // Special Judge
-    SpecialJudge:	0,                          // Special judge mode: 0-disabled, 1-checker, 2-interactive
+    SpecialJudge:	0,                      // Special judge mode: 0-disabled, 1-checker, 2-interactive
     SpecialJudgeChecker: "/data/judger.out",    // Special judger filepath, it must be a executable binary program
     SpecialJudgeOut: "/tmp/spj.out",            // Special judger's stdout file path
     SpecialJudgeError: "/tmp/spj.err",          // Special judger's stderr file path
