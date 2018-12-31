@@ -184,7 +184,7 @@ Then, my classmates Wolf Zheng and Tosh Qiu propose the _interactive judge_ and 
  
 Finally，thanks to my alma mater [Beijing Normal University (Zhuhai)](http://www.bnuz.edu.cn), [BNUZ IT college](http://itc.bnuz.edu.cn), [ACM association](http://acm.bnuz.edu.cn) and WeJudge team
 
-## 🔗 相关链接
+## 🔗 Links
 
 📃 My blog：[https://www.lanrongqi.com](https://www.lanrongqi.com)
 
