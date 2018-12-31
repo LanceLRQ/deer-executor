@@ -37,7 +37,7 @@ func (prov *PHPCompileProvider) GetRunArgs() (args []string) {
 	return
 }
 
-func (prov *PHPCompileProvider) isCompileError(remsg string) bool {
+func (prov *PHPCompileProvider) IsCompileError(remsg string) bool {
 	return false
 }
 

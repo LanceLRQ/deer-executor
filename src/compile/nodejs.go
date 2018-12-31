@@ -38,7 +38,7 @@ func (prov *NodeJSCompileProvider) GetRunArgs() (args []string) {
 	return
 }
 
-func (prov *NodeJSCompileProvider) isCompileError(remsg string) bool {
+func (prov *NodeJSCompileProvider) IsCompileError(remsg string) bool {
 	return strings.Contains(remsg, "SyntaxError") ||
 		strings.Contains(remsg, "Error: Cannot find module")
 }
