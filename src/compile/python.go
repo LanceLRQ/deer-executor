@@ -72,7 +72,7 @@ func (prov *Py3CompileProvider) GetRunArgs() (args []string) {
 	return
 }
 
-func (prov *Py3CompileProvider) isCompileError(remsg string) bool {
+func (prov *Py3CompileProvider) IsCompileError(remsg string) bool {
 	return strings.Contains(remsg, "SyntaxError") ||
 		strings.Contains(remsg, "IndentationError") ||
 		strings.Contains(remsg, "ImportError")

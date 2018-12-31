@@ -30,7 +30,7 @@ type CodeCompileProviderInterface interface {
 	// 获取程序的运行命令参数组
 	GetRunArgs() (args []string)
 	// 判断STDERR的输出内容是否存在编译错误信息，通常用于脚本语言的判定，
-	isCompileError(remsg string) bool
+	IsCompileError(remsg string) bool
 	// 调用Shell命令并获取运行结果
 	shell(commands string) (success bool, errout string)
 	// 保存代码到文件

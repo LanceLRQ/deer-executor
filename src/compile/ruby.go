@@ -37,7 +37,7 @@ func (prov *RubyCompileProvider) GetRunArgs() (args []string) {
 	return
 }
 
-func (prov *RubyCompileProvider) isCompileError(remsg string) bool {
+func (prov *RubyCompileProvider) IsCompileError(remsg string) bool {
 	return false
 }
 
