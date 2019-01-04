@@ -31,6 +31,10 @@ type CodeCompileProviderInterface interface {
 	GetRunArgs() (args []string)
 	// 判断STDERR的输出内容是否存在编译错误信息，通常用于脚本语言的判定，
 	IsCompileError(remsg string) bool
+	// 是否为实时编译的语言
+	IsRealTime() bool
+	// 是否已经编译完毕
+	IsReady() bool
 	// 调用Shell命令并获取运行结果
 	shell(commands string) (success bool, errout string)
 	// 保存代码到文件
@@ -42,8 +46,8 @@ type CodeCompileProviderInterface interface {
 type CodeCompileProvider struct {
 	CodeCompileProviderInterface
 	codeContent string		// 代码
-	RealTime bool			// 是否为实时编译的语言
-	IsReady bool			// 是否已经编译完毕
+	realTime bool			// 是否为实时编译的语言
+	isReady bool			// 是否已经编译完毕
 	codeFileName, codeFilePath string			// 目标程序源文件
 	programFileName, programFilePath string		// 目标程序文件
 	workDir string			// 工作目录
@@ -93,4 +97,12 @@ func (prov *CodeCompileProvider) checkWorkDir() error {
 		return err
 	}
 	return nil
+}
+
+func (prov *CodeCompileProvider) IsRealTime() bool {
+	return prov.realTime
+}
+
+func (prov *CodeCompileProvider) IsReady() bool {
+	return prov.isReady
 }

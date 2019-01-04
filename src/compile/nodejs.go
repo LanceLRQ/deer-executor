@@ -11,8 +11,8 @@ type NodeJSCompileProvider struct {
 
 
 func (prov *NodeJSCompileProvider) Init(code string, workDir string) error {
-	prov.IsReady = false
-	prov.RealTime = true
+	prov.isReady = false
+	prov.realTime = true
 	prov.codeContent = code
 	prov.workDir = workDir
 
@@ -28,7 +28,7 @@ func (prov *NodeJSCompileProvider) Init(code string, workDir string) error {
 func (prov *NodeJSCompileProvider) Compile() (result bool, errmsg string) {
 	result, errmsg = prov.shell(fmt.Sprintf(COMPILE_COMMAND_NODEJS, prov.codeFilePath))
 	if result {
-		prov.IsReady = true
+		prov.isReady = true
 	}
 	return
 }

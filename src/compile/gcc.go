@@ -11,8 +11,8 @@ type GnucppCompileProvider struct {
 }
 
 func (prov *GnucCompileProvider) Init(code string, workDir string) error {
-	prov.IsReady = false
-	prov.RealTime = false
+	prov.isReady = false
+	prov.realTime = false
 	prov.codeContent = code
 	prov.workDir = workDir
 
@@ -28,7 +28,7 @@ func (prov *GnucCompileProvider) Init(code string, workDir string) error {
 func (prov *GnucCompileProvider) Compile() (result bool, errmsg string) {
 	result, errmsg = prov.shell(fmt.Sprintf(COMPILE_COMMAND_GNUC, prov.codeFilePath, prov.programFilePath))
 	if result {
-		prov.IsReady = true
+		prov.isReady = true
 	}
 	return
 }
@@ -39,8 +39,8 @@ func (prov *GnucCompileProvider) GetRunArgs() (args []string) {
 }
 
 func (prov *GnucppCompileProvider) Init(code string, workDir string) error {
-	prov.IsReady = false
-	prov.RealTime = false
+	prov.isReady = false
+	prov.realTime = false
 	prov.codeContent = code
 	prov.workDir = workDir
 
@@ -56,7 +56,7 @@ func (prov *GnucppCompileProvider) Init(code string, workDir string) error {
 func (prov *GnucppCompileProvider) Compile() (result bool, errmsg string) {
 	result, errmsg = prov.shell(fmt.Sprintf(COMPILE_COMMAND_GNUCPP, prov.codeFilePath, prov.programFilePath))
 	if result {
-		prov.IsReady = true
+		prov.isReady = true
 	}
 	return
 }

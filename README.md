@@ -150,6 +150,13 @@ type CodeCompileProviderInterface interface {
     // It should't compile first, and will output compile error when running.
     // So you can use it to check if VM output a compile error
     IsCompileError(remsg string) bool
+    
+    // Is it a realtime compiler?
+    IsRealTime() bool
+    
+    // Is code compiled?
+    IsReady() bool
+
 	
     /** 
      ** Private Methods
@@ -170,8 +177,8 @@ type CodeCompileProvider struct {
 	CodeCompileProviderInterface
 	
 	codeContent string		        // Code content
-	RealTime bool			        // Is it a realtime compiler?
-	IsReady bool			        // Is code compiled?
+	realTime bool			        // Is it a realtime compiler?
+	isReady bool			        // Is code compiled?
 	codeFileName string             // Target code file name
 	codeFilePath string			    // Target code file  path
 	programFileName string          // Target program file name

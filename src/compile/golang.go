@@ -8,8 +8,8 @@ type GolangCompileProvider struct {
 
 
 func (prov *GolangCompileProvider) Init(code string, workDir string) error {
-	prov.IsReady = false
-	prov.RealTime = false
+	prov.isReady = false
+	prov.realTime = false
 	prov.codeContent = code
 	prov.workDir = workDir
 
@@ -25,7 +25,7 @@ func (prov *GolangCompileProvider) Init(code string, workDir string) error {
 func (prov *GolangCompileProvider) Compile() (result bool, errmsg string) {
 	result, errmsg = prov.shell(fmt.Sprintf(COMPILE_COMMAND_GO, prov.programFilePath, prov.codeFilePath))
 	if result {
-		prov.IsReady = true
+		prov.isReady = true
 	}
 	return
 }
