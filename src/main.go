@@ -57,10 +57,15 @@ type JudgeOption struct {
 	MemoryLimit int					// Memory limit (kb)
 	FileSizeLimit int				// File Size Limit (kb)
 	Uid int							// User id (optional)
-	SpecialJudge int                // Special judge mode
-	SpecialJudgeChecker string		// Special judge checker commands
-	SpecialJudgeOut string
-	SpecialJudgeError string
+	SpecialJudge struct {
+		Mode int					// Mode
+		Checker string				// Checker file path
+		RedirectStd bool 			// Redirect target program's Stdout to checker's Stdin
+		TimeLimit int				// Time limit (ms)
+		MemoryLimit int				// Memory limit (kb)
+		Stdout string				// checker's stdout
+		Stderr string				// checker's stderr
+	}
 }
 
 func (conf *JudgeResult) String() string {
@@ -80,7 +85,7 @@ func (conf *JudgeResult) String() string {
 func Judge(options JudgeOption) (*JudgeResult, error) {
 	judgeResult :=  new(JudgeResult)
 
-	if options.SpecialJudge == SPECIAL_JUDGE_MODE_INTERACTIVE {
+	if options.SpecialJudge.Mode == SPECIAL_JUDGE_MODE_INTERACTIVE {
 		err := InteractiveChecker(options, judgeResult)
 		if err != nil {
 			return nil, err
@@ -98,7 +103,7 @@ func Judge(options JudgeOption) (*JudgeResult, error) {
 		if err != nil {
 			return nil, err
 		}
-		if options.SpecialJudge == SPECIAL_JUDGE_MODE_CHECKER && judgeResult.JudgeResult == JUDGE_FLAG_AC {
+		if options.SpecialJudge.Mode == SPECIAL_JUDGE_MODE_CHECKER && judgeResult.JudgeResult == JUDGE_FLAG_AC {
 			err := CustomChecker(options, judgeResult)
 			if err != nil {
 				return nil, err
