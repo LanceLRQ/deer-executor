@@ -150,7 +150,13 @@ type CodeCompileProviderInterface interface {
     // 判断目标程序的stderr的输出内容是否存在编译错误信息，通常用于脚本语言的判定。
     // 如Python语言不需要编译，在执行脚本的时候如果遇到编译错误会返回SyntaxError信息之类的
     IsCompileError(remsg string) bool
-	
+    
+    // 是否为实时编译的语言
+    IsRealTime() bool
+    
+    // 是否已经编译完毕
+    IsReady() bool
+
     /** 
      ** 私有方法
      **/
@@ -170,8 +176,8 @@ type CodeCompileProvider struct {
 	CodeCompileProviderInterface
 	
     codeContent string		            // 代码内容
-	RealTime bool			            // 是否为实时编译的语言
-	IsReady bool			            // 是否已经编译完毕
+	realTime bool			            // 是否为实时编译的语言
+	isReady bool			            // 是否已经编译完毕
 	codeFileName string                 // 目标程序源文件名
 	codeFilePath string			        // 目标程序源文件路径
 	programFileName string              // 目标程序文件名
