@@ -170,8 +170,8 @@ type CodeCompileProvider struct {
 	CodeCompileProviderInterface
 	
 	codeContent string		        // Code content
-	realTime bool			        // Is it a realtime compiler?
-	isReady bool			        // Is code compiled?
+	RealTime bool			        // Is it a realtime compiler?
+	IsReady bool			        // Is code compiled?
 	codeFileName string             // Target code file name
 	codeFilePath string			    // Target code file  path
 	programFileName string          // Target program file name

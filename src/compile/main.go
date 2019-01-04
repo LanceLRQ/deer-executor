@@ -42,8 +42,8 @@ type CodeCompileProviderInterface interface {
 type CodeCompileProvider struct {
 	CodeCompileProviderInterface
 	codeContent string		// 代码
-	realTime bool			// 是否为实时编译的语言
-	isReady bool			// 是否已经编译完毕
+	RealTime bool			// 是否为实时编译的语言
+	IsReady bool			// 是否已经编译完毕
 	codeFileName, codeFilePath string			// 目标程序源文件
 	programFileName, programFilePath string		// 目标程序文件
 	workDir string			// 工作目录

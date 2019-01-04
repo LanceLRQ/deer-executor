@@ -25,8 +25,8 @@ func getJavaClassName (code string) (className string, err error) {
 }
 
 func (prov *JavaCompileProvider) Init(code string, workDir string) error {
-	prov.isReady = false
-	prov.realTime = false
+	prov.IsReady = false
+	prov.RealTime = false
 	prov.codeContent = code
 	prov.workDir = workDir
 
@@ -58,7 +58,7 @@ func (prov *JavaCompileProvider) initFiles(codeExt string, programExt string) er
 func (prov *JavaCompileProvider) Compile() (result bool, errmsg string) {
 	result, errmsg = prov.shell(fmt.Sprintf(COMPILE_COMMAND_JAVA, prov.codeFilePath, prov.programFilePath))
 	if result {
-		prov.isReady = true
+		prov.IsReady = true
 	}
 	return
 }

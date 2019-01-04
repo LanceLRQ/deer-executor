@@ -11,7 +11,7 @@ type Py3CompileProvider struct {
 }
 
 func (prov *Py2CompileProvider) Init(code string, workDir string) error {
-	prov.realTime = true
+	prov.RealTime = true
 	prov.codeContent = code
 	prov.workDir = workDir
 
@@ -24,7 +24,7 @@ func (prov *Py2CompileProvider) Init(code string, workDir string) error {
 	if err != nil {
 		return nil
 	}
-	prov.isReady = true
+	prov.IsReady = true
 	return nil
 }
 
@@ -45,8 +45,8 @@ func (prov *Py2CompileProvider) isCompileError(remsg string) bool {
 
 
 func (prov *Py3CompileProvider) Init(code string, workDir string) error {
-	prov.isReady = false
-	prov.realTime = true
+	prov.IsReady = false
+	prov.RealTime = true
 	prov.codeContent = code
 	prov.workDir = workDir
 
@@ -59,7 +59,7 @@ func (prov *Py3CompileProvider) Init(code string, workDir string) error {
 	if err != nil {
 		return nil
 	}
-	prov.isReady = true
+	prov.IsReady = true
 	return nil
 }
 

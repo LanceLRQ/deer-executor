@@ -10,8 +10,8 @@ type PHPCompileProvider struct {
 
 
 func (prov *PHPCompileProvider) Init(code string, workDir string) error {
-	prov.isReady = false
-	prov.realTime = true
+	prov.IsReady = false
+	prov.RealTime = true
 	prov.codeContent = code
 	prov.workDir = workDir
 
@@ -27,7 +27,7 @@ func (prov *PHPCompileProvider) Init(code string, workDir string) error {
 func (prov *PHPCompileProvider) Compile() (result bool, errmsg string) {
 	result, errmsg = prov.shell(fmt.Sprintf(COMPILE_COMMAND_PHP, prov.codeFilePath))
 	if result {
-		prov.isReady = true
+		prov.IsReady = true
 	}
 	return
 }

@@ -170,8 +170,8 @@ type CodeCompileProvider struct {
 	CodeCompileProviderInterface
 	
     codeContent string		            // 代码内容
-	realTime bool			            // 是否为实时编译的语言
-	isReady bool			            // 是否已经编译完毕
+	RealTime bool			            // 是否为实时编译的语言
+	IsReady bool			            // 是否已经编译完毕
 	codeFileName string                 // 目标程序源文件名
 	codeFilePath string			        // 目标程序源文件路径
 	programFileName string              // 目标程序文件名
