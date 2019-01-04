@@ -65,33 +65,39 @@ func CustomChecker(options JudgeOption, result *JudgeResult) (error) {
 	}
 
 	if pid == 0 {
-		// Redirect testCaseIn to STDIN
-		stdinFd, childErr = redirectFileDescriptor(syscall.Stdin, options.ProgramOut, os.O_RDONLY, 0)
-		if childErr != nil {
-			return childErr
+		if options.SpecialJudge.RedirectStd {
+			// Redirect testCaseIn to STDIN
+			stdinFd, childErr = redirectFileDescriptor(syscall.Stdin, options.ProgramOut, os.O_RDONLY, 0)
+			if childErr != nil {
+				return childErr
+			}
 		}
 
 		// Redirect userOut to STDOUT
-		stdoutFd, childErr = redirectFileDescriptor(syscall.Stdout, options.SpecialJudgeOut, os.O_WRONLY | os.O_CREATE, 0644)
+		stdoutFd, childErr = redirectFileDescriptor(syscall.Stdout, options.SpecialJudge.Stdout, os.O_WRONLY | os.O_CREATE, 0644)
 		if childErr != nil {
 			return  childErr
 		}
 
 		// Redirect programError to STDERR
-		stderrFd, childErr = redirectFileDescriptor(syscall.Stderr, options.SpecialJudgeError, os.O_WRONLY | os.O_CREATE, 0644)
+		stderrFd, childErr = redirectFileDescriptor(syscall.Stderr, options.SpecialJudge.Stderr, os.O_WRONLY | os.O_CREATE, 0644)
 		if childErr != nil {
 			return childErr
 		}
 
+		tl, ml := SPECIAL_JUDGE_TIME_LIMIT, SPECIAL_JUDGE_MEMORY_LIMIT
+		if options.SpecialJudge.TimeLimit > 0 { tl = options.SpecialJudge.TimeLimit }
+		if options.SpecialJudge.MemoryLimit > 0 { tl = options.SpecialJudge.MemoryLimit  }
+
 		// Set resource limit
-		childErr = setLimit(SPECIAL_JUDGE_TIME_LIMIT, SPECIAL_JUDGE_MEMORY_LIMIT)
+		childErr = setLimit(tl, ml)
 		if childErr != nil {
 			return childErr
 		}
 
 		// Run Checker
-		args := []string{ options.SpecialJudgeChecker, options.TestCaseIn, options.TestCaseOut, options.ProgramOut }
-		childErr = syscall.Exec(options.SpecialJudgeChecker, args, nil)
+		args := []string{ options.SpecialJudge.Checker, options.TestCaseIn, options.TestCaseOut, options.ProgramOut }
+		childErr = syscall.Exec(options.SpecialJudge.Checker, args, nil)
 		return childErr
 
 	} else {
@@ -195,14 +201,19 @@ func InteractiveChecker(options JudgeOption, result *JudgeResult) (error) {
 				return judgerErr
 			}
 
+			tl, ml := SPECIAL_JUDGE_TIME_LIMIT, SPECIAL_JUDGE_MEMORY_LIMIT
+			if options.SpecialJudge.TimeLimit > 0 { tl = options.SpecialJudge.TimeLimit }
+			if options.SpecialJudge.MemoryLimit > 0 { tl = options.SpecialJudge.MemoryLimit  }
+
 			// Set resource limit
-			judgerErr = setLimit(SPECIAL_JUDGE_TIME_LIMIT, SPECIAL_JUDGE_MEMORY_LIMIT)
-			if judgerErr != nil {
-				return judgerErr
+			childErr = setLimit(tl, ml)
+			if childErr != nil {
+				return childErr
 			}
 
 			// Run Judger
-			judgerErr = syscall.Exec(options.SpecialJudgeChecker, []string{ options.SpecialJudgeChecker, options.TestCaseIn, options.TestCaseOut, options.ProgramOut }, nil)
+			args := []string{ options.SpecialJudge.Checker, options.TestCaseIn, options.TestCaseOut, options.ProgramOut }
+			judgerErr = syscall.Exec(options.SpecialJudge.Checker, args, nil)
 			return judgerErr
 
 		} else {

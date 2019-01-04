@@ -54,10 +54,15 @@ judgeOptions := deer.JudgeOption {
     ProgramError:  "/tmp/user.err",          // 目标程序错误信息输出文件位置(stderr)
     
     // Special Judge
-    SpecialJudge:	0,                          // 特殊评测模式: 0-禁用, 1-结果检查模式, 2-交互模式
-    SpecialJudgeChecker: "/data/judger.out",    // 特殊评测裁判程序路径, 它必须是一个可执行程序
-    SpecialJudgeOut: "/tmp/spj.out",            // 裁判程序输出文件位置(stdout)
-    SpecialJudgeError: "/tmp/spj.err",          // 裁判程序错误信息输出文件位置(stderr)
+    SpecialJudge struct {
+        Mode int                    // 特殊评测模式: 0-禁用, 1-结果检查模式, 2-交互模式
+        Checker string				// 特殊评测裁判程序路径, 它必须是一个可执行程序
+        RedirectStd bool 			// 重定向目标程序的输出文件到裁判的stdin （交互模式无效）
+        TimeLimit int				// 时间限制，值为0时，默认10秒超时。(ms)
+        MemoryLimit int				// 内存限制，值为0时，默认256MB可用。(kb)
+        Stdout string				// 裁判程序输出文件位置(stdout)
+        Stderr string				// 裁判程序错误信息输出文件位置(stderr)
+    }
     // Other
     Uid:    0,                              // 执行时的Linux用户ID，通常它是可选的
 }

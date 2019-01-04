@@ -54,10 +54,15 @@ judgeOptions := deer.JudgeOption {
     ProgramError:  "/tmp/user.err",          // Program's stderr file path
     
     // Special Judge
-    SpecialJudge:	0,                      // Special judge mode: 0-disabled, 1-checker, 2-interactive
-    SpecialJudgeChecker: "/data/judger.out",    // Special judge checker's filepath, it must be a executable binary program
-    SpecialJudgeOut: "/tmp/spj.out",            // Special judge checker's stdout file path
-    SpecialJudgeError: "/tmp/spj.err",          // Special judge checker's stderr file path
+    SpecialJudge struct {
+        Mode int                    // Mode
+        Checker string				// Checker file path
+        RedirectStd bool 			// Redirect target program's Stdout to checker's Stdin (only for checker mode)
+        TimeLimit int				// Time limit (ms)
+        MemoryLimit int				// Memory limit (kb)
+        Stdout string				// checker's stdout
+        Stderr string				// checker's stderr
+    }
     // Other
     Uid:    0,                              // Linux user id (optional)
 }
