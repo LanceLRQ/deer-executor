@@ -64,10 +64,10 @@ judgeOptions := deer.JudgeOption {
         Stderr string				// 裁判程序错误信息输出文件位置(stderr)
     }
     // Other
-    Uid:    0,                              // 执行时的Linux用户ID，通常它是可选的
+    Uid:    -1,                              // 执行时的Linux用户ID，通常它是可选的
 }
 
-judgeResult, err := deer.Judge(judgeOption)
+judgeResult, err := deer.Judge(judgeOptions)
 ```
 评测结果信息的结构体定义如下:
 ```

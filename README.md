@@ -64,10 +64,10 @@ judgeOptions := deer.JudgeOption {
         Stderr string				// checker's stderr
     }
     // Other
-    Uid:    0,                              // Linux user id (optional)
+    Uid:    -1,                              // Linux user id (optional)
 }
 
-judgeResult, err := deer.Judge(judgeOption)
+judgeResult, err := deer.Judge(judgeOptions)
 ```
 judgeResult define like this:
 ```
