@@ -25,11 +25,11 @@ import (
 )
 
 // Create a compiler provider
-compiler := new(compile.GnucCompileProvider)
+compiler := new(deer_compile.GnucCompileProvider)
 compiler.Init("#include<stdio.h>\nint main(){ return 0; }", "/tmp")    // The second argument means the work directory.
 
 // Do compile
-success, ceinfo := gnuc.Compile()
+success, ceinfo := compiler.Compile()
 if !success {
     fmt.Println("Compile Error: " + ceinfo)
 }
@@ -37,7 +37,7 @@ if !success {
 // Get compile result
 cmds := compiler.GetRunArgs()
 
-judgeOptions := deer.JudgeOption {
+judgeOptions := deer_executor.JudgeOption {
 
     // Executable program commands
     // Commands:      []string{ "/tmp/a.out", "-a", "123" },      // It means: /tmp/a.out -a 123
@@ -68,7 +68,7 @@ judgeOptions := deer.JudgeOption {
     Uid:    -1,                              // Linux user id (optional)
 }
 
-judgeResult, err := deer.Judge(judgeOptions)
+judgeResult, err := deer_executor.Judge(judgeOptions)
 ```
 judgeResult define like this:
 ```

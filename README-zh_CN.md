@@ -25,11 +25,11 @@ import (
 )
 
 // 构造一个编译提供程序，这里以C语言为例
-compiler := new(compile.GnucCompileProvider)
+compiler := new(deer_compiler.GnucCompileProvider)
 compiler.Init("#include<stdio.h>\nint main(){ return 0; }", "/tmp")    // 第二个参数为工作目录
 
 // 执行编译
-success, ceinfo := gnuc.Compile()
+success, ceinfo := compiler.Compile()
 if !success {
     fmt.Println("Compile Error: " + ceinfo)
 }
@@ -37,7 +37,7 @@ if !success {
 // 获取编译后目标程序的执行参数
 cmds := compiler.GetRunArgs()
 
-judgeOptions := deer.JudgeOption {
+judgeOptions := deer_executor.JudgeOption {
 
     // 目标可执行程序的命令
     // Commands:      []string{ "/tmp/a.out", "-a", "123" },      // 参数列表以数组的形式存在，上述可以视作调用了 /tmp/a.out -a 123
@@ -68,7 +68,7 @@ judgeOptions := deer.JudgeOption {
     Uid:    -1,                              // 执行时的Linux用户ID，通常它是可选的
 }
 
-judgeResult, err := deer.Judge(judgeOptions)
+judgeResult, err := deer_executor.Judge(judgeOptions)
 ```
 评测结果信息的结构体定义如下:
 ```
