@@ -21,6 +21,7 @@ go get github.com/LanceLRQ/deer-executor
 import (
     "fmt"
     "github.com/LanceLRQ/deer-executor"
+    "github.com/LanceLRQ/deer-executor/compile"
 )
 
 // 构造一个编译提供程序，这里以C语言为例

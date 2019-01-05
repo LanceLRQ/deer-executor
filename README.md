@@ -21,6 +21,7 @@ go get github.com/LanceLRQ/deer-executor
 import (
     "fmt"
     "github.com/LanceLRQ/deer-executor"
+    "github.com/LanceLRQ/deer-executor/compile"
 )
 
 // Create a compiler provider

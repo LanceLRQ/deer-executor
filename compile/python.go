@@ -1,4 +1,4 @@
-package compile
+package deer_compiler
 
 import "strings"
 

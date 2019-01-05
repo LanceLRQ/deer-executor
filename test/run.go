@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/LanceLRQ/deer-executor/src"
-	"github.com/LanceLRQ/deer-executor/src/compile"
+	"github.com/LanceLRQ/deer-executor"
+	"github.com/LanceLRQ/deer-executor/compile"
 	"io/ioutil"
 )
 
@@ -17,14 +17,14 @@ func main() {
 	}
 	codeContent := string(code)
 
-	compiler := compile.GnucCompileProvider{}
+	compiler := deer_compiler.GnucCompileProvider{}
 	compiler.Init(codeContent,  "/tmp")
 	success, ceinfo := compiler.Compile()
 	if !success {
 		fmt.Println(ceinfo)
 	}
 
-	judgeOption := deer.JudgeOption{
+	judgeOption := deer_executor.JudgeOption{
 		TimeLimit:     1000,
 		MemoryLimit:   32768,
 		FileSizeLimit: 100 * 1024 * 1024,
@@ -53,7 +53,7 @@ func main() {
 		},
 		Uid: -1,
 	}
-	judgeResult, err := deer.Judge(judgeOption)
+	judgeResult, err := deer_executor.Judge(judgeOption)
 	if err != nil {
 		fmt.Printf("Error: %s\n", err.Error())
 	} else {
