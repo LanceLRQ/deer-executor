@@ -82,33 +82,33 @@ func RunProgram(options JudgeOption, result *JudgeResult) (error) {
 		// Redirect testCaseIn to STDIN
 		stdinFd, childErr = redirectFileDescriptor(syscall.Stdin, options.TestCaseIn, os.O_RDONLY, 0)
 		if childErr != nil {
-			return childErr
+			os.Exit(-1)
 		}
 
 		// Redirect userOut to STDOUT
 		stdoutFd, childErr = redirectFileDescriptor(syscall.Stdout, options.ProgramOut, os.O_WRONLY | os.O_CREATE, 0644)
 		if childErr != nil {
-			return  childErr
+			os.Exit(-1)
 		}
 
 		// Redirect programError to STDERR
 		stderrFd, childErr = redirectFileDescriptor(syscall.Stderr, options.ProgramError, os.O_WRONLY | os.O_CREATE, 0644)
 		if childErr != nil {
-			return childErr
+			os.Exit(-1)
 		}
 
 		// Set UID
 		if options.Uid > -1 {
 			childErr = syscall.Setuid(options.Uid)
 			if childErr != nil {
-				return childErr
+				os.Exit(-1)
 			}
 		}
 
 		// Set resource limit
 		childErr = setLimit(options.TimeLimit, options.MemoryLimit)
 		if childErr != nil {
-			return childErr
+			os.Exit(-1)
 		}
 
 		// Run Program
@@ -118,7 +118,7 @@ func RunProgram(options JudgeOption, result *JudgeResult) (error) {
 			childErr = syscall.Exec(options.Commands[0], nil, nil)
 		}
 
-		return childErr   // In general, it won't be run.
+		os.Exit(0)  // In general, it won't be run.
 
 	} else {
 		// paren process: wait for child process end.
