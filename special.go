@@ -69,20 +69,20 @@ func CustomChecker(options JudgeOption, result *JudgeResult) (error) {
 			// Redirect testCaseIn to STDIN
 			stdinFd, childErr = redirectFileDescriptor(syscall.Stdin, options.ProgramOut, os.O_RDONLY, 0)
 			if childErr != nil {
-				os.Exit(-1)
+				return childErr
 			}
 		}
 
 		// Redirect userOut to STDOUT
 		stdoutFd, childErr = redirectFileDescriptor(syscall.Stdout, options.SpecialJudge.Stdout, os.O_WRONLY | os.O_CREATE, 0644)
 		if childErr != nil {
-			os.Exit(-1)
+			return childErr
 		}
 
 		// Redirect programError to STDERR
 		stderrFd, childErr = redirectFileDescriptor(syscall.Stderr, options.SpecialJudge.Stderr, os.O_WRONLY | os.O_CREATE, 0644)
 		if childErr != nil {
-			os.Exit(-1)
+			return childErr
 		}
 
 		tl, ml := SPECIAL_JUDGE_TIME_LIMIT, SPECIAL_JUDGE_MEMORY_LIMIT
@@ -92,7 +92,7 @@ func CustomChecker(options JudgeOption, result *JudgeResult) (error) {
 		// Set resource limit
 		childErr = setLimit(tl, ml)
 		if childErr != nil {
-			os.Exit(-1)
+			return childErr
 		}
 
 		// Run Checker
@@ -161,18 +161,18 @@ func InteractiveChecker(options JudgeOption, result *JudgeResult) (error) {
 		// Direct Program's Pipe[Read] to Stdin
 		childErr = syscall.Dup2(fdtarget[0], syscall.Stdin)
 		if childErr != nil {
-			os.Exit(-1)
+			return childErr
 		}
 		// Direct Judger's Pipe[Write] to Stdout
 		childErr = syscall.Dup2(fdjudger[1], syscall.Stdout)
 		if childErr != nil {
-			os.Exit(-1)
+			return childErr
 		}
 
 		// Set resource limit
 		childErr = setLimit(options.TimeLimit, options.MemoryLimit)
 		if childErr != nil {
-			os.Exit(-1)
+			return childErr
 		}
 		// Run Program
 		if len(options.Commands) > 1 {
@@ -180,7 +180,7 @@ func InteractiveChecker(options JudgeOption, result *JudgeResult) (error) {
 		} else {
 			childErr = syscall.Exec(options.Commands[0], nil, nil)
 		}
-		os.Exit(0)
+		return childErr
 
 	} else {
 
@@ -194,12 +194,12 @@ func InteractiveChecker(options JudgeOption, result *JudgeResult) (error) {
 			// Direct Judger's Pipe[Read] to Stdout
 			judgerErr = syscall.Dup2(fdjudger[0], syscall.Stdin)
 			if judgerErr != nil {
-				os.Exit(-1)
+				return judgerErr
 			}
 			// Direct Program's Pipe[Write] to Stdin
 			judgerErr = syscall.Dup2(fdtarget[1], syscall.Stdout)
 			if judgerErr != nil {
-				os.Exit(-1)
+				return judgerErr
 			}
 
 			tl, ml := SPECIAL_JUDGE_TIME_LIMIT, SPECIAL_JUDGE_MEMORY_LIMIT
@@ -209,14 +209,14 @@ func InteractiveChecker(options JudgeOption, result *JudgeResult) (error) {
 			// Set resource limit
 			childErr = setLimit(tl, ml)
 			if childErr != nil {
-				os.Exit(-1)
+				return childErr
 			}
 
 			// Run Judger
 			args := []string{ options.SpecialJudge.Checker, options.TestCaseIn, options.TestCaseOut, options.ProgramOut }
 			judgerErr = syscall.Exec(options.SpecialJudge.Checker, args, nil)
 
-			os.Exit(0)
+			return childErr
 
 		} else {
 
