@@ -33,7 +33,7 @@ func (prov *PHPCompileProvider) Compile() (result bool, errmsg string) {
 }
 
 func (prov *PHPCompileProvider) GetRunArgs() (args []string) {
-	args = []string{ "php", "-f", prov.codeFilePath }
+	args = []string{ "/usr/bin/php", "-f", prov.codeFilePath }
 	return
 }
 

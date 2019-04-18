@@ -3,6 +3,7 @@ package deer_executor
 import (
 	"fmt"
 	"math"
+	"os"
 	"runtime"
 	"syscall"
 	"unsafe"
@@ -80,15 +81,15 @@ func forkProc() (pid uintptr, err error) {
 //
 
 func getFileDescriptor(path string, flag int, perm uint32) (fd int, err error) {
-	//var filed = 0
-	//_, errMsg := os.Stat(path)
-	//if errMsg != nil {
-	//	if os.IsNotExist(err) {
-	//		return 0, errMsg
-	//	}
-	//}
-	filed, errMsg := syscall.Open(path, flag, perm)
-	return filed, errMsg
+	var filed = 0
+	_, errMsg := os.Stat(path)
+	if errMsg != nil {
+		if os.IsNotExist(err) {
+			return 0, errMsg
+		}
+	}
+	filed, errMsg = syscall.Open(path, flag, perm)
+	return filed, nil
 }
 
 func redirectFileDescriptor(to int, path string, flag int, perm uint32) (fd int, err error) {

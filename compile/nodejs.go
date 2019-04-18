@@ -34,7 +34,7 @@ func (prov *NodeJSCompileProvider) Compile() (result bool, errmsg string) {
 }
 
 func (prov *NodeJSCompileProvider) GetRunArgs() (args []string) {
-	args = []string{ "node", prov.codeFilePath }
+	args = []string{ "/usr/bin/node", prov.codeFilePath }
 	return
 }
 

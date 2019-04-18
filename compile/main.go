@@ -11,13 +11,13 @@ import (
 )
 
 const (
-	COMPILE_COMMAND_GNUC = "gcc %s -o %s -ansi -fno-asm -Wall -std=c99 -lm"
-	COMPILE_COMMAND_GNUCPP = "g++ %s -o %s -ansi -fno-asm -Wall -lm"
-	COMPILE_COMMAND_JAVA = "javac -encoding utf-8 %s -d %s"
-	COMPILE_COMMAND_GO = "go build -o %s %s"
-	COMPILE_COMMAND_NODEJS = "node -c %s"
-	COMPILE_COMMAND_PHP = "php -l -f %s"
-	COMPILE_COMMAND_RUBY = "ruby -c %s"
+	COMPILE_COMMAND_GNUC = "/usr/bin/gcc %s -o %s -ansi -fno-asm -Wall -std=c99 -lm"
+	COMPILE_COMMAND_GNUCPP = "/usr/bin/g++ %s -o %s -ansi -fno-asm -Wall -lm"
+	COMPILE_COMMAND_JAVA = "/usr/bin/javac -encoding utf-8 %s -d %s"
+	COMPILE_COMMAND_GO = "/usr/bin/go build -o %s %s"
+	COMPILE_COMMAND_NODEJS = "/usr/bin/node -c %s"
+	COMPILE_COMMAND_PHP = "/usr/bin/php -l -f %s"
+	COMPILE_COMMAND_RUBY = "/usr/bin/ruby -c %s"
 )
 
 type CodeCompileProviderInterface interface {
