@@ -18,8 +18,8 @@ func getJavaClassName (code string) (className string, err error) {
 		className = string(matched[1])
 		err = nil
 	} else {
-		className = ""
-		err = fmt.Errorf("no java public class name matched")
+		className = "Main"			// default java public classname (might cause compile error)
+ 		// err = fmt.Errorf("no java public class name matched")
 	}
 	return
 }

@@ -126,7 +126,7 @@ int main(int argc,char **argv) {
 ```
 _REQUIRE_DEFAULT_CHECKER_
 
-  Special judge checker sometimes not only a checker, but also a processor program. You can using the checker to process the target program's output, _e.p_ keep two decimal for type _double_ and so on. After that you can return **REQUIRE_DEFAULT_CHECKER** for calling the default text-diff checker supported from deer-executor.
+  Special judge checker sometimes not only a checker, but also a processor program. You can use the checker to process the target program's output, _e.p_ keep two decimal for type _double_ and so on. After that you can return **REQUIRE_DEFAULT_CHECKER** for calling the default text-diff checker supported from deer-executor.
 
 ## 🧬 Compile
 
