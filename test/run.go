@@ -11,13 +11,15 @@ func main() {
 
 	workDir := "/Users/lancelrq/wejudge/deer-executor"
 
-	code, err:= ioutil.ReadFile(workDir + "/test/program.c")
+	//code, err:= ioutil.ReadFile(workDir + "/test/program.c")
+	code, err:= ioutil.ReadFile(workDir + "/test/Main.java")
 	if err != nil {
 		return
 	}
 	codeContent := string(code)
 
-	compiler := deer_compiler.GnucCompileProvider{}
+	//compiler := deer_compiler.GnucCompileProvider{}
+	compiler := deer_compiler.JavaCompileProvider{}
 	compiler.Init(codeContent,  "/tmp")
 	success, ceinfo := compiler.Compile()
 	if !success {
@@ -26,7 +28,7 @@ func main() {
 
 	judgeOption := deer_executor.JudgeOption{
 		TimeLimit:     1000,
-		MemoryLimit:   32768,
+		MemoryLimit:   256000,
 		FileSizeLimit: 100 * 1024 * 1024,
 		Commands:      compiler.GetRunArgs(),
 		TestCaseIn:    workDir + "/test/0.in",
