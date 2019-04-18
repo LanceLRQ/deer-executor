@@ -28,7 +28,7 @@ func main() {
 
 	judgeOption := deer_executor.JudgeOption{
 		TimeLimit:     1000,
-		MemoryLimit:   256000,
+		MemoryLimit:   65355,
 		FileSizeLimit: 100 * 1024 * 1024,
 		Commands:      compiler.GetRunArgs(),
 		TestCaseIn:    workDir + "/test/0.in",

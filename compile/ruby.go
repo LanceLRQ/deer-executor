@@ -33,7 +33,7 @@ func (prov *RubyCompileProvider) Compile() (result bool, errmsg string) {
 }
 
 func (prov *RubyCompileProvider) GetRunArgs() (args []string) {
-	args = []string{ "ruby", prov.codeFilePath }
+	args = []string{ "/usr/bin/ruby", prov.codeFilePath }
 	return
 }
 

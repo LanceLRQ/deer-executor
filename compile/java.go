@@ -65,7 +65,7 @@ func (prov *JavaCompileProvider) Compile() (result bool, errmsg string) {
 
 func (prov *JavaCompileProvider) GetRunArgs() (args []string) {
 	args = []string{
-		"java", "-client", "-Dfile.encoding=utf-8",
+		"/usr/bin/java", "-client", "-Dfile.encoding=utf-8",
 		"-classpath", path.Dir(prov.programFilePath), prov.javaClassName,
 	}
 	return

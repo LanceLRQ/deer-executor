@@ -33,7 +33,7 @@ func (prov *Py2CompileProvider) Compile() (result bool, errmsg string) {
 }
 
 func (prov *Py2CompileProvider) GetRunArgs() (args []string) {
-	args = []string{ "python", "-u", prov.codeFilePath }
+	args = []string{ "/usr/bin/python", "-u", prov.codeFilePath }
 	return
 }
 
@@ -68,7 +68,7 @@ func (prov *Py3CompileProvider) Compile() (result bool, errmsg string) {
 }
 
 func (prov *Py3CompileProvider) GetRunArgs() (args []string) {
-	args = []string{ "python3", "-u", prov.codeFilePath }
+	args = []string{ "/usr/bin/python3", "-u", prov.codeFilePath }
 	return
 }
 
