@@ -70,3 +70,7 @@ func (prov *JavaCompileProvider) GetRunArgs() (args []string) {
 	}
 	return
 }
+
+func (prov *JavaCompileProvider) IsCompileError(remsg string) bool {
+	return false
+}

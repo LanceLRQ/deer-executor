@@ -34,3 +34,7 @@ func (prov *GolangCompileProvider) GetRunArgs() (args []string) {
 	args = []string{ prov.programFilePath }
 	return
 }
+
+func (prov *GolangCompileProvider) IsCompileError(remsg string) bool {
+	return false
+}
