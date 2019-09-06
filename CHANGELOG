@@ -1,0 +1,8 @@
+v1.2.0
+======
+给RunProgram、CustomChecker、InteractiveChecker 增加了pid通道，可以在调用时获取相对于的pid。
+如果不需要获取，传nil即可。
+
+v1.1.8
+======
+修正Python2、3的编译程序函数名称错误的问题

@@ -81,12 +81,12 @@ func (conf *JudgeResult) String() string {
 	return out.String()
 }
 
-
+// 这个函数实现了判题的基本用法，考虑到实际情况不一定会使用这个函数，你可以模仿这个函数的写法来调用自己需要的功能
 func Judge(options JudgeOption) (*JudgeResult, error) {
 	judgeResult :=  new(JudgeResult)
 
 	if options.SpecialJudge.Mode == SPECIAL_JUDGE_MODE_INTERACTIVE {
-		err := InteractiveChecker(options, judgeResult)
+		err := InteractiveChecker(options, judgeResult, nil, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -99,12 +99,12 @@ func Judge(options JudgeOption) (*JudgeResult, error) {
 		}
 	} else {
 		// Run Program
-		err := RunProgram(options, judgeResult)
+		err := RunProgram(options, judgeResult, nil)
 		if err != nil {
 			return nil, err
 		}
 		if options.SpecialJudge.Mode == SPECIAL_JUDGE_MODE_CHECKER && judgeResult.JudgeResult == JUDGE_FLAG_AC {
-			err := CustomChecker(options, judgeResult)
+			err := CustomChecker(options, judgeResult, nil)
 			if err != nil {
 				return nil, err
 			}
