@@ -86,7 +86,7 @@ func Judge(options JudgeOption) (*JudgeResult, error) {
 	judgeResult :=  new(JudgeResult)
 
 	if options.SpecialJudge.Mode == SPECIAL_JUDGE_MODE_INTERACTIVE {
-		err := InteractiveChecker(options, judgeResult, nil, nil)
+		err := InteractiveChecker(options, judgeResult, nil)
 		if err != nil {
 			return nil, err
 		}
