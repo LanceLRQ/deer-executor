@@ -46,7 +46,7 @@ func waitCustomChecker(options JudgeOption, pid uintptr, rst *JudgeResult, isInt
 	return nil
 }
 
-func CustomChecker(options JudgeOption, result *JudgeResult, checkerPid chan uintptr) error {
+func CustomChecker(options JudgeOption, result *JudgeResult, msg chan string) error {
 	if runtime.GOOS != "linux" {
 		result.JudgeResult = JUDGE_FLAG_SE
 		result.SeInfo += "special judge can only be enable at linux.\n"
@@ -102,8 +102,8 @@ func CustomChecker(options JudgeOption, result *JudgeResult, checkerPid chan uin
 		os.Exit(0)
 
 	} else {
-		if checkerPid != nil {
-			checkerPid <- pid
+		if msg != nil {
+			msg <- fmt.Sprintf("pid:program:%d", pid)
 		}
 		err = waitCustomChecker(options, pid, result, false)
 		if err != nil {
@@ -119,11 +119,14 @@ func CustomChecker(options JudgeOption, result *JudgeResult, checkerPid chan uin
 		syscall.Close(stdinFd)
 		syscall.Close(stdoutFd)
 		syscall.Close(stderrFd)
+		if msg != nil {
+			msg <- "done"
+		}
 	}
 	return err
 }
 
-func InteractiveChecker(options JudgeOption, result *JudgeResult, checkerPid, childPid chan uintptr) error {
+func InteractiveChecker(options JudgeOption, result *JudgeResult, msg chan string) error {
 	if runtime.GOOS != "linux" {
 		result.JudgeResult = JUDGE_FLAG_SE
 		result.SeInfo += "interactive special judge can only be enable at linux.\n"
@@ -186,8 +189,8 @@ func InteractiveChecker(options JudgeOption, result *JudgeResult, checkerPid, ch
 		return childErr
 
 	} else {
-		if childPid != nil {
-			childPid <- pidProgram
+		if msg != nil {
+			msg <- fmt.Sprintf("pid:program:%d", pidProgram)
 		}
 		// Run Judger
 		pidJudger, judgerErr = forkProc()
@@ -224,8 +227,8 @@ func InteractiveChecker(options JudgeOption, result *JudgeResult, checkerPid, ch
 			return childErr
 
 		} else {
-			if checkerPid != nil {
-				checkerPid <- pidJudger
+			if msg != nil {
+				msg <- fmt.Sprintf("pid:checker:%d", pidProgram)
 			}
 			err = waitCustomChecker(options, pidJudger, result, true)
 			if err != nil {
@@ -242,6 +245,9 @@ func InteractiveChecker(options JudgeOption, result *JudgeResult, checkerPid, ch
 				result.JudgeResult = JUDGE_FLAG_SE
 				result.SeInfo += childErr.Error() + "\n"
 				return childErr
+			}
+			if msg != nil {
+				msg <- "done"
 			}
 		}
 	}
