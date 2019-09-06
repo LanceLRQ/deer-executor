@@ -6,7 +6,7 @@ import (
 )
 
 
-func waitExit(options JudgeOption, pid uintptr, rst *JudgeResult) (error) {
+func waitExit(options JudgeOption, pid uintptr, rst *JudgeResult) error {
 	var (
 		status syscall.WaitStatus
 		ru syscall.Rusage
@@ -60,7 +60,7 @@ func waitExit(options JudgeOption, pid uintptr, rst *JudgeResult) (error) {
 	return nil
 }
 
-func RunProgram(options JudgeOption, result *JudgeResult) (error) {
+func RunProgram(options JudgeOption, result *JudgeResult, childPid chan uintptr) error {
 
 	var (
 		err, childErr error = nil, nil
@@ -121,6 +121,9 @@ func RunProgram(options JudgeOption, result *JudgeResult) (error) {
 		return childErr		// In general, it won't be run.
 
 	} else {
+		if childPid != nil {
+			childPid <- pid
+		}
 		// paren process: wait for child process end.
 		err = waitExit(options, pid, result)
 		if err != nil {
