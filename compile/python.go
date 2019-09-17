@@ -1,3 +1,8 @@
+/* Python Compiler Provider
+ * (C) 2019 LanceLRQ
+ *
+ * This code is licenced under the GPL.
+ */
 package deer_compiler
 
 import "strings"
