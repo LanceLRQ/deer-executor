@@ -26,7 +26,7 @@ const (
 	JUDGE_FLAG_SPJ_ERROR int = 11    		// 11 Special Judger ERROR
 	JUDGE_FLAG_SPJ_REQUIRE_CHECK int = 12 	// 12 Special Judger Finish, Need Standard Checkup
 
-	JUDGE_FILE_SIZE_LIMIT = 100 * 1024  // kb
+	JUDGE_FILE_SIZE_LIMIT = 200 * 1024 * 1024  // 200MB
 )
 
 const (
