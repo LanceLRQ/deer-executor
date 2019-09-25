@@ -7,6 +7,9 @@ package deer_executor
 
 import (
 	"bufio"
+	"fmt"
+	"hash/crc32"
+	"io"
 	"os"
 	"strings"
 )
@@ -61,9 +64,25 @@ func lineDiff (userout *os.File, answer *os.File) (sameLines int, totalLines int
 	return rightCnt, leftCnt
 }
 
+func isSpaceChar (ch byte) bool {
+	return ch == '\n' ||  ch == '\r' || ch == ' ' || ch == '\t'
+}
+
+func checkCRC(fp *os.File) (string, error) {
+	if _, err := fp.Seek(0, io.SeekStart); err != nil {
+		return "", err
+	}
+	reader := bufio.NewReader(fp)
+	crc := crc32.NewIEEE()
+	if  _, err := io.Copy(crc, reader); err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%x", crc.Sum32()), nil
+}
+
 func charDiff (userout *os.File, answer *os.File, useroutLen int64, answerLen int64) (int) {
-	userout.Seek(0, os.SEEK_SET)
-	answer.Seek(0, os.SEEK_SET)
+	_, _ = userout.Seek(0, io.SeekStart)
+	_, _ = answer.Seek(0, io.SeekStart)
 
 	useroutBuffer := bufio.NewReader(userout)
 	answerBuffer := bufio.NewReader(answer)
@@ -73,14 +92,15 @@ func charDiff (userout *os.File, answer *os.File, useroutLen int64, answerLen in
 		leftErr, rightErr error = nil, nil
 		leftByte, rightByte byte
 	)
-
+	// Lo-runner 源代码中对于格式错误的判断只是判断长度不同，没有判断字符不同的格式错误。
+	// 这边很暴力的直接用CRC32去测试了
 	for (leftPos < useroutLen) && (rightPos < answerLen) && (leftErr == nil) && (rightErr == nil) {
 		leftByte, leftErr = useroutBuffer.ReadByte()
 		rightByte, rightErr = answerBuffer.ReadByte()
-		for leftByte == '\n' || leftByte == '\r' || leftByte == ' ' || leftByte == '\t' && leftErr == nil {
+		for leftErr == nil && isSpaceChar(leftByte) {
 			leftByte, leftErr = useroutBuffer.ReadByte(); leftPos++
 		}
-		for rightByte == '\n' ||  rightByte == '\r' || rightByte == ' ' || rightByte == '\t' && rightErr == nil {
+		for  rightErr == nil && isSpaceChar(rightByte) {
 			rightByte, rightErr = answerBuffer.ReadByte(); rightPos++
 		}
 		if leftByte != rightByte {
@@ -90,6 +110,11 @@ func charDiff (userout *os.File, answer *os.File, useroutLen int64, answerLen in
 		if rightErr == nil { rightPos++ }
 	}
 	if leftPos == useroutLen && rightPos == answerLen && leftPos == rightPos {
+		crcuser, _ := checkCRC(userout)
+		crcout, _ := checkCRC(answer)
+		if crcuser != crcout {
+			return JUDGE_FLAG_PE
+		}
 		return JUDGE_FLAG_AC
 	} else {
 		return JUDGE_FLAG_PE
