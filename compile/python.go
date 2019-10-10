@@ -1,7 +1,7 @@
 /* Python Compiler Provider
  * (C) 2019 LanceLRQ
  *
- * This code is licenced under the GPL.
+ * This code is licenced under the GPLv3.
  */
 package deer_compiler
 
