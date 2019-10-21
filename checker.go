@@ -89,26 +89,30 @@ func charDiff (userout *os.File, answer *os.File, useroutLen int64, answerLen in
 
 	var (
 		leftPos, rightPos int64 = 0, 0
+		maxLength = Max(useroutLen, answerLen)
 		leftErr, rightErr error = nil, nil
 		leftByte, rightByte byte
 	)
 	// Lo-runner 源代码中对于格式错误的判断只是判断长度不同，没有判断字符不同的格式错误。
 	// 这边很暴力的直接用CRC32去测试了
-	for (leftPos < useroutLen) && (rightPos < answerLen) && (leftErr == nil) && (rightErr == nil) {
+	for (leftPos < maxLength) && (rightPos < maxLength) {
 		leftByte, leftErr = useroutBuffer.ReadByte()
 		rightByte, rightErr = answerBuffer.ReadByte()
+
 		for leftErr == nil && isSpaceChar(leftByte) {
 			leftByte, leftErr = useroutBuffer.ReadByte(); leftPos++
 		}
 		for  rightErr == nil && isSpaceChar(rightByte) {
 			rightByte, rightErr = answerBuffer.ReadByte(); rightPos++
 		}
+
 		if leftByte != rightByte {
 			return -1
 		}
 		if leftErr == nil { leftPos++ }
 		if rightErr == nil { rightPos++ }
 	}
+
 	if leftPos == useroutLen && rightPos == answerLen && leftPos == rightPos {
 		crcuser, _ := checkCRC(userout)
 		crcout, _ := checkCRC(answer)
