@@ -99,6 +99,10 @@ func charDiff (userout *os.File, answer *os.File, useroutLen int64, answerLen in
 		leftByte, leftErr = useroutBuffer.ReadByte()
 		rightByte, rightErr = answerBuffer.ReadByte()
 
+		if (leftErr != nil) && (rightErr != nil) {
+			break
+		}
+
 		for leftErr == nil && isSpaceChar(leftByte) {
 			leftByte, leftErr = useroutBuffer.ReadByte(); leftPos++
 		}
