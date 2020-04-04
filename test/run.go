@@ -9,30 +9,32 @@ import (
 
 func main() {
 
-	workDir := "/Users/lancelrq/wejudge/deer-executor"
+	workDir := "/Users/yiyiwukeji/github/deer-executor"
 
-	//code, err:= ioutil.ReadFile(workDir + "/test/program.c")
-	code, err:= ioutil.ReadFile(workDir + "/test/Main.java")
+	code, err:= ioutil.ReadFile(workDir + "/test/program.c")
+	//code, err:= ioutil.ReadFile(workDir + "/test/Main.java")
 	if err != nil {
 		return
 	}
 	codeContent := string(code)
 
-	//compiler := deer_compiler.GnucCompileProvider{}
-	compiler := deer_compiler.JavaCompileProvider{}
-	compiler.Init(codeContent,  "/tmp")
+	compiler := deer_compiler.GnucCompileProvider{}
+	//compiler := deer_compiler.JavaCompileProvider{}
+	err = compiler.Init(codeContent,  "/tmp")
 	success, ceinfo := compiler.Compile()
 	if !success {
 		fmt.Println(ceinfo)
 	}
 
 	judgeOption := deer_executor.JudgeOption{
-		TimeLimit:     1000,
+		TimeLimit:     10000,
 		MemoryLimit:   65355,
 		FileSizeLimit: 100 * 1024 * 1024,
 		Commands:      compiler.GetRunArgs(),
 		TestCaseIn:    workDir + "/test/0.in",
 		TestCaseOut:   workDir + "/test/0.out",
+		//TestCaseIn:    workDir + "/test/test_cases/bcfc91105306975d.in",
+		//TestCaseOut:   workDir + "/test/test_cases/bcfc91105306975d.out",
 		ProgramOut:    "/tmp/user.out",
 		ProgramError:  "/tmp/user.err",
 		// Special Judge

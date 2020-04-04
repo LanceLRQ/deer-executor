@@ -1,3 +1,8 @@
+/* Deer executor
+ * (C) 2019 LanceLRQ
+ *
+ * This code is licenced under the GPLv3.
+ */
 package deer_executor
 
 import (
@@ -7,7 +12,7 @@ import (
 	"syscall"
 )
 
-func waitCustomChecker(options JudgeOption, pid uintptr, rst *JudgeResult, isInteractive bool) (error) {
+func waitCustomChecker(options JudgeOption, pid uintptr, rst *JudgeResult, isInteractive bool) error {
 	var (
 		status syscall.WaitStatus
 		ru syscall.Rusage
@@ -46,7 +51,7 @@ func waitCustomChecker(options JudgeOption, pid uintptr, rst *JudgeResult, isInt
 	return nil
 }
 
-func CustomChecker(options JudgeOption, result *JudgeResult) (error) {
+func CustomChecker(options JudgeOption, result *JudgeResult, msg chan string) error {
 	if runtime.GOOS != "linux" {
 		result.JudgeResult = JUDGE_FLAG_SE
 		result.SeInfo += "special judge can only be enable at linux.\n"
@@ -102,6 +107,9 @@ func CustomChecker(options JudgeOption, result *JudgeResult) (error) {
 		os.Exit(0)
 
 	} else {
+		if msg != nil {
+			msg <- fmt.Sprintf("pid:program:%d", pid)
+		}
 		err = waitCustomChecker(options, pid, result, false)
 		if err != nil {
 			result.JudgeResult = JUDGE_FLAG_SE
@@ -116,11 +124,14 @@ func CustomChecker(options JudgeOption, result *JudgeResult) (error) {
 		syscall.Close(stdinFd)
 		syscall.Close(stdoutFd)
 		syscall.Close(stderrFd)
+		if msg != nil {
+			msg <- "done"
+		}
 	}
 	return err
 }
 
-func InteractiveChecker(options JudgeOption, result *JudgeResult) (error) {
+func InteractiveChecker(options JudgeOption, result *JudgeResult, msg chan string) error {
 	if runtime.GOOS != "linux" {
 		result.JudgeResult = JUDGE_FLAG_SE
 		result.SeInfo += "interactive special judge can only be enable at linux.\n"
@@ -183,7 +194,9 @@ func InteractiveChecker(options JudgeOption, result *JudgeResult) (error) {
 		return childErr
 
 	} else {
-
+		if msg != nil {
+			msg <- fmt.Sprintf("pid:program:%d", pidProgram)
+		}
 		// Run Judger
 		pidJudger, judgerErr = forkProc()
 		if judgerErr != nil {
@@ -219,7 +232,9 @@ func InteractiveChecker(options JudgeOption, result *JudgeResult) (error) {
 			return childErr
 
 		} else {
-
+			if msg != nil {
+				msg <- fmt.Sprintf("pid:checker:%d", pidProgram)
+			}
 			err = waitCustomChecker(options, pidJudger, result, true)
 			if err != nil {
 				result.JudgeResult = JUDGE_FLAG_SE
@@ -235,6 +250,9 @@ func InteractiveChecker(options JudgeOption, result *JudgeResult) (error) {
 				result.JudgeResult = JUDGE_FLAG_SE
 				result.SeInfo += childErr.Error() + "\n"
 				return childErr
+			}
+			if msg != nil {
+				msg <- "done"
 			}
 		}
 	}

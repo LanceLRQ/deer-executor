@@ -1,3 +1,8 @@
+/* Java Compiler Provider
+ * (C) 2019 LanceLRQ
+ *
+ * This code is licenced under the GPLv3.
+ */
 package deer_compiler
 
 import (
@@ -69,4 +74,8 @@ func (prov *JavaCompileProvider) GetRunArgs() (args []string) {
 		"-classpath", path.Dir(prov.programFilePath), prov.javaClassName,
 	}
 	return
+}
+
+func (prov *JavaCompileProvider) IsCompileError(remsg string) bool {
+	return false
 }

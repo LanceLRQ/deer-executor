@@ -4,6 +4,8 @@
 English | [简体中文](./README-zh_CN.md)
 
 ## ✨ Features
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FLanceLRQ%2Fdeer-executor.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FLanceLRQ%2Fdeer-executor?ref=badge_shield)
+
  - Most languages supported.
  - You can  build and run it standalone.
  - Support Linux and Darwin(MacOS), maybe Windows in the future.
@@ -211,3 +213,6 @@ Finally，thanks to my alma mater [Beijing Normal University (Zhuhai)](http://ww
 
 
 **_We welcome all contributions. You can submit any ideas as pull requests or as GitHub issues. have a good time! :)_**
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FLanceLRQ%2Fdeer-executor.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FLanceLRQ%2Fdeer-executor?ref=badge_large)
