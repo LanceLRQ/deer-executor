@@ -1,3 +1,8 @@
+/* Compiler Provider Base
+ * (C) 2019 LanceLRQ
+ *
+ * This code is licenced under the GPLv3.
+ */
 package deer_compiler
 
 import (
@@ -11,8 +16,8 @@ import (
 )
 
 const (
-	COMPILE_COMMAND_GNUC = "/usr/bin/gcc %s -o %s -ansi -fno-asm -Wall -std=c99 -lm"
-	COMPILE_COMMAND_GNUCPP = "/usr/bin/g++ %s -o %s -ansi -fno-asm -Wall -lm"
+	COMPILE_COMMAND_GNUC = "/usr/bin/gcc %s -o %s -ansi -fno-asm -Wall -std=c11 -lm"
+	COMPILE_COMMAND_GNUCPP = "/usr/bin/g++ %s -o %s -ansi -fno-asm -Wall -lm -std=c++11"
 	COMPILE_COMMAND_JAVA = "/usr/bin/javac -encoding utf-8 %s -d %s"
 	COMPILE_COMMAND_GO = "/usr/bin/go build -o %s %s"
 	COMPILE_COMMAND_NODEJS = "/usr/bin/node -c %s"

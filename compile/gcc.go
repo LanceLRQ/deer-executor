@@ -1,3 +1,8 @@
+/* GCC Compiler Provider
+ * (C) 2019 LanceLRQ
+ *
+ * This code is licenced under the GPLv3.
+ */
 package deer_compiler
 
 import "fmt"
@@ -38,6 +43,10 @@ func (prov *GnucCompileProvider) GetRunArgs() (args []string) {
 	return
 }
 
+func (prov *GnucCompileProvider) IsCompileError(remsg string) bool {
+	return false
+}
+
 func (prov *GnucppCompileProvider) Init(code string, workDir string) error {
 	prov.isReady = false
 	prov.realTime = false
@@ -64,4 +73,8 @@ func (prov *GnucppCompileProvider) Compile() (result bool, errmsg string) {
 func (prov *GnucppCompileProvider) GetRunArgs() (args []string) {
 	args = []string{ prov.programFilePath }
 	return
+}
+
+func (prov *GnucppCompileProvider) IsCompileError(remsg string) bool {
+	return false
 }

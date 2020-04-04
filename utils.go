@@ -1,3 +1,8 @@
+/* Deer executor
+ * (C) 2019 LanceLRQ
+ *
+ * This code is licenced under the GPLv3.
+ */
 package deer_executor
 
 import (
@@ -65,7 +70,7 @@ func forkProc() (pid uintptr, err error) {
 //	return pid, nil
 //}
 //
-//func pipe2Linux(fd *[2]int) (error) {
+//func pipe2Linux(fd *[2]int) error {
 //	const SYS_PIPE2 = 293
 //	if runtime.GOOS == "linux" {
 //		_, _, err := syscall.RawSyscall(SYS_PIPE2, uintptr(unsafe.Pointer(fd)), syscall.O_NONBLOCK, 0)

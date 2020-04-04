@@ -1,3 +1,8 @@
+/* Golang Compiler Provider
+ * (C) 2019 LanceLRQ
+ *
+ * This code is licenced under the GPLv3.
+ */
 package deer_compiler
 
 import "fmt"
@@ -33,4 +38,8 @@ func (prov *GolangCompileProvider) Compile() (result bool, errmsg string) {
 func (prov *GolangCompileProvider) GetRunArgs() (args []string) {
 	args = []string{ prov.programFilePath }
 	return
+}
+
+func (prov *GolangCompileProvider) IsCompileError(remsg string) bool {
+	return false
 }

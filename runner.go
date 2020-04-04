@@ -1,12 +1,18 @@
+/* Deer executor
+ * (C) 2019 LanceLRQ
+ *
+ * This code is licenced under the GPLv3.
+ */
 package deer_executor
 
 import (
+	"fmt"
 	"os"
 	"syscall"
 )
 
 
-func waitExit(options JudgeOption, pid uintptr, rst *JudgeResult) (error) {
+func waitExit(options JudgeOption, pid uintptr, rst *JudgeResult) error {
 	var (
 		status syscall.WaitStatus
 		ru syscall.Rusage
@@ -60,7 +66,7 @@ func waitExit(options JudgeOption, pid uintptr, rst *JudgeResult) (error) {
 	return nil
 }
 
-func RunProgram(options JudgeOption, result *JudgeResult) (error) {
+func RunProgram(options JudgeOption, result *JudgeResult, msg chan string) error {
 
 	var (
 		err, childErr error = nil, nil
@@ -123,6 +129,9 @@ func RunProgram(options JudgeOption, result *JudgeResult) (error) {
 		return childErr		// In general, it won't be run.
 
 	} else {
+		if msg != nil {
+			msg <- fmt.Sprintf("pid:program:%d", pid)
+		}
 		// paren process: wait for child process end.
 		err = waitExit(options, pid, result)
 		if err != nil {
@@ -138,6 +147,9 @@ func RunProgram(options JudgeOption, result *JudgeResult) (error) {
 		syscall.Close(stdinFd)
 		syscall.Close(stdoutFd)
 		syscall.Close(stderrFd)
+		if msg != nil {
+			msg <- "done"
+		}
 	}
 
 	return nil

@@ -1,3 +1,8 @@
+/* Python Compiler Provider
+ * (C) 2019 LanceLRQ
+ *
+ * This code is licenced under the GPLv3.
+ */
 package deer_compiler
 
 import "strings"
@@ -37,7 +42,7 @@ func (prov *Py2CompileProvider) GetRunArgs() (args []string) {
 	return
 }
 
-func (prov *Py2CompileProvider) isCompileError(remsg string) bool {
+func (prov *Py2CompileProvider) IsCompileError(remsg string) bool {
 	return strings.Contains(remsg, "SyntaxError") ||
 		strings.Contains(remsg, "IndentationError") ||
 		strings.Contains(remsg, "ImportError")
