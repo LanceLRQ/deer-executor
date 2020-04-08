@@ -97,10 +97,11 @@ func Judge(options JudgeOption) (*JudgeResult, error) {
 		}
 		// Text Diff
 		if judgeResult.JudgeResult == JUDGE_FLAG_SPJ_REQUIRE_CHECK {
-			err = DiffText(options, judgeResult)
+			err, logtext := DiffText(options, judgeResult)
 			if err != nil {
 				return nil, err
 			}
+			fmt.Println(logtext)
 		}
 	} else {
 		// Run Program
@@ -115,18 +116,20 @@ func Judge(options JudgeOption) (*JudgeResult, error) {
 			}
 			// Text Diff
 			if judgeResult.JudgeResult == JUDGE_FLAG_SPJ_REQUIRE_CHECK {
-				err = DiffText(options, judgeResult)
+				err, logtext := DiffText(options, judgeResult)
 				if err != nil {
 					return nil, err
 				}
+				fmt.Println(logtext)
 			}
 		} else {
 			// Text Diff
 			if judgeResult.JudgeResult == JUDGE_FLAG_AC {
-				err = DiffText(options, judgeResult)
+				err, logtext := DiffText(options, judgeResult)
 				if err != nil {
 					return nil, err
 				}
+				fmt.Println(logtext)
 			}
 
 		}
