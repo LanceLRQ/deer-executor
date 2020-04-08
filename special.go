@@ -116,14 +116,14 @@ func CustomChecker(options JudgeOption, result *JudgeResult, msg chan string) er
 			result.SeInfo += err.Error() + "\n"
 			return err
 		}
-		if childErr != nil {
-			result.JudgeResult = JUDGE_FLAG_SE
-			result.SeInfo += childErr.Error() + "\n"
-			return childErr
-		}
-		syscall.Close(stdinFd)
-		syscall.Close(stdoutFd)
-		syscall.Close(stderrFd)
+		//if childErr != nil {
+		//	result.JudgeResult = JUDGE_FLAG_SE
+		//	result.SeInfo += childErr.Error() + "\n"
+		//	return childErr
+		//}
+		_ = syscall.Close(stdinFd)
+		_ = syscall.Close(stdoutFd)
+		_ = syscall.Close(stderrFd)
 		if msg != nil {
 			msg <- "done"
 		}
@@ -241,16 +241,16 @@ func InteractiveChecker(options JudgeOption, result *JudgeResult, msg chan strin
 				result.SeInfo += err.Error() + "\n"
 				return err
 			}
-			if judgerErr != nil {
-				result.JudgeResult = JUDGE_FLAG_SE
-				result.SeInfo += judgerErr.Error() + "\n"
-				return judgerErr
-			}
-			if childErr != nil {
-				result.JudgeResult = JUDGE_FLAG_SE
-				result.SeInfo += childErr.Error() + "\n"
-				return childErr
-			}
+			//if judgerErr != nil {
+			//	result.JudgeResult = JUDGE_FLAG_SE
+			//	result.SeInfo += judgerErr.Error() + "\n"
+			//	return judgerErr
+			//}
+			//if childErr != nil {
+			//	result.JudgeResult = JUDGE_FLAG_SE
+			//	result.SeInfo += childErr.Error() + "\n"
+			//	return childErr
+			//}
 			if msg != nil {
 				msg <- "done"
 			}

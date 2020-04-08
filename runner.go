@@ -137,14 +137,14 @@ func RunProgram(options JudgeOption, result *JudgeResult, msg chan string) error
 			result.SeInfo += err.Error() + "\n"
 			return err
 		}
-		if childErr != nil {
-			result.JudgeResult = JUDGE_FLAG_SE
-			result.SeInfo += childErr.Error() + "\n"
-			return childErr
-		}
-		syscall.Close(stdinFd)
-		syscall.Close(stdoutFd)
-		syscall.Close(stderrFd)
+		//if childErr != nil {
+		//	result.JudgeResult = JUDGE_FLAG_SE
+		//	result.SeInfo += childErr.Error() + "\n"
+		//	return childErr
+		//}
+		_ = syscall.Close(stdinFd)
+		_ =syscall.Close(stdoutFd)
+		_ =syscall.Close(stderrFd)
 		if msg != nil {
 			msg <- "done"
 		}
