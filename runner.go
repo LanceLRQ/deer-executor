@@ -117,11 +117,13 @@ func RunProgram(options JudgeOption, result *JudgeResult, msg chan string) error
 			return childErr
 		}
 
+		commonEnvs := []string{ "PYTHONIOENCODING=utf-8" }
+
 		// Run Program
 		if len(options.Commands) > 1 {
-			childErr = syscall.Exec(options.Commands[0], options.Commands[1:], nil)
+			childErr = syscall.Exec(options.Commands[0], options.Commands[1:], commonEnvs)
 		} else {
-			childErr = syscall.Exec(options.Commands[0], nil, nil)
+			childErr = syscall.Exec(options.Commands[0], nil, commonEnvs)
 		}
 
 		return childErr		// In general, it won't be run.
