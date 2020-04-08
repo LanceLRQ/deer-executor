@@ -112,7 +112,13 @@ func CharDiff (userout *os.File, answer *os.File, useroutLen int64, answerLen in
 		}
 
 		if leftByte != rightByte {
-			return -1, fmt.Sprintf("WA: at leftPos=%d, rightPos=%d", leftByte, rightByte)
+			return -1, fmt.Sprintf(
+				"WA: at leftPos=%d, rightPos=%d, leftByte=%d, rightByte=%d",
+				leftPos,
+				rightPos,
+				leftByte,
+				rightByte,
+			)
 		}
 		if leftErr == nil { leftPos++ }
 		if rightErr == nil { rightPos++ }
@@ -128,8 +134,8 @@ func CharDiff (userout *os.File, answer *os.File, useroutLen int64, answerLen in
 	} else {
 		return JUDGE_FLAG_PE, fmt.Sprintf(
 			"PE: leftPos=%d, rightPos=%d, leftLen=%d, rightLen=%d",
-			leftByte,
-			rightByte,
+			leftPos,
+			rightPos,
 			useroutLen,
 			answerLen,
 		)
