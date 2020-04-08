@@ -38,9 +38,9 @@ func lineDiff (userout *os.File, answer *os.File) (sameLines int, totalLines int
 	answerBuffer := bufio.NewReader(answer)
 
 	var (
-		leftStr, rightStr string = "", ""
+		leftStr, rightStr = "", ""
 		leftErr, rightErr error = nil, nil
-		leftCnt, rightCnt int = 0, 0
+		leftCnt, rightCnt = 0, 0
 	)
 
 	for leftErr == nil {
@@ -80,7 +80,7 @@ func checkCRC(fp *os.File) (string, error) {
 	return fmt.Sprintf("%x", crc.Sum32()), nil
 }
 
-func charDiff (userout *os.File, answer *os.File, useroutLen int64, answerLen int64) (int) {
+func CharDiff (userout *os.File, answer *os.File, useroutLen int64, answerLen int64) int {
 	_, _ = userout.Seek(0, io.SeekStart)
 	_, _ = answer.Seek(0, io.SeekStart)
 
@@ -131,17 +131,17 @@ func charDiff (userout *os.File, answer *os.File, useroutLen int64, answerLen in
 
 func DiffText(options JudgeOption, result *JudgeResult) (err error) {
 	answer, err := os.Open(options.TestCaseOut)
+	if err != nil {
+		result.JudgeResult = JUDGE_FLAG_SE
+		return err
+	}
 	defer answer.Close()
-	if err != nil {
-		result.JudgeResult = JUDGE_FLAG_SE
-		return err
-	}
 	userout, err := os.Open(options.ProgramOut)
-	defer userout.Close()
 	if err != nil {
 		result.JudgeResult = JUDGE_FLAG_SE
 		return err
 	}
+	defer userout.Close()
 
 	useroutLen, _ := userout.Seek(0, os.SEEK_END)
 	answerLen, _ := answer.Seek(0, os.SEEK_END)
@@ -159,7 +159,7 @@ func DiffText(options JudgeOption, result *JudgeResult) (err error) {
 		return nil
 	}
 
-	rel := charDiff(userout, answer, useroutLen ,answerLen)
+	rel := CharDiff(userout, answer, useroutLen ,answerLen)
 	if rel != -1 {
 		result.JudgeResult = rel
 		return nil

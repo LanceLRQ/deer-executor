@@ -85,10 +85,10 @@ func (prov *CodeCompileProvider) shell(commands string) (success bool, errout st
 
 func (prov *CodeCompileProvider) saveCode() error {
 	file, err := os.OpenFile(prov.codeFilePath, os.O_RDWR | os.O_CREATE, 0644)
-	defer file.Close()
 	if err != nil {
 		return err
 	}
+	defer file.Close()
 	_, err = file.WriteString(prov.codeContent)
 	return err
 }
