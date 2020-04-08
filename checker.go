@@ -80,7 +80,7 @@ func checkCRC(fp *os.File) (string, error) {
 	return fmt.Sprintf("%x", crc.Sum32()), nil
 }
 
-func CharDiff (userout *os.File, answer *os.File, useroutLen int64, answerLen int64) int {
+func CharDiff (userout *os.File, answer *os.File, useroutLen int64, answerLen int64) (rel int, logtext string) {
 	_, _ = userout.Seek(0, io.SeekStart)
 	_, _ = answer.Seek(0, io.SeekStart)
 
@@ -93,6 +93,7 @@ func CharDiff (userout *os.File, answer *os.File, useroutLen int64, answerLen in
 		leftErr, rightErr error = nil, nil
 		leftByte, rightByte byte
 	)
+
 	// Lo-runner 源代码中对于格式错误的判断只是判断长度不同，没有判断字符不同的格式错误。
 	// 这边很暴力的直接用CRC32去测试了
 	for (leftPos < maxLength) && (rightPos < maxLength) {
@@ -111,7 +112,7 @@ func CharDiff (userout *os.File, answer *os.File, useroutLen int64, answerLen in
 		}
 
 		if leftByte != rightByte {
-			return -1
+			return -1, fmt.Sprintf("WA: at leftPos=%d, rightPos=%d", leftByte, rightByte)
 		}
 		if leftErr == nil { leftPos++ }
 		if rightErr == nil { rightPos++ }
@@ -121,54 +122,71 @@ func CharDiff (userout *os.File, answer *os.File, useroutLen int64, answerLen in
 		crcuser, _ := checkCRC(userout)
 		crcout, _ := checkCRC(answer)
 		if crcuser != crcout {
-			return JUDGE_FLAG_PE
+			return JUDGE_FLAG_PE, "PE: CRC not match"
 		}
-		return JUDGE_FLAG_AC
+		return JUDGE_FLAG_AC, "AC!"
 	} else {
-		return JUDGE_FLAG_PE
+		return JUDGE_FLAG_PE, fmt.Sprintf(
+			"PE: leftPos=%d, rightPos=%d, leftLen=%d, rightLen=%d",
+			leftByte,
+			rightByte,
+			useroutLen,
+			answerLen,
+		)
 	}
 }
 
-func DiffText(options JudgeOption, result *JudgeResult) (err error) {
+func DiffText(options JudgeOption, result *JudgeResult) (err error, logtext string) {
 	answer, err := os.Open(options.TestCaseOut)
 	if err != nil {
 		result.JudgeResult = JUDGE_FLAG_SE
-		return err
+		return err, "open testcase_out error"
 	}
 	defer answer.Close()
 	userout, err := os.Open(options.ProgramOut)
 	if err != nil {
 		result.JudgeResult = JUDGE_FLAG_SE
-		return err
+		return err, "open answer_out error"
 	}
 	defer userout.Close()
 
 	useroutLen, _ := userout.Seek(0, os.SEEK_END)
 	answerLen, _ := answer.Seek(0, os.SEEK_END)
 
+	sizeText := fmt.Sprintf("tcLen=%d, ansLen=%d", answerLen, useroutLen)
+
 	if useroutLen == 0 && answerLen == 0 {
+		// Empty File AC
 		result.JudgeResult = JUDGE_FLAG_AC
-		return nil
+		return nil, sizeText + "; AC=zero size."
 	} else if useroutLen > 0 && answerLen > 0 {
 		if (useroutLen > int64(options.FileSizeLimit)) || (useroutLen > answerLen * 2) {
+			// OLE
 			result.JudgeResult = JUDGE_FLAG_OLE
-			return nil
+			if useroutLen > int64(options.FileSizeLimit) {
+				return nil, sizeText + "; WA: larger then limitation."
+			} else {
+				return nil, sizeText + "; WA: larger then 2 times."
+			}
 		}
 	} else {
+		// WTF?
 		result.JudgeResult = JUDGE_FLAG_WA
-		return nil
+		return nil, sizeText + "; WA: less then zero size"
 	}
 
-	rel := CharDiff(userout, answer, useroutLen ,answerLen)
+	rel, logText := CharDiff(userout, answer, useroutLen ,answerLen)
+
 	if rel != -1 {
+		// PE or AC
 		result.JudgeResult = rel
-		return nil
+		return nil, sizeText + "; " + logText
+	} else {
+		// WA
+		sameLines, totalLines := lineDiff(userout, answer)
+		result.JudgeResult = JUDGE_FLAG_WA
+		result.SameLines = sameLines
+		result.TotalLines = totalLines
+		return nil, sizeText + "; " + logText
 	}
-
-	sameLines, totalLines := lineDiff(userout, answer)
-
-	result.JudgeResult = JUDGE_FLAG_WA
-	result.SameLines = sameLines
-	result.TotalLines = totalLines
-	return nil
 }
