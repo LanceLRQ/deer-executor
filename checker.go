@@ -174,7 +174,7 @@ func CharDiffIoUtil (options *JudgeOption, useroutLen int64, answerLen int64) (r
 		rightPos++
 	}
 
-	if leftPos - 1 == useroutLen && rightPos - 1 == answerLen && leftPos == rightPos {
+	if leftPos == rightPos {
 		return JUDGE_FLAG_AC, "AC!"
 	} else {
 		return JUDGE_FLAG_PE, fmt.Sprintf(
