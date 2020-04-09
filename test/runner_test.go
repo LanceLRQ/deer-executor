@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func Runner (workDir, codeContent string, t *testing.T) *deer_executor.JudgeResult {
+func Runner (workDir, codeContent, handle string, t *testing.T) *deer_executor.JudgeResult {
 
 	compiler := deer_compiler.GnucCompileProvider{}
 	//compiler := deer_compiler.JavaCompileProvider{}
@@ -30,8 +30,8 @@ func Runner (workDir, codeContent string, t *testing.T) *deer_executor.JudgeResu
 		MemoryLimit:   65355,
 		FileSizeLimit: 100 * 1024 * 1024,
 		Commands:      compiler.GetRunArgs(),
-		TestCaseIn:    workDir + "/cases/0.in",
-		TestCaseOut:   workDir + "/cases/0.out",
+		TestCaseIn:    workDir + "/cases/" + handle + ".in",
+		TestCaseOut:   workDir + "/cases/" + handle + ".out",
 		ProgramOut:    "/tmp/user.out",
 		ProgramError:  "/tmp/user.err",
 		// Special Judge
@@ -74,7 +74,7 @@ func TestNormalRunnerAC(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 	codeContent := string(code)
-	rel := Runner(workDir, codeContent, t)
+	rel := Runner(workDir, codeContent, "0", t)
 	if rel.JudgeResult != deer_executor.JUDGE_FLAG_AC {
 		t.Fatal("Program not AC")
 	} else {
@@ -92,7 +92,25 @@ func TestNormalRunnerPE(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 	codeContent := string(code)
-	rel := Runner(workDir, codeContent, t)
+	rel := Runner(workDir, codeContent, "0", t)
+	if rel.JudgeResult != deer_executor.JUDGE_FLAG_PE {
+		t.Fatal("Program not PE")
+	} else {
+		t.Log("OK")
+	}
+}
+func TestNormalRunnerPETab(t *testing.T) {
+	workDir, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	code, err:= ioutil.ReadFile(workDir + "/scripts/pe2.c")
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	codeContent := string(code)
+	rel := Runner(workDir, codeContent, "0", t)
 	if rel.JudgeResult != deer_executor.JUDGE_FLAG_PE {
 		t.Fatal("Program not PE")
 	} else {
@@ -110,7 +128,7 @@ func TestNormalRunnerWA(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 	codeContent := string(code)
-	rel := Runner(workDir, codeContent, t)
+	rel := Runner(workDir, codeContent,"0", t)
 	if rel.JudgeResult != deer_executor.JUDGE_FLAG_WA {
 		t.Fatal("Program not WA")
 	} else {
