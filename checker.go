@@ -31,9 +31,17 @@ func clearBlank (source string) string {
 	return source
 }
 
-func lineDiff (userout *os.File, answer *os.File) (sameLines int, totalLines int) {
-	userout.Seek(0, os.SEEK_SET)
-	answer.Seek(0, os.SEEK_SET)
+func lineDiff (options *JudgeOption) (sameLines int, totalLines int) {
+	answer, err := os.Open(options.TestCaseOut)
+	if err != nil {
+		return 0, 0
+	}
+	defer answer.Close()
+	userout, err := os.Open(options.ProgramOut)
+	if err != nil {
+		return 0, 0
+	}
+	defer userout.Close()
 
 	useroutBuffer := bufio.NewReader(userout)
 	answerBuffer := bufio.NewReader(answer)
@@ -144,15 +152,27 @@ func CharDiff (userout *os.File, answer *os.File, useroutLen int64, answerLen in
 }
 
 // 使用ioutil.ReadAll来读
-func CharDiffIoUtil (userout *os.File, answer *os.File, useroutLen int64, answerLen int64) (rel int, logtext string) {
-	_, _ = userout.Seek(0, io.SeekStart)
-	_, _ = answer.Seek(0, io.SeekStart)
+func CharDiffIoUtil (options *JudgeOption, useroutLen int64, answerLen int64) (rel int, logtext string) {
+	answer, err := os.Open(options.TestCaseOut)
+	if err != nil {
+		return JUDGE_FLAG_SE, fmt.Sprintf("open answer file error: %s", err.Error())
+	}
+	defer answer.Close()
+	userout, err := os.Open(options.ProgramOut)
+	if err != nil {
+		return JUDGE_FLAG_SE, fmt.Sprintf("open userout file error: %s", err.Error())
+	}
+	defer userout.Close()
 
 	useroutBuffer, useroutError := ioutil.ReadAll(userout)
 	answerBuffer, answerError := ioutil.ReadAll(answer)
 
-	if useroutError != nil || answerError != nil {
-		return JUDGE_FLAG_SE, "read file io error"
+	if useroutError != nil {
+		return JUDGE_FLAG_SE, fmt.Sprintf("read userout file io error: %s", useroutError.Error())
+	}
+
+	if answerError != nil {
+		return JUDGE_FLAG_SE, fmt.Sprintf("read answer file io error: %s", answerError.Error())
 	}
 
 	var (
@@ -217,21 +237,19 @@ func CharDiffIoUtil (userout *os.File, answer *os.File, useroutLen int64, answer
 }
 
 func DiffText(options JudgeOption, result *JudgeResult) (err error, logtext string) {
-	answer, err := os.Open(options.TestCaseOut)
+	answer, err := os.Stat(options.TestCaseOut)
 	if err != nil {
 		result.JudgeResult = JUDGE_FLAG_SE
-		return err, "open testcase_out error"
+		return err, fmt.Sprintf("get answer file info failed: %s", err.Error())
 	}
-	defer answer.Close()
-	userout, err := os.Open(options.ProgramOut)
+	userout, err := os.Stat(options.ProgramOut)
 	if err != nil {
 		result.JudgeResult = JUDGE_FLAG_SE
-		return err, "open answer_out error"
+		return err, fmt.Sprintf("get userout file info failed: %s", err.Error())
 	}
-	defer userout.Close()
 
-	useroutLen, _ := userout.Seek(0, io.SeekEnd)
-	answerLen, _ := answer.Seek(0, io.SeekEnd)
+	useroutLen := userout.Size()
+	answerLen := answer.Size()
 
 	sizeText := fmt.Sprintf("tcLen=%d, ansLen=%d", answerLen, useroutLen)
 
@@ -255,7 +273,7 @@ func DiffText(options JudgeOption, result *JudgeResult) (err error, logtext stri
 		return nil, sizeText + "; WA: less then zero size"
 	}
 
-	rel, logText := CharDiffIoUtil(userout, answer, useroutLen ,answerLen)
+	rel, logText := CharDiffIoUtil(&options, useroutLen ,answerLen)
 	result.JudgeResult = rel
 
 	if rel != JUDGE_FLAG_WA {
@@ -263,7 +281,7 @@ func DiffText(options JudgeOption, result *JudgeResult) (err error, logtext stri
 		return nil, sizeText + "; " + logText
 	} else {
 		// WA
-		sameLines, totalLines := lineDiff(userout, answer)
+		sameLines, totalLines := lineDiff(&options)
 		result.SameLines = sameLines
 		result.TotalLines = totalLines
 		return nil, sizeText + "; " + logText
