@@ -160,8 +160,7 @@ func CharDiffIoUtil (userout *os.File, answer *os.File, useroutLen int64, answer
 		maxLength = Max(useroutLen, answerLen)
 		leftByte, rightByte byte
 	)
-
-	for (leftPos < maxLength) && (rightPos < maxLength) {
+	for (leftPos < maxLength) && (rightPos < maxLength) && (leftPos < useroutLen) && (rightPos < answerLen) {
 		if leftPos < useroutLen {
 			leftByte = useroutBuffer[leftPos]
 		}
@@ -173,12 +172,16 @@ func CharDiffIoUtil (userout *os.File, answer *os.File, useroutLen int64, answer
 			leftPos++
 			if leftPos < useroutLen {
 				leftByte = useroutBuffer[leftPos]
+			} else {
+				leftByte = 0
 			}
 		}
 		for rightPos < answerLen && isSpaceChar(rightByte) {
 			rightPos++
 			if rightPos < answerLen {
 				rightByte = answerBuffer[rightPos]
+			} else {
+				rightByte = 0
 			}
 		}
 
