@@ -78,9 +78,6 @@ func isSpaceChar (ch byte) bool {
 }
 
 func checkCRC(fp *os.File) (string, error) {
-	if _, err := fp.Seek(0, io.SeekStart); err != nil {
-		return "", err
-	}
 	reader := bufio.NewReader(fp)
 	crc := crc32.NewIEEE()
 	if  _, err := io.Copy(crc, reader); err != nil {
@@ -89,67 +86,26 @@ func checkCRC(fp *os.File) (string, error) {
 	return fmt.Sprintf("%x", crc.Sum32()), nil
 }
 
-func CharDiff (userout *os.File, answer *os.File, useroutLen int64, answerLen int64) (rel int, logtext string) {
-	_, _ = userout.Seek(0, io.SeekStart)
-	_, _ = answer.Seek(0, io.SeekStart)
-
-	useroutBuffer := bufio.NewReader(userout)
-	answerBuffer := bufio.NewReader(answer)
-
-	var (
-		leftPos, rightPos int64 = 0, 0
-		maxLength = Max(useroutLen, answerLen)
-		leftErr, rightErr error = nil, nil
-		leftByte, rightByte byte
-	)
-
-	// Lo-runner 源代码中对于格式错误的判断只是判断长度不同，没有判断字符不同的格式错误。
-	// 这边很暴力的直接用CRC32去测试了
-	for (leftPos < maxLength) && (rightPos < maxLength) {
-		leftByte, leftErr = useroutBuffer.ReadByte()
-		rightByte, rightErr = answerBuffer.ReadByte()
-
-		if (leftErr != nil) && (rightErr != nil) {
-			break
-		}
-
-		for leftErr == nil && isSpaceChar(leftByte) {
-			leftByte, leftErr = useroutBuffer.ReadByte(); leftPos++
-		}
-		for  rightErr == nil && isSpaceChar(rightByte) {
-			rightByte, rightErr = answerBuffer.ReadByte(); rightPos++
-		}
-
-		if leftByte != rightByte {
-			return JUDGE_FLAG_WA, fmt.Sprintf(
-				"WA: at leftPos=%d, rightPos=%d, leftByte=%d, rightByte=%d",
-				leftPos,
-				rightPos,
-				leftByte,
-				rightByte,
-			)
-		}
-		if leftErr == nil { leftPos++ }
-		if rightErr == nil { rightPos++ }
+func compareCRC(options *JudgeOption) (bool, string) {
+	answer, err := os.Open(options.TestCaseOut)
+	if err != nil {
+		return false, fmt.Sprintf("open answer file error: %s", err.Error())
 	}
-
-	if leftPos == useroutLen && rightPos == answerLen && leftPos == rightPos {
-		crcuser, _ := checkCRC(userout)
-		crcout, _ := checkCRC(answer)
-		if crcuser != crcout {
-			return JUDGE_FLAG_PE, "PE: CRC not match"
-		}
-		return JUDGE_FLAG_AC, "AC!"
-	} else {
-		return JUDGE_FLAG_PE, fmt.Sprintf(
-			"PE: leftPos=%d, rightPos=%d, leftLen=%d, rightLen=%d",
-			leftPos,
-			rightPos,
-			useroutLen,
-			answerLen,
-		)
+	defer answer.Close()
+	userout, err := os.Open(options.ProgramOut)
+	if err != nil {
+		return false, fmt.Sprintf("open userout file error: %s", err.Error())
 	}
+	defer userout.Close()
+
+	crcuser, _ := checkCRC(userout)
+	crcout, _ := checkCRC(answer)
+	if crcuser != crcout {
+		return false, "PE: CRC not match"
+	}
+	return true, "AC!"
 }
+
 
 // 使用ioutil.ReadAll来读
 func CharDiffIoUtil (options *JudgeOption, useroutLen int64, answerLen int64) (rel int, logtext string) {
@@ -219,11 +175,6 @@ func CharDiffIoUtil (options *JudgeOption, useroutLen int64, answerLen int64) (r
 	}
 
 	if leftPos - 1 == useroutLen && rightPos - 1 == answerLen && leftPos == rightPos {
-		crcuser, _ := checkCRC(userout)
-		crcout, _ := checkCRC(answer)
-		if crcuser != crcout {
-			return JUDGE_FLAG_PE, "PE: CRC not match"
-		}
 		return JUDGE_FLAG_AC, "AC!"
 	} else {
 		return JUDGE_FLAG_PE, fmt.Sprintf(
@@ -278,6 +229,13 @@ func DiffText(options JudgeOption, result *JudgeResult) (err error, logtext stri
 
 	if rel != JUDGE_FLAG_WA {
 		// PE or AC or SE
+		if rel == JUDGE_FLAG_AC {
+			ret := false
+			ret, logText = compareCRC(&options)
+			if !ret {
+				result.JudgeResult = JUDGE_FLAG_PE
+			}
+		}
 		return nil, sizeText + "; " + logText
 	} else {
 		// WA
@@ -287,3 +245,65 @@ func DiffText(options JudgeOption, result *JudgeResult) (err error, logtext stri
 		return nil, sizeText + "; " + logText
 	}
 }
+
+//func CharDiff (userout *os.File, answer *os.File, useroutLen int64, answerLen int64) (rel int, logtext string) {
+//	_, _ = userout.Seek(0, io.SeekStart)
+//	_, _ = answer.Seek(0, io.SeekStart)
+//
+//	useroutBuffer := bufio.NewReader(userout)
+//	answerBuffer := bufio.NewReader(answer)
+//
+//	var (
+//		leftPos, rightPos int64 = 0, 0
+//		maxLength = Max(useroutLen, answerLen)
+//		leftErr, rightErr error = nil, nil
+//		leftByte, rightByte byte
+//	)
+//
+//	// Lo-runner 源代码中对于格式错误的判断只是判断长度不同，没有判断字符不同的格式错误。
+//	// 这边很暴力的直接用CRC32去测试了
+//	for (leftPos < maxLength) && (rightPos < maxLength) {
+//		leftByte, leftErr = useroutBuffer.ReadByte()
+//		rightByte, rightErr = answerBuffer.ReadByte()
+//
+//		if (leftErr != nil) && (rightErr != nil) {
+//			break
+//		}
+//
+//		for leftErr == nil && isSpaceChar(leftByte) {
+//			leftByte, leftErr = useroutBuffer.ReadByte(); leftPos++
+//		}
+//		for  rightErr == nil && isSpaceChar(rightByte) {
+//			rightByte, rightErr = answerBuffer.ReadByte(); rightPos++
+//		}
+//
+//		if leftByte != rightByte {
+//			return JUDGE_FLAG_WA, fmt.Sprintf(
+//				"WA: at leftPos=%d, rightPos=%d, leftByte=%d, rightByte=%d",
+//				leftPos,
+//				rightPos,
+//				leftByte,
+//				rightByte,
+//			)
+//		}
+//		if leftErr == nil { leftPos++ }
+//		if rightErr == nil { rightPos++ }
+//	}
+//
+//	if leftPos == useroutLen && rightPos == answerLen && leftPos == rightPos {
+//		crcuser, _ := checkCRC(userout)
+//		crcout, _ := checkCRC(answer)
+//		if crcuser != crcout {
+//			return JUDGE_FLAG_PE, "PE: CRC not match"
+//		}
+//		return JUDGE_FLAG_AC, "AC!"
+//	} else {
+//		return JUDGE_FLAG_PE, fmt.Sprintf(
+//			"PE: leftPos=%d, rightPos=%d, leftLen=%d, rightLen=%d",
+//			leftPos,
+//			rightPos,
+//			useroutLen,
+//			answerLen,
+//		)
+//	}
+//}
