@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"hash/crc32"
 	"io"
+	"io/ioutil"
 	"os"
 	"strings"
 )
@@ -112,7 +113,7 @@ func CharDiff (userout *os.File, answer *os.File, useroutLen int64, answerLen in
 		}
 
 		if leftByte != rightByte {
-			return -1, fmt.Sprintf(
+			return JUDGE_FLAG_WA, fmt.Sprintf(
 				"WA: at leftPos=%d, rightPos=%d, leftByte=%d, rightByte=%d",
 				leftPos,
 				rightPos,
@@ -125,6 +126,76 @@ func CharDiff (userout *os.File, answer *os.File, useroutLen int64, answerLen in
 	}
 
 	if leftPos == useroutLen && rightPos == answerLen && leftPos == rightPos {
+		crcuser, _ := checkCRC(userout)
+		crcout, _ := checkCRC(answer)
+		if crcuser != crcout {
+			return JUDGE_FLAG_PE, "PE: CRC not match"
+		}
+		return JUDGE_FLAG_AC, "AC!"
+	} else {
+		return JUDGE_FLAG_PE, fmt.Sprintf(
+			"PE: leftPos=%d, rightPos=%d, leftLen=%d, rightLen=%d",
+			leftPos,
+			rightPos,
+			useroutLen,
+			answerLen,
+		)
+	}
+}
+
+// 使用ioutil.ReadAll来读
+func CharDiffIoUtil (userout *os.File, answer *os.File, useroutLen int64, answerLen int64) (rel int, logtext string) {
+	_, _ = userout.Seek(0, io.SeekStart)
+	_, _ = answer.Seek(0, io.SeekStart)
+
+	useroutBuffer, useroutError := ioutil.ReadAll(userout)
+	answerBuffer, answerError := ioutil.ReadAll(answer)
+
+	if useroutError != nil || answerError != nil {
+		return JUDGE_FLAG_SE, "read file io error"
+	}
+
+	var (
+		leftPos, rightPos int64 = 0, 0
+		maxLength = Max(useroutLen, answerLen)
+		leftByte, rightByte byte
+	)
+
+	for (leftPos < maxLength) && (rightPos < maxLength) {
+		if leftPos < useroutLen {
+			leftByte = useroutBuffer[leftPos]
+		}
+		if rightPos < answerLen {
+			rightByte = answerBuffer[rightPos]
+		}
+
+		for leftPos < useroutLen && isSpaceChar(leftByte) {
+			leftPos++
+			if leftPos < useroutLen {
+				leftByte = useroutBuffer[leftPos]
+			}
+		}
+		for rightPos < answerLen && isSpaceChar(rightByte) {
+			rightPos++
+			if rightPos < answerLen {
+				rightByte = answerBuffer[rightPos]
+			}
+		}
+
+		if leftByte != rightByte {
+			return JUDGE_FLAG_WA, fmt.Sprintf(
+				"WA: at leftPos=%d, rightPos=%d, leftByte=%d, rightByte=%d",
+				leftPos,
+				rightPos,
+				leftByte,
+				rightByte,
+			)
+		}
+		leftPos++
+		rightPos++
+	}
+
+	if leftPos - 1 == useroutLen && rightPos - 1 == answerLen && leftPos == rightPos {
 		crcuser, _ := checkCRC(userout)
 		crcout, _ := checkCRC(answer)
 		if crcuser != crcout {
@@ -156,8 +227,8 @@ func DiffText(options JudgeOption, result *JudgeResult) (err error, logtext stri
 	}
 	defer userout.Close()
 
-	useroutLen, _ := userout.Seek(0, os.SEEK_END)
-	answerLen, _ := answer.Seek(0, os.SEEK_END)
+	useroutLen, _ := userout.Seek(0, io.SeekEnd)
+	answerLen, _ := answer.Seek(0, io.SeekEnd)
 
 	sizeText := fmt.Sprintf("tcLen=%d, ansLen=%d", answerLen, useroutLen)
 
@@ -181,16 +252,15 @@ func DiffText(options JudgeOption, result *JudgeResult) (err error, logtext stri
 		return nil, sizeText + "; WA: less then zero size"
 	}
 
-	rel, logText := CharDiff(userout, answer, useroutLen ,answerLen)
+	rel, logText := CharDiffIoUtil(userout, answer, useroutLen ,answerLen)
+	result.JudgeResult = rel
 
-	if rel != -1 {
-		// PE or AC
-		result.JudgeResult = rel
+	if rel != JUDGE_FLAG_WA {
+		// PE or AC or SE
 		return nil, sizeText + "; " + logText
 	} else {
 		// WA
 		sameLines, totalLines := lineDiff(userout, answer)
-		result.JudgeResult = JUDGE_FLAG_WA
 		result.SameLines = sameLines
 		result.TotalLines = totalLines
 		return nil, sizeText + "; " + logText
