@@ -17,7 +17,7 @@ type JavaCompileProvider struct {
 }
 
 func getJavaClassName (code string) (className string, err error) {
-	reg := regexp.MustCompile(`public class ([A-Za-z_$][A-Za-z0-9_$]+)`)
+	reg := regexp.MustCompile(`public class ([A-Za-z0-9_$]+)`)
 	matched := reg.FindSubmatch([]byte(code))
 	if matched != nil {
 		className = string(matched[1])
