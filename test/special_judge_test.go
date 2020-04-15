@@ -80,21 +80,21 @@ func SpecialJudge (workDir, codeContent, handle string, t *testing.T) *deer_exec
 	return judgeResult
 }
 
-func TestSpecialJudgeAC(t *testing.T) {
-	workDir, err := os.Getwd()
-	if err != nil {
-		t.Fatal(err.Error())
-	}
-
-	code, err:= ioutil.ReadFile(workDir + "/scripts/special_answer.c")
-	if err != nil {
-		t.Fatal(err.Error())
-	}
-	codeContent := string(code)
-	rel := SpecialJudge(workDir, codeContent, "0", t)
-	if rel.JudgeResult != deer_executor.JUDGE_FLAG_AC {
-		t.Fatal("Program not AC")
-	} else {
-		t.Log("OK")
-	}
-}
+//func TestSpecialJudgeAC(t *testing.T) {
+//	workDir, err := os.Getwd()
+//	if err != nil {
+//		t.Fatal(err.Error())
+//	}
+//
+//	code, err:= ioutil.ReadFile(workDir + "/scripts/special_answer.c")
+//	if err != nil {
+//		t.Fatal(err.Error())
+//	}
+//	codeContent := string(code)
+//	rel := SpecialJudge(workDir, codeContent, "0", t)
+//	if rel.JudgeResult != deer_executor.JUDGE_FLAG_AC {
+//		t.Fatal("Program not AC")
+//	} else {
+//		t.Log("OK")
+//	}
+//}
