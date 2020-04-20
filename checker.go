@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"syscall"
 )
 
 func readLine(buf *bufio.Reader) (string, error) {
@@ -30,7 +31,7 @@ func clearBlank (source string) string {
 }
 
 func lineDiff (options *JudgeOption) (sameLines int, totalLines int) {
-	answer, err := os.Open(options.TestCaseOut)
+	answer, err := os.OpenFile(options.TestCaseOut, os.O_RDONLY | syscall.O_NONBLOCK, 0)
 	if err != nil {
 		return 0, 0
 	}
@@ -194,7 +195,7 @@ func DiffText(options JudgeOption, result *JudgeResult) (err error, logtext stri
 
 	sizeText := fmt.Sprintf("tcLen=%d, ansLen=%d", answerLen, useroutLen)
 
-	answer, err := os.Open(options.TestCaseOut)
+	answer, err := os.OpenFile(options.TestCaseOut, os.O_RDONLY | syscall.O_NONBLOCK, 0)
 	if err != nil {
 		result.JudgeResult = JUDGE_FLAG_SE
 		return err, fmt.Sprintf("open answer file error: %s", err.Error())
