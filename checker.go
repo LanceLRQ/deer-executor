@@ -200,16 +200,17 @@ func DiffText(options JudgeOption, result *JudgeResult) (err error, logtext stri
 		result.JudgeResult = JUDGE_FLAG_SE
 		return err, fmt.Sprintf("open answer file error: %s", err.Error())
 	}
-	defer answer.Close()
 	userout, err := os.Open(options.ProgramOut)
 	if err != nil {
 		result.JudgeResult = JUDGE_FLAG_SE
 		return err, fmt.Sprintf("open userout file error: %s", err.Error())
 	}
-	defer userout.Close()
 
 	useroutBuffer, useroutError := ioutil.ReadAll(userout)
 	answerBuffer, answerError := ioutil.ReadAll(answer)
+
+	defer answer.Close()
+	defer userout.Close()
 
 	if useroutError != nil {
 		result.JudgeResult = JUDGE_FLAG_SE
