@@ -179,37 +179,39 @@ func CharDiffIoUtil (useroutBuffer, answerBuffer []byte, useroutLen, answerLen i
 }
 
 func DiffText(options JudgeOption, result *JudgeResult) (err error, logtext string) {
-	answerInfo, err := os.Stat(options.TestCaseOut)
-	if err != nil {
-		result.JudgeResult = JUDGE_FLAG_SE
-		return err, fmt.Sprintf("get answer file info failed: %s", err.Error())
-	}
-	useroutInfo, err := os.Stat(options.ProgramOut)
-	if err != nil {
-		result.JudgeResult = JUDGE_FLAG_SE
-		return err, fmt.Sprintf("get userout file info failed: %s", err.Error())
-	}
+	//answerInfo, err := os.Stat(options.TestCaseOut)
+	//if err != nil {
+	//	result.JudgeResult = JUDGE_FLAG_SE
+	//	return err, fmt.Sprintf("get answer file info failed: %s", err.Error())
+	//}
+	//useroutInfo, err := os.Stat(options.ProgramOut)
+	//if err != nil {
+	//	result.JudgeResult = JUDGE_FLAG_SE
+	//	return err, fmt.Sprintf("get userout file info failed: %s", err.Error())
+	//}
 
-	useroutLen := useroutInfo.Size()
-	answerLen := answerInfo.Size()
+	//answer, err := os.OpenFile(options.TestCaseOut, os.O_RDONLY | syscall.O_NONBLOCK, 0)
+	//if err != nil {
+	//	result.JudgeResult = JUDGE_FLAG_SE
+	//	return err, fmt.Sprintf("open answer file error: %s", err.Error())
+	//}
+	//defer answer.Close()
+	//userout, err := os.Open(options.ProgramOut)
+	//if err != nil {
+	//	result.JudgeResult = JUDGE_FLAG_SE
+	//	return err, fmt.Sprintf("open userout file error: %s", err.Error())
+	//}
+	//defer userout.Close()
+
+	useroutBuffer, useroutError := ioutil.ReadFile(options.ProgramOut)
+	answerBuffer, answerError := ioutil.ReadFile(options.TestCaseOut)
+
+
+	useroutLen := int64(len(useroutBuffer))
+	answerLen := int64(len(answerBuffer))
 
 	sizeText := fmt.Sprintf("tcLen=%d, ansLen=%d", answerLen, useroutLen)
 
-	answer, err := os.OpenFile(options.TestCaseOut, os.O_RDONLY | syscall.O_NONBLOCK, 0)
-	if err != nil {
-		result.JudgeResult = JUDGE_FLAG_SE
-		return err, fmt.Sprintf("open answer file error: %s", err.Error())
-	}
-	defer answer.Close()
-	userout, err := os.Open(options.ProgramOut)
-	if err != nil {
-		result.JudgeResult = JUDGE_FLAG_SE
-		return err, fmt.Sprintf("open userout file error: %s", err.Error())
-	}
-	defer userout.Close()
-
-	useroutBuffer, useroutError := ioutil.ReadAll(userout)
-	answerBuffer, answerError := ioutil.ReadAll(answer)
 
 	if useroutError != nil {
 		result.JudgeResult = JUDGE_FLAG_SE
