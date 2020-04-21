@@ -178,6 +178,29 @@ func CharDiffIoUtil (useroutBuffer, answerBuffer []byte, useroutLen, answerLen i
 	}
 }
 
+func readFile(filePath string, name string) ([]byte, string, error) {
+	errCnt, errText := 0, ""
+	var err error
+	for errCnt < 3 {
+		fp, err := os.OpenFile(filePath, os.O_RDONLY|syscall.O_NONBLOCK, 0)
+		if err != nil {
+			errText = fmt.Sprintf("open %s file error: %s", name, err.Error())
+			errCnt++
+			continue
+		}
+		data, err := ioutil.ReadAll(fp)
+		if err != nil {
+			_ = fp.Close()
+			errText = fmt.Sprintf("read %s file i/o error: %s", name, err.Error())
+			errCnt++
+			continue
+		}
+		_ = fp.Close()
+		return data, errText, nil
+	}
+	return nil, errText, err
+}
+
 func DiffText(options JudgeOption, result *JudgeResult) (err error, logtext string) {
 	answerInfo, err := os.Stat(options.TestCaseOut)
 	if err != nil {
@@ -195,55 +218,20 @@ func DiffText(options JudgeOption, result *JudgeResult) (err error, logtext stri
 
 	sizeText := fmt.Sprintf("tcLen=%d, ansLen=%d", answerLen, useroutLen)
 
-	var answer, userout *os.File
 	var useroutBuffer, answerBuffer []byte
-	errCnt, errText := 0, ""
+	errText := ""
 
-
-	for errCnt < 3 {
-		answer, err = os.OpenFile(options.TestCaseOut, os.O_RDONLY|syscall.O_NONBLOCK, 0)
-		if err != nil {
-			result.JudgeResult = JUDGE_FLAG_SE
-			errText = fmt.Sprintf("open answer file error: %s", err.Error())
-			errCnt++
-			continue
-		}
-		answerBuffer, err = ioutil.ReadAll(answer)
-		if err != nil {
-			result.JudgeResult = JUDGE_FLAG_SE
-			errText = fmt.Sprintf("read answer file io error: %s", err.Error())
-			errCnt++
-			continue
-		}
-		_ = answer.Close()
-		errCnt++
-	}
-
-	errCnt = 0
-	for errCnt < 3 {
-		userout, err = os.OpenFile(options.ProgramOut, os.O_RDONLY|syscall.O_NONBLOCK, 0)
-		if err != nil {
-			result.JudgeResult = JUDGE_FLAG_SE
-			errText = fmt.Sprintf("read userout file io error: %s", err.Error())
-			errCnt++
-			continue
-		}
-		useroutBuffer, err = ioutil.ReadAll(userout)
-		if err != nil {
-			result.JudgeResult = JUDGE_FLAG_SE
-			errText = fmt.Sprintf("open userout file error: %s", err.Error())
-			errCnt++
-			continue
-		}
-		_ = userout.Close()
-		errCnt++
-	}
-
+	answerBuffer, errText, err = readFile(options.TestCaseOut, "answer")
 	if err != nil {
+		result.JudgeResult = JUDGE_FLAG_SE
 		return err, errText
 	}
-	defer answer.Close()
-	defer userout.Close()
+
+	useroutBuffer, errText, err = readFile(options.ProgramOut, "userout")
+	if err != nil {
+		result.JudgeResult = JUDGE_FLAG_SE
+		return err, errText
+	}
 
 	if useroutLen == 0 && answerLen == 0 {
 		// Empty File AC
