@@ -195,35 +195,55 @@ func DiffText(options JudgeOption, result *JudgeResult) (err error, logtext stri
 
 	sizeText := fmt.Sprintf("tcLen=%d, ansLen=%d", answerLen, useroutLen)
 
-	answer, err := os.OpenFile(options.TestCaseOut, os.O_RDONLY | syscall.O_NONBLOCK, 0)
+	var answer, userout *os.File
+	var useroutBuffer, answerBuffer []byte
+	errCnt, errText := 0, ""
+
+
+	for errCnt < 3 {
+		answer, err = os.OpenFile(options.TestCaseOut, os.O_RDONLY|syscall.O_NONBLOCK, 0)
+		if err != nil {
+			result.JudgeResult = JUDGE_FLAG_SE
+			errText = fmt.Sprintf("open answer file error: %s", err.Error())
+			errCnt++
+			continue
+		}
+		answerBuffer, err = ioutil.ReadAll(answer)
+		if err != nil {
+			result.JudgeResult = JUDGE_FLAG_SE
+			errText = fmt.Sprintf("read answer file io error: %s", err.Error())
+			errCnt++
+			continue
+		}
+		_ = answer.Close()
+		errCnt++
+	}
+
+	errCnt = 0
+	for errCnt < 3 {
+		userout, err = os.OpenFile(options.ProgramOut, os.O_RDONLY|syscall.O_NONBLOCK, 0)
+		if err != nil {
+			result.JudgeResult = JUDGE_FLAG_SE
+			errText = fmt.Sprintf("read userout file io error: %s", err.Error())
+			errCnt++
+			continue
+		}
+		useroutBuffer, err = ioutil.ReadAll(userout)
+		if err != nil {
+			result.JudgeResult = JUDGE_FLAG_SE
+			errText = fmt.Sprintf("open userout file error: %s", err.Error())
+			errCnt++
+			continue
+		}
+		_ = userout.Close()
+		errCnt++
+	}
+
 	if err != nil {
-		result.JudgeResult = JUDGE_FLAG_SE
-		return err, fmt.Sprintf("open answer file error: %s", err.Error())
+		return err, errText
 	}
-	userout, err := os.Open(options.ProgramOut)
-	if err != nil {
-		result.JudgeResult = JUDGE_FLAG_SE
-		return err, fmt.Sprintf("open userout file error: %s", err.Error())
-	}
-	//defer answer.Close()
-	//defer userout.Close()
-
-	useroutBuffer, useroutError := ioutil.ReadAll(userout)
-	answerBuffer, answerError := ioutil.ReadAll(answer)
-
-	_ = answer.Close()
-	_ = userout.Close()
-
-
-	if useroutError != nil {
-		result.JudgeResult = JUDGE_FLAG_SE
-		return err, fmt.Sprintf("read userout file io error: %s", useroutError.Error())
-	}
-
-	if answerError != nil {
-		result.JudgeResult = JUDGE_FLAG_SE
-		return err, fmt.Sprintf("read answer file io error: %s", answerError.Error())
-	}
+	defer answer.Close()
+	defer userout.Close()
 
 	if useroutLen == 0 && answerLen == 0 {
 		// Empty File AC
