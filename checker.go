@@ -261,8 +261,13 @@ func DiffText(options JudgeOption, result *JudgeResult) (err error, logtext stri
 		if rel == JUDGE_FLAG_AC {
 			sret := StrictDiff(useroutBuffer, answerBuffer, useroutLen ,answerLen)
 			if !sret {
-				result.JudgeResult = JUDGE_FLAG_PE
-				logText = "PE on strict check."
+				if useroutLen == answerLen {
+					result.JudgeResult = JUDGE_FLAG_PE
+					logText = "strict check: PE"
+				} else {
+					result.JudgeResult = JUDGE_FLAG_WA
+					logText = "strict check: WA"
+				}
 			}
 		}
 		return nil, sizeText + "; " + logText
