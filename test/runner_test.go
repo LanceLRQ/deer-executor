@@ -135,21 +135,21 @@ func TestNormalRunnerWA(t *testing.T) {
 		t.Log("OK")
 	}
 }
-//func TestNormalRunnerHello(t *testing.T) {
-//	workDir, err := os.Getwd()
-//	if err != nil {
-//		t.Fatal(err.Error())
-//	}
-//
-//	code, err:= ioutil.ReadFile(workDir + "/scripts/hello.c")
-//	if err != nil {
-//		t.Fatal(err.Error())
-//	}
-//	codeContent := string(code)
-//	rel := Runner(workDir, codeContent,"1", t)
-//	if rel.JudgeResult != deer_executor.JUDGE_FLAG_AC {
-//		t.Fatal("Program not AC")
-//	} else {
-//		t.Log("OK")
-//	}
-//}
+func TestNormalRunnerWA2(t *testing.T) {
+	workDir, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	code, err:= ioutil.ReadFile(workDir + "/scripts/wa2.c")
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	codeContent := string(code)
+	rel := Runner(workDir, codeContent,"1", t)
+	if rel.JudgeResult != deer_executor.JUDGE_FLAG_WA {
+		t.Fatal("Program not WA")
+	} else {
+		t.Log("OK")
+	}
+}
