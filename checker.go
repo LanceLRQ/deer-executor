@@ -165,6 +165,35 @@ func CharDiffIoUtil (useroutBuffer, answerBuffer []byte, useroutLen, answerLen i
 		rightPos++
 	}
 
+	// 如果左游标没跑完
+	for leftPos < useroutLen {
+		leftByte = useroutBuffer[leftPos]
+		if !isSpaceChar(leftByte) {
+			return JUDGE_FLAG_WA, fmt.Sprintf(
+				"WA: leftPos=%d, rightPos=%d, leftLen=%d, rightLen=%d",
+				leftPos,
+				rightPos,
+				useroutLen,
+				answerLen,
+			)
+		}
+		leftPos++
+	}
+	// 如果右游标没跑完
+	for rightPos < answerLen {
+		rightByte = answerBuffer[rightPos]
+		if !isSpaceChar(rightByte) {
+			return JUDGE_FLAG_WA, fmt.Sprintf(
+				"WA: leftPos=%d, rightPos=%d, leftLen=%d, rightLen=%d",
+				leftPos,
+				rightPos,
+				useroutLen,
+				answerLen,
+			)
+		}
+		rightPos++
+	}
+	// 左右匹配，说明AC
 	if leftPos == rightPos {
 		return JUDGE_FLAG_AC, "AC!"
 	} else {
@@ -261,13 +290,8 @@ func DiffText(options JudgeOption, result *JudgeResult) (err error, logtext stri
 		if rel == JUDGE_FLAG_AC {
 			sret := StrictDiff(useroutBuffer, answerBuffer, useroutLen ,answerLen)
 			if !sret {
-				if useroutLen == answerLen {
-					result.JudgeResult = JUDGE_FLAG_PE
-					logText = "strict check: PE"
-				} else {
-					result.JudgeResult = JUDGE_FLAG_WA
-					logText = "strict check: WA"
-				}
+				result.JudgeResult = JUDGE_FLAG_PE
+				logText = "strict check: PE"
 			}
 		}
 		return nil, sizeText + "; " + logText

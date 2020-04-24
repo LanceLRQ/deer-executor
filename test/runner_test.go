@@ -153,3 +153,21 @@ func TestNormalRunnerWA2(t *testing.T) {
 		t.Log("OK")
 	}
 }
+func TestNormalRunnerPE3(t *testing.T) {
+	workDir, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	code, err:= ioutil.ReadFile(workDir + "/scripts/pe3.c")
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	codeContent := string(code)
+	rel := Runner(workDir, codeContent,"1", t)
+	if rel.JudgeResult != deer_executor.JUDGE_FLAG_PE {
+		t.Fatal("Program not PE")
+	} else {
+		t.Log("OK")
+	}
+}
