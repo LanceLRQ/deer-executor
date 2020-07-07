@@ -153,7 +153,7 @@ func CharDiffIoUtil (useroutBuffer, answerBuffer []byte, useroutLen, answerLen i
 		}
 
 		if leftByte != rightByte {
-			return JUDGE_FLAG_WA, fmt.Sprintf(
+			return JudgeFlagWA, fmt.Sprintf(
 				"WA: at leftPos=%d, rightPos=%d, leftByte=%d, rightByte=%d",
 				leftPos,
 				rightPos,
@@ -169,7 +169,7 @@ func CharDiffIoUtil (useroutBuffer, answerBuffer []byte, useroutLen, answerLen i
 	for leftPos < useroutLen {
 		leftByte = useroutBuffer[leftPos]
 		if !isSpaceChar(leftByte) {
-			return JUDGE_FLAG_WA, fmt.Sprintf(
+			return JudgeFlagWA, fmt.Sprintf(
 				"WA: leftPos=%d, rightPos=%d, leftLen=%d, rightLen=%d",
 				leftPos,
 				rightPos,
@@ -183,7 +183,7 @@ func CharDiffIoUtil (useroutBuffer, answerBuffer []byte, useroutLen, answerLen i
 	for rightPos < answerLen {
 		rightByte = answerBuffer[rightPos]
 		if !isSpaceChar(rightByte) {
-			return JUDGE_FLAG_WA, fmt.Sprintf(
+			return JudgeFlagWA, fmt.Sprintf(
 				"WA: leftPos=%d, rightPos=%d, leftLen=%d, rightLen=%d",
 				leftPos,
 				rightPos,
@@ -195,9 +195,9 @@ func CharDiffIoUtil (useroutBuffer, answerBuffer []byte, useroutLen, answerLen i
 	}
 	// 左右匹配，说明AC
 	if leftPos == rightPos {
-		return JUDGE_FLAG_AC, "AC!"
+		return JudgeFlagAC, "AC!"
 	} else {
-		return JUDGE_FLAG_PE, fmt.Sprintf(
+		return JudgeFlagPE, fmt.Sprintf(
 			"PE: leftPos=%d, rightPos=%d, leftLen=%d, rightLen=%d",
 			leftPos,
 			rightPos,
@@ -233,12 +233,12 @@ func readFile(filePath string, name string) ([]byte, string, error) {
 func DiffText(options JudgeOption, result *JudgeResult) (err error, logtext string) {
 	answerInfo, err := os.Stat(options.TestCaseOut)
 	if err != nil {
-		result.JudgeResult = JUDGE_FLAG_SE
+		result.JudgeResult = JudgeFlagSE
 		return err, fmt.Sprintf("get answer file info failed: %s", err.Error())
 	}
 	useroutInfo, err := os.Stat(options.ProgramOut)
 	if err != nil {
-		result.JudgeResult = JUDGE_FLAG_SE
+		result.JudgeResult = JudgeFlagSE
 		return err, fmt.Sprintf("get userout file info failed: %s", err.Error())
 	}
 
@@ -252,24 +252,24 @@ func DiffText(options JudgeOption, result *JudgeResult) (err error, logtext stri
 
 	answerBuffer, errText, err = readFile(options.TestCaseOut, "answer")
 	if err != nil {
-		result.JudgeResult = JUDGE_FLAG_SE
+		result.JudgeResult = JudgeFlagSE
 		return err, errText
 	}
 
 	useroutBuffer, errText, err = readFile(options.ProgramOut, "userout")
 	if err != nil {
-		result.JudgeResult = JUDGE_FLAG_SE
+		result.JudgeResult = JudgeFlagSE
 		return err, errText
 	}
 
 	if useroutLen == 0 && answerLen == 0 {
 		// Empty File AC
-		result.JudgeResult = JUDGE_FLAG_AC
+		result.JudgeResult = JudgeFlagAC
 		return nil, sizeText + "; AC=zero size."
 	} else if useroutLen > 0 && answerLen > 0 {
 		if (useroutLen > int64(options.FileSizeLimit)) || (useroutLen > answerLen * 2) {
 			// OLE
-			result.JudgeResult = JUDGE_FLAG_OLE
+			result.JudgeResult = JudgeFlagOLE
 			if useroutLen > int64(options.FileSizeLimit) {
 				return nil, sizeText + "; WA: larger then limitation."
 			} else {
@@ -278,19 +278,19 @@ func DiffText(options JudgeOption, result *JudgeResult) (err error, logtext stri
 		}
 	} else {
 		// WTF?
-		result.JudgeResult = JUDGE_FLAG_WA
+		result.JudgeResult = JudgeFlagWA
 		return nil, sizeText + "; WA: less then zero size"
 	}
 
 	rel, logText := CharDiffIoUtil(useroutBuffer, answerBuffer, useroutLen ,answerLen)
 	result.JudgeResult = rel
 
-	if rel != JUDGE_FLAG_WA {
+	if rel != JudgeFlagWA {
 		// PE or AC or SE
-		if rel == JUDGE_FLAG_AC {
+		if rel == JudgeFlagAC {
 			sret := StrictDiff(useroutBuffer, answerBuffer, useroutLen ,answerLen)
 			if !sret {
-				result.JudgeResult = JUDGE_FLAG_PE
+				result.JudgeResult = JudgeFlagPE
 				logText = "strict check: PE"
 			}
 		}
@@ -336,7 +336,7 @@ func DiffText(options JudgeOption, result *JudgeResult) (err error, logtext stri
 //		}
 //
 //		if leftByte != rightByte {
-//			return JUDGE_FLAG_WA, fmt.Sprintf(
+//			return JudgeFlagWA, fmt.Sprintf(
 //				"WA: at leftPos=%d, rightPos=%d, leftByte=%d, rightByte=%d",
 //				leftPos,
 //				rightPos,
@@ -352,11 +352,11 @@ func DiffText(options JudgeOption, result *JudgeResult) (err error, logtext stri
 //		crcuser, _ := checkCRC(userout)
 //		crcout, _ := checkCRC(answer)
 //		if crcuser != crcout {
-//			return JUDGE_FLAG_PE, "PE: CRC not match"
+//			return JudgeFlagPE, "PE: CRC not match"
 //		}
-//		return JUDGE_FLAG_AC, "AC!"
+//		return JudgeFlagAC, "AC!"
 //	} else {
-//		return JUDGE_FLAG_PE, fmt.Sprintf(
+//		return JudgeFlagPE, fmt.Sprintf(
 //			"PE: leftPos=%d, rightPos=%d, leftLen=%d, rightLen=%d",
 //			leftPos,
 //			rightPos,

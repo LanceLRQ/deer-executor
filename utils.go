@@ -176,7 +176,7 @@ func setLimit(timeLimit int, memoryLimit int) (err error) {
 	}
 
 	// Set file size limit: RLIMIT_FSIZE
-	rlimit.Cur = uint64(JUDGE_FILE_SIZE_LIMIT)
+	rlimit.Cur = uint64(JudgeFileSizeLimit)
 	rlimit.Max = rlimit.Cur
 	errMsg = syscall.Setrlimit(syscall.RLIMIT_FSIZE, &rlimit)
 

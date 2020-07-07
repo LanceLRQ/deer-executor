@@ -61,7 +61,7 @@ func SpecialJudge (workDir, codeContent, handle string, t *testing.T) *deer_exec
 			Stdout      string
 			Stderr      string
 		}{
-			Mode:        deer_executor.SPECIAL_JUDGE_MODE_CHECKER,
+			Mode:        deer_executor.SpecialJudgeModeChecker,
 			Checker:     spjCompiler.GetRunArgs()[0],
 			RedirectStd: true,
 			TimeLimit:   10000,
@@ -92,7 +92,7 @@ func SpecialJudge (workDir, codeContent, handle string, t *testing.T) *deer_exec
 //	}
 //	codeContent := string(code)
 //	rel := SpecialJudge(workDir, codeContent, "0", t)
-//	if rel.JudgeResult != deer_executor.JUDGE_FLAG_AC {
+//	if rel.JudgeResult != deer_executor.JudgeFlagAC {
 //		t.Fatal("Program not AC")
 //	} else {
 //		t.Log("OK")

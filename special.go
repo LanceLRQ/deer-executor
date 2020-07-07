@@ -25,25 +25,25 @@ func waitCustomChecker(options JudgeOption, pid uintptr, rst *JudgeResult, isInt
 		sig := status.Signal()
 		if !isInteractive {
 			if sig == syscall.SIGXCPU || sig == syscall.SIGALRM {
-				rst.JudgeResult = JUDGE_FLAG_SPJ_TIME_OUT
+				rst.JudgeResult = JudgeFlagSpecialJudgeTimeout
 				return fmt.Errorf("special judger time limit exceed, unix singal: %d", sig)
 			}
-			rst.JudgeResult = JUDGE_FLAG_SPJ_ERROR
+			rst.JudgeResult = JudgeFlagSpecialJudgeError
 			return fmt.Errorf("special judger caused an error, unix singal: %d", sig)
 		} else {
-			rst.JudgeResult = JUDGE_FLAG_RE
+			rst.JudgeResult = JudgeFlagRE
 		}
 	} else {
 		if status.Exited() {
 			exitcode := status.ExitStatus()
 			fmt.Printf("Special ExitCode: %d\n", exitcode)
 
-			if exitcode == JUDGE_FLAG_AC || exitcode == JUDGE_FLAG_PE ||
-				exitcode == JUDGE_FLAG_WA || exitcode == JUDGE_FLAG_OLE ||
-				exitcode == JUDGE_FLAG_SPJ_REQUIRE_CHECK {
+			if exitcode == JudgeFlagAC || exitcode == JudgeFlagPE ||
+				exitcode == JudgeFlagWA || exitcode == JudgeFlagOLE ||
+				exitcode == JudgeFlagSpecialJudgeRequireChecker {
 				rst.JudgeResult = exitcode
 			} else {
-				rst.JudgeResult = JUDGE_FLAG_SPJ_ERROR
+				rst.JudgeResult = JudgeFlagSpecialJudgeError
 				return fmt.Errorf("special judger return with a wrong exitcode: %d", exitcode)
 			}
 		}
@@ -53,7 +53,7 @@ func waitCustomChecker(options JudgeOption, pid uintptr, rst *JudgeResult, isInt
 
 func CustomChecker(options JudgeOption, result *JudgeResult, msg chan string) error {
 	if runtime.GOOS != "linux" {
-		result.JudgeResult = JUDGE_FLAG_SE
+		result.JudgeResult = JudgeFlagSE
 		result.SeInfo += "special judge can only be enable at linux.\n"
 		return fmt.Errorf("special judge can only be enable at linux")
 	}
@@ -64,7 +64,7 @@ func CustomChecker(options JudgeOption, result *JudgeResult, msg chan string) er
 	)
 	pid, err = forkProc()
 	if err != nil {
-		result.JudgeResult = JUDGE_FLAG_SE
+		result.JudgeResult = JudgeFlagSE
 		result.SeInfo += err.Error() + "\n"
 		return  err
 	}
@@ -90,7 +90,7 @@ func CustomChecker(options JudgeOption, result *JudgeResult, msg chan string) er
 			return childErr
 		}
 
-		tl, ml := SPECIAL_JUDGE_TIME_LIMIT, SPECIAL_JUDGE_MEMORY_LIMIT
+		tl, ml := SpecialJudgeTimeLimit, SpecialJudgeMemoryLimit
 		if options.SpecialJudge.TimeLimit > 0 { tl = options.SpecialJudge.TimeLimit }
 		if options.SpecialJudge.MemoryLimit > 0 { tl = options.SpecialJudge.MemoryLimit  }
 
@@ -112,12 +112,12 @@ func CustomChecker(options JudgeOption, result *JudgeResult, msg chan string) er
 		}
 		err = waitCustomChecker(options, pid, result, false)
 		if err != nil {
-			result.JudgeResult = JUDGE_FLAG_SE
+			result.JudgeResult = JudgeFlagSE
 			result.SeInfo += err.Error() + "\n"
 			return err
 		}
 		//if childErr != nil {
-		//	result.JudgeResult = JUDGE_FLAG_SE
+		//	result.JudgeResult = JudgeFlagSE
 		//	result.SeInfo += childErr.Error() + "\n"
 		//	return childErr
 		//}
@@ -133,7 +133,7 @@ func CustomChecker(options JudgeOption, result *JudgeResult, msg chan string) er
 
 func InteractiveChecker(options JudgeOption, result *JudgeResult, msg chan string) error {
 	if runtime.GOOS != "linux" {
-		result.JudgeResult = JUDGE_FLAG_SE
+		result.JudgeResult = JudgeFlagSE
 		result.SeInfo += "interactive special judge can only be enable at linux.\n"
 		return fmt.Errorf("interactive special judge can only be enable at linux")
 	}
@@ -145,13 +145,13 @@ func InteractiveChecker(options JudgeOption, result *JudgeResult, msg chan strin
 
 	syscall.Pipe(fdjudger)
 	if err != nil {
-		result.JudgeResult = JUDGE_FLAG_SE
+		result.JudgeResult = JudgeFlagSE
 		result.SeInfo += err.Error() + "\n"
 		return err
 	}
 	syscall.Pipe(fdtarget)
 	if err != nil {
-		result.JudgeResult = JUDGE_FLAG_SE
+		result.JudgeResult = JudgeFlagSE
 		result.SeInfo += err.Error() + "\n"
 		return err
 	}
@@ -159,7 +159,7 @@ func InteractiveChecker(options JudgeOption, result *JudgeResult, msg chan strin
 	// Run Program
 	pidProgram, err = forkProc()
 	if err != nil {
-		result.JudgeResult = JUDGE_FLAG_SE
+		result.JudgeResult = JudgeFlagSE
 		result.SeInfo += err.Error() + "\n"
 		return err
 	}
@@ -215,7 +215,7 @@ func InteractiveChecker(options JudgeOption, result *JudgeResult, msg chan strin
 				return judgerErr
 			}
 
-			tl, ml := SPECIAL_JUDGE_TIME_LIMIT, SPECIAL_JUDGE_MEMORY_LIMIT
+			tl, ml := SpecialJudgeTimeLimit, SpecialJudgeMemoryLimit
 			if options.SpecialJudge.TimeLimit > 0 { tl = options.SpecialJudge.TimeLimit }
 			if options.SpecialJudge.MemoryLimit > 0 { tl = options.SpecialJudge.MemoryLimit  }
 
@@ -237,17 +237,17 @@ func InteractiveChecker(options JudgeOption, result *JudgeResult, msg chan strin
 			}
 			err = waitCustomChecker(options, pidJudger, result, true)
 			if err != nil {
-				result.JudgeResult = JUDGE_FLAG_SE
+				result.JudgeResult = JudgeFlagSE
 				result.SeInfo += err.Error() + "\n"
 				return err
 			}
 			//if judgerErr != nil {
-			//	result.JudgeResult = JUDGE_FLAG_SE
+			//	result.JudgeResult = JudgeFlagSE
 			//	result.SeInfo += judgerErr.Error() + "\n"
 			//	return judgerErr
 			//}
 			//if childErr != nil {
-			//	result.JudgeResult = JUDGE_FLAG_SE
+			//	result.JudgeResult = JudgeFlagSE
 			//	result.SeInfo += childErr.Error() + "\n"
 			//	return childErr
 			//}

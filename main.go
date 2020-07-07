@@ -12,30 +12,29 @@ import (
 )
 
 const (
-	JUDGE_FLAG_AC int = 0   	//0 Accepted
-	JUDGE_FLAG_PE int = 1	    //1 Presentation Error
-	JUDGE_FLAG_TLE int = 2		//2 Time Limit Exceeded
-	JUDGE_FLAG_MLE int = 3		//3 Memory Limit Exceeded
-	JUDGE_FLAG_WA int = 4	    //4 Wrong Answer
-	JUDGE_FLAG_RE int = 5	    //5 Runtime Error
-	JUDGE_FLAG_OLE int = 6		//6 Output Limit Exceeded
-	JUDGE_FLAG_CE int = 7	    //7 Compile Error
-	JUDGE_FLAG_SE int = 8     	//8 System Error
+	JudgeFlagAC int 	= 0   		// 0 Accepted
+	JudgeFlagPE int 	= 1	    	// 1 Presentation Error
+	JudgeFlagTLE int	= 2			// 2 Time Limit Exceeded
+	JudgeFlagMLE int 	= 3			// 3 Memory Limit Exceeded
+	JudgeFlagWA int 	= 4	    	// 4 Wrong Answer
+	JudgeFlagRE int 	= 5	    	// 5 Runtime Error
+	JudgeFlagOLE int 	= 6			// 6 Output Limit Exceeded
+	JudgeFlagCE int 	= 7	    	// 7 Compile Error
+	JudgeFlagSE int 	= 8     	// 8 System Error
 
-	JUDGE_FLAG_SPJ_TIME_OUT int = 10    	// 10 Special Judger Time OUT
-	JUDGE_FLAG_SPJ_ERROR int = 11    		// 11 Special Judger ERROR
-	JUDGE_FLAG_SPJ_REQUIRE_CHECK int = 12 	// 12 Special Judger Finish, Need Standard Checkup
-
-	JUDGE_FILE_SIZE_LIMIT = 200 * 1024 * 1024  // 200MB
+	JudgeFlagSpecialJudgeTimeout int 		= 10    		// 10 Special Judger Time OUT
+	JudgeFlagSpecialJudgeError int 			= 11    		// 11 Special Judger ERROR
+	JudgeFlagSpecialJudgeRequireChecker int = 12 			// 12 Special Judger Finish, Need Standard Checkup
 )
 
 const (
-	SPECIAL_JUDGE_MODE_DISABLED = 0
-	SPECIAL_JUDGE_MODE_CHECKER = 1
-	SPECIAL_JUDGE_MODE_INTERACTIVE = 2
+	JudgeFileSizeLimit 				= 200 * 1024 * 1024  	// 200MB
+	SpecialJudgeModeDisabled 		= 0
+	SpecialJudgeModeChecker 		= 1
+	SpecialJudgeModeInteractive 	= 2
 
-	SPECIAL_JUDGE_TIME_LIMIT = 10 * 1000		// ms
-	SPECIAL_JUDGE_MEMORY_LIMIT = 256 * 1024		// kb
+	SpecialJudgeTimeLimit 			= 10 * 1000				// ms
+	SpecialJudgeMemoryLimit 		= 256 * 1024			// kb
 
 )
 
@@ -90,13 +89,13 @@ func (conf *JudgeResult) String() string {
 func Judge(options JudgeOption) (*JudgeResult, error) {
 	judgeResult :=  new(JudgeResult)
 
-	if options.SpecialJudge.Mode == SPECIAL_JUDGE_MODE_INTERACTIVE {
+	if options.SpecialJudge.Mode == SpecialJudgeModeInteractive {
 		err := InteractiveChecker(options, judgeResult, nil)
 		if err != nil {
 			return nil, err
 		}
 		// Text Diff
-		if judgeResult.JudgeResult == JUDGE_FLAG_SPJ_REQUIRE_CHECK {
+		if judgeResult.JudgeResult == JudgeFlagSpecialJudgeRequireChecker {
 			err, logtext := DiffText(options, judgeResult)
 			if err != nil {
 				return nil, err
@@ -109,13 +108,13 @@ func Judge(options JudgeOption) (*JudgeResult, error) {
 		if err != nil {
 			return nil, err
 		}
-		if options.SpecialJudge.Mode == SPECIAL_JUDGE_MODE_CHECKER && judgeResult.JudgeResult == JUDGE_FLAG_AC {
+		if options.SpecialJudge.Mode == SpecialJudgeModeChecker && judgeResult.JudgeResult == JudgeFlagAC {
 			err := CustomChecker(options, judgeResult, nil)
 			if err != nil {
 				return nil, err
 			}
 			// Text Diff
-			if judgeResult.JudgeResult == JUDGE_FLAG_SPJ_REQUIRE_CHECK {
+			if judgeResult.JudgeResult == JudgeFlagSpecialJudgeRequireChecker {
 				err, logtext := DiffText(options, judgeResult)
 				if err != nil {
 					return nil, err
@@ -124,7 +123,7 @@ func Judge(options JudgeOption) (*JudgeResult, error) {
 			}
 		} else {
 			// Text Diff
-			if judgeResult.JudgeResult == JUDGE_FLAG_AC {
+			if judgeResult.JudgeResult == JudgeFlagAC {
 				err, logtext := DiffText(options, judgeResult)
 				if err != nil {
 					return nil, err

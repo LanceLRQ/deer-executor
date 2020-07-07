@@ -75,7 +75,7 @@ func TestNormalRunnerAC(t *testing.T) {
 	}
 	codeContent := string(code)
 	rel := Runner(workDir, codeContent, "0", t)
-	if rel.JudgeResult != deer_executor.JUDGE_FLAG_AC {
+	if rel.JudgeResult != deer_executor.JudgeFlagAC {
 		t.Fatal("Program not AC")
 	} else {
 		t.Log("OK")
@@ -93,7 +93,7 @@ func TestNormalRunnerPE(t *testing.T) {
 	}
 	codeContent := string(code)
 	rel := Runner(workDir, codeContent, "0", t)
-	if rel.JudgeResult != deer_executor.JUDGE_FLAG_PE {
+	if rel.JudgeResult != deer_executor.JudgeFlagPE {
 		t.Fatal("Program not PE")
 	} else {
 		t.Log("OK")
@@ -111,7 +111,7 @@ func TestNormalRunnerPETab(t *testing.T) {
 	}
 	codeContent := string(code)
 	rel := Runner(workDir, codeContent, "0", t)
-	if rel.JudgeResult != deer_executor.JUDGE_FLAG_PE {
+	if rel.JudgeResult != deer_executor.JudgeFlagPE {
 		t.Fatal("Program not PE")
 	} else {
 		t.Log("OK")
@@ -129,7 +129,7 @@ func TestNormalRunnerWA(t *testing.T) {
 	}
 	codeContent := string(code)
 	rel := Runner(workDir, codeContent,"0", t)
-	if rel.JudgeResult != deer_executor.JUDGE_FLAG_WA {
+	if rel.JudgeResult != deer_executor.JudgeFlagWA {
 		t.Fatal("Program not WA")
 	} else {
 		t.Log("OK")
@@ -147,7 +147,7 @@ func TestNormalRunnerWA2(t *testing.T) {
 	}
 	codeContent := string(code)
 	rel := Runner(workDir, codeContent,"1", t)
-	if rel.JudgeResult != deer_executor.JUDGE_FLAG_WA {
+	if rel.JudgeResult != deer_executor.JudgeFlagWA {
 		t.Fatal("Program not WA")
 	} else {
 		t.Log("OK")
@@ -165,7 +165,7 @@ func TestNormalRunnerPE3(t *testing.T) {
 	}
 	codeContent := string(code)
 	rel := Runner(workDir, codeContent,"1", t)
-	if rel.JudgeResult != deer_executor.JUDGE_FLAG_PE {
+	if rel.JudgeResult != deer_executor.JudgeFlagPE {
 		t.Fatal("Program not PE")
 	} else {
 		t.Log("OK")

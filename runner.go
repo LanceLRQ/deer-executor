@@ -25,42 +25,43 @@ func waitExit(options JudgeOption, pid uintptr, rst *JudgeResult) error {
 	rst.TimeUsed = int(ru.Utime.Sec * 1000 + int64(ru.Utime.Usec) / 1000 + ru.Stime.Sec * 1000 + int64(ru.Stime.Usec) / 1000)
 	rst.MemoryUsed = int(ru.Minflt * int64(syscall.Getpagesize() / 1024 ))
 
+	// If process stopped with a signal
 	if status.Signaled() {
 		sig := status.Signal()
 		rst.ReSignum = int(sig)
 		if sig == syscall.SIGSEGV {
 			// MLE or RE can also get SIGSEGV signal.
 			if rst.MemoryUsed > options.MemoryLimit {
-				rst.JudgeResult = JUDGE_FLAG_MLE
+				rst.JudgeResult = JudgeFlagMLE
 			} else {
-				rst.JudgeResult = JUDGE_FLAG_RE
+				rst.JudgeResult = JudgeFlagRE
 			}
 		} else if sig == syscall.SIGXFSZ {
 			// SIGXFSZ signal means OLE
-			rst.JudgeResult = JUDGE_FLAG_OLE
+			rst.JudgeResult = JudgeFlagOLE
 		} else if sig == syscall.SIGALRM || sig == syscall.SIGVTALRM || sig == syscall.SIGXCPU {
 			// Normal TLE signal
-			rst.JudgeResult = JUDGE_FLAG_TLE
+			rst.JudgeResult = JudgeFlagTLE
 		} else if sig == syscall.SIGKILL {
 			// Sometimes MLE might get SIGKILL signal.
 			// So if real time used lower than TIME_LIMIT - 100, it might be a TLE error.
 			if rst.TimeUsed > (options.TimeLimit - 100) {
-				rst.JudgeResult = JUDGE_FLAG_TLE
+				rst.JudgeResult = JudgeFlagTLE
 			} else {
-				rst.JudgeResult = JUDGE_FLAG_MLE
+				rst.JudgeResult = JudgeFlagMLE
 			}
 		} else {
 			// Otherwise, called runtime error.
-			rst.JudgeResult = JUDGE_FLAG_RE
+			rst.JudgeResult = JudgeFlagRE
 		}
 	} else {
 		// Sometimes setrlimit doesn't work accurately.
 		if rst.TimeUsed > options.TimeLimit {
-			rst.JudgeResult = JUDGE_FLAG_MLE
+			rst.JudgeResult = JudgeFlagMLE
 		} else if rst.MemoryUsed > options.MemoryLimit {
-			rst.JudgeResult = JUDGE_FLAG_MLE
+			rst.JudgeResult = JudgeFlagMLE
 		} else {
-			rst.JudgeResult = JUDGE_FLAG_AC
+			rst.JudgeResult = JudgeFlagAC
 		}
 	}
 	return nil
@@ -77,7 +78,7 @@ func RunProgram(options JudgeOption, result *JudgeResult, msg chan string) error
 	// Fork a new process
 	pid, err = forkProc()
 	if err != nil {
-		result.JudgeResult = JUDGE_FLAG_SE
+		result.JudgeResult = JudgeFlagSE
 		result.SeInfo += err.Error() + "\n"
 		return err
 	}
@@ -135,12 +136,12 @@ func RunProgram(options JudgeOption, result *JudgeResult, msg chan string) error
 		// paren process: wait for child process end.
 		err = waitExit(options, pid, result)
 		if err != nil {
-			result.JudgeResult = JUDGE_FLAG_SE
+			result.JudgeResult = JudgeFlagSE
 			result.SeInfo += err.Error() + "\n"
 			return err
 		}
 		//if childErr != nil {
-		//	result.JudgeResult = JUDGE_FLAG_SE
+		//	result.JudgeResult = JudgeFlagSE
 		//	result.SeInfo += childErr.Error() + "\n"
 		//	return childErr
 		//}
