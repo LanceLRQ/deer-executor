@@ -1,9 +1,9 @@
 /* Deer executor
- * (C) 2019 LanceLRQ
+ * (C) 2019-Now LanceLRQ
  *
  * This code is licenced under the GPLv3.
  */
-package deer_executor
+package executor
 
 import (
 	"fmt"
@@ -14,11 +14,11 @@ import (
 	"unsafe"
 )
 
-
+// 定义ITimer的常量，命名规则遵循Linux的原始设定
 const (
-	ITIMER_REAL = 0
-	ITIMER_VIRTUAL = 1
-	ITIMER_PROF = 2
+	ITIMER_REAL 	= 0
+	ITIMER_VIRTUAL 	= 1
+	ITIMER_PROF 	= 2
 )
 
 type ITimerVal struct  {
@@ -31,6 +31,7 @@ type TimeVal struct {
 	TvUsec uint64
 }
 
+// 创建一个新的进程 (fork)
 func forkProc() (pid uintptr, err error) {
 	r1, r2, errMsg := syscall.Syscall(syscall.SYS_FORK, 0, 0, 0)
 	darwin := runtime.GOOS == "darwin"
@@ -52,39 +53,8 @@ func forkProc() (pid uintptr, err error) {
 	}
 	return pid, nil
 }
-//
-//func vforkProc() (pid uintptr, err error) {
-//	if runtime.GOOS != "linux" {
-//		return 0, fmt.Errorf("vfork() can only be used at linux")
-//	}
-//
-//	r1, r2, errMsg := syscall.RawSyscall6(syscall.SYS_VFORK, 0,0, 0, 0, 0, 0)
-//	if errMsg != 0 {
-//		return  0, fmt.Errorf("system call: vfork(); error: %s", errMsg)
-//	}
-//	if r1 == 0 && r2 == 0 {
-//		pid = 0
-//	} else {
-//		pid = r1
-//	}
-//	return pid, nil
-//}
-//
-//func pipe2Linux(fd *[2]int) error {
-//	const SYS_PIPE2 = 293
-//	if runtime.GOOS == "linux" {
-//		_, _, err := syscall.RawSyscall(SYS_PIPE2, uintptr(unsafe.Pointer(fd)), syscall.O_NONBLOCK, 0)
-//		if err != 0 {
-//			return syscall.Errno(err)
-//		}
-//	} else {
-//		return fmt.Errorf("pipe2() can only be used at linux")
-//	}
-//	return nil
-//}
-//
-//
 
+// 打开文件并获取描述符 (open)
 func getFileDescriptor(path string, flag int, perm uint32) (fd int, err error) {
 	var filed = 0
 	_, errMsg := os.Stat(path)
@@ -97,6 +67,7 @@ func getFileDescriptor(path string, flag int, perm uint32) (fd int, err error) {
 	return filed, nil
 }
 
+// 重定向文件描述符 (dup2)
 func redirectFileDescriptor(to int, path string, flag int, perm uint32) (fd int, err error) {
 	fd, errMsg := getFileDescriptor(path, flag, perm)
 	if errMsg == nil {
@@ -111,6 +82,7 @@ func redirectFileDescriptor(to int, path string, flag int, perm uint32) (fd int,
 	}
 }
 
+// 设置定时器 (setitimer)
 func setITimer(prealt ITimerVal) (err error) {
 	_, _, errMsg := syscall.RawSyscall(syscall.SYS_SETITIMER, ITIMER_REAL, uintptr(unsafe.Pointer(&prealt)), 0)
 	if errMsg != 0 {
@@ -119,7 +91,6 @@ func setITimer(prealt ITimerVal) (err error) {
 	return nil
 }
 
-
 func Max(x, y int64) int64 {
 	if x > y {
 		return x
@@ -127,6 +98,7 @@ func Max(x, y int64) int64 {
 	return y
 }
 
+// 设置资源限制 (setrlimit)
 func setLimit(timeLimit int, memoryLimit int) (err error) {
 	var rlimit syscall.Rlimit
 	var prealt ITimerVal

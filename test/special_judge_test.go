@@ -1,15 +1,15 @@
 package test
 
 import (
-	deer_executor "github.com/LanceLRQ/deer-executor"
-	deer_compiler "github.com/LanceLRQ/deer-executor/compile"
+	deer_compiler "github.com/LanceLRQ/deer-executor/provider"
+	"github.com/LanceLRQ/deer-executor/executor"
 	"io/ioutil"
 	"log"
 	"os"
 	"testing"
 )
 
-func SpecialJudge (workDir, codeContent, handle string, t *testing.T) *deer_executor.JudgeResult {
+func SpecialJudge (workDir, codeContent, handle string, t *testing.T) *executor.JudgeResult {
 
 	compiler := deer_compiler.GnucCompileProvider{}
 	//compiler := deer_compiler.JavaCompileProvider{}
@@ -42,7 +42,7 @@ func SpecialJudge (workDir, codeContent, handle string, t *testing.T) *deer_exec
 	_ = os.Remove("/tmp/spj.out")
 	_ = os.Remove("/tmp/spj.err")
 
-	judgeOption := deer_executor.JudgeOption{
+	judgeOption := executor.JudgeOption{
 		TimeLimit:     10000,
 		MemoryLimit:   65355,
 		FileSizeLimit: 100 * 1024 * 1024,
@@ -61,7 +61,7 @@ func SpecialJudge (workDir, codeContent, handle string, t *testing.T) *deer_exec
 			Stdout      string
 			Stderr      string
 		}{
-			Mode:        deer_executor.SpecialJudgeModeChecker,
+			Mode:        executor.SpecialJudgeModeChecker,
 			Checker:     spjCompiler.GetRunArgs()[0],
 			RedirectStd: true,
 			TimeLimit:   10000,
@@ -71,7 +71,7 @@ func SpecialJudge (workDir, codeContent, handle string, t *testing.T) *deer_exec
 		},
 		Uid: -1,
 	}
-	judgeResult, err := deer_executor.Judge(judgeOption)
+	judgeResult, err := executor.Judge(judgeOption)
 	if err != nil {
 		t.Fatal(err.Error())
 	} else {
