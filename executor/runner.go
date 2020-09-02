@@ -3,7 +3,7 @@
  *
  * This code is licenced under the GPLv3.
  */
-package deer_executor
+package executor
 
 import (
 	"fmt"
