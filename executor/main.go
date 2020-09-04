@@ -57,7 +57,7 @@ type JudgeOption struct {
 	TestCaseOut		string			// Testcase output file path
 	ProgramOut 		string			// Program-stdout file path
 	ProgramError 	string			// Program-stderr file path
-	TimeLimit 		int8			// Time limit (ms)
+	TimeLimit 		int				// Time limit (ms)
 	MemoryLimit 	int				// Memory limit (KB)
 	RealTimeLimit 	int				// Real Time Limit (ms) (optional)
 	FileSizeLimit 	int				// File Size Limit (bytes) (optional)
