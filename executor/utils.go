@@ -99,7 +99,7 @@ func Max(x, y int64) int64 {
 }
 
 // 设置资源限制 (setrlimit)
-func setLimit(timeLimit int, memoryLimit int) (err error) {
+func setLimit(timeLimit, memoryLimit , realTimeLimit int) (err error) {
 	var rlimit syscall.Rlimit
 	var prealt ITimerVal
 	var errMsg error
@@ -113,14 +113,16 @@ func setLimit(timeLimit int, memoryLimit int) (err error) {
 		return errMsg
 	}
 
-	// Set time limit: setITimer
-	prealt.ItInterval.TvSec = uint64(math.Floor(float64(timeLimit) / 1000.0))
-	prealt.ItInterval.TvUsec = uint64(timeLimit % 1000 * 1000)
-	prealt.ItValue.TvSec = prealt.ItInterval.TvSec
-	prealt.ItValue.TvUsec = prealt.ItInterval.TvUsec
-	errMsg = setITimer(prealt)
-	if errMsg != nil {
-		return errMsg
+	if realTimeLimit > 0 {
+		// Set time limit: setITimer
+		prealt.ItInterval.TvSec = uint64(math.Floor(float64(realTimeLimit) / 1000.0))
+		prealt.ItInterval.TvUsec = uint64(realTimeLimit % 1000 * 1000)
+		prealt.ItValue.TvSec = prealt.ItInterval.TvSec
+		prealt.ItValue.TvUsec = prealt.ItInterval.TvUsec
+		errMsg = setITimer(prealt)
+		if errMsg != nil {
+			return errMsg
+		}
 	}
 
 	// Set memory limit: RLIMIT_DATA
