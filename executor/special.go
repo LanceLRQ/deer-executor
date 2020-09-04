@@ -95,7 +95,7 @@ func CustomChecker(options JudgeOption, result *JudgeResult, msg chan string) er
 		if options.SpecialJudge.MemoryLimit > 0 { tl = options.SpecialJudge.MemoryLimit  }
 
 		// Set resource limit
-		childErr = setLimit(tl, ml)
+		childErr = setLimit(tl, ml, tl)
 		if childErr != nil {
 			return childErr
 		}
@@ -181,7 +181,7 @@ func InteractiveChecker(options JudgeOption, result *JudgeResult, msg chan strin
 		}
 
 		// Set resource limit
-		childErr = setLimit(options.TimeLimit, options.MemoryLimit)
+		childErr = setLimit(options.TimeLimit, options.MemoryLimit, options.TimeLimit)
 		if childErr != nil {
 			return childErr
 		}
@@ -220,7 +220,7 @@ func InteractiveChecker(options JudgeOption, result *JudgeResult, msg chan strin
 			if options.SpecialJudge.MemoryLimit > 0 { tl = options.SpecialJudge.MemoryLimit  }
 
 			// Set resource limit
-			childErr = setLimit(tl, ml)
+			childErr = setLimit(tl, ml, options.TimeLimit)
 			if childErr != nil {
 				return childErr
 			}

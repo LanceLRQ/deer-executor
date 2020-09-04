@@ -113,7 +113,7 @@ func RunProgram(options JudgeOption, result *JudgeResult, msg chan string) error
 		}
 
 		// Set resource limit
-		childErr = setLimit(options.TimeLimit, options.MemoryLimit)
+		childErr = setLimit(options.TimeLimit, options.MemoryLimit, options.TimeLimit)
 		if childErr != nil {
 			return childErr
 		}
