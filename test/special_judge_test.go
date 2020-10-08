@@ -1,15 +1,15 @@
 package test
 
 import (
+	"github.com/LanceLRQ/deer-executor/executor/obsolete"
 	deer_compiler "github.com/LanceLRQ/deer-executor/provider"
-	"github.com/LanceLRQ/deer-executor/executor"
 	"io/ioutil"
 	"log"
 	"os"
 	"testing"
 )
 
-func SpecialJudge (workDir, codeContent, handle string, t *testing.T) *executor.JudgeResult {
+func SpecialJudge (workDir, codeContent, handle string, t *testing.T) *obsolete.JudgeResult {
 
 	compiler := deer_compiler.GnucCompileProvider{}
 	//compiler := deer_compiler.JavaCompileProvider{}
@@ -42,7 +42,7 @@ func SpecialJudge (workDir, codeContent, handle string, t *testing.T) *executor.
 	_ = os.Remove("/tmp/spj.out")
 	_ = os.Remove("/tmp/spj.err")
 
-	judgeOption := executor.JudgeOption{
+	judgeOption := obsolete.JudgeOption{
 		TimeLimit:     10000,
 		MemoryLimit:   65355,
 		FileSizeLimit: 100 * 1024 * 1024,
@@ -61,7 +61,7 @@ func SpecialJudge (workDir, codeContent, handle string, t *testing.T) *executor.
 			Stdout      string
 			Stderr      string
 		}{
-			Mode:        executor.SpecialJudgeModeChecker,
+			Mode:        obsolete.SpecialJudgeModeChecker,
 			Checker:     spjCompiler.GetRunArgs()[0],
 			RedirectStd: true,
 			TimeLimit:   10000,
@@ -71,7 +71,7 @@ func SpecialJudge (workDir, codeContent, handle string, t *testing.T) *executor.
 		},
 		Uid: -1,
 	}
-	judgeResult, err := executor.Judge(judgeOption)
+	judgeResult, err := obsolete.Judge(judgeOption)
 	if err != nil {
 		t.Fatal(err.Error())
 	} else {

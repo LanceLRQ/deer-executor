@@ -30,7 +30,7 @@ func (prov *PHPCompileProvider) Init(code string, workDir string) error {
 }
 
 func (prov *PHPCompileProvider) Compile() (result bool, errmsg string) {
-	result, errmsg = prov.shell(fmt.Sprintf(COMPILE_COMMAND_PHP, prov.codeFilePath))
+	result, errmsg = prov.shell(fmt.Sprintf(CompileCommandPHP, prov.codeFilePath))
 	if result {
 		prov.isReady = true
 	}

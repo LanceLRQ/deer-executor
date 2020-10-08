@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	provider "github.com/LanceLRQ/deer-executor/provider"
 	"github.com/urfave/cli/v2"
 	"os"
 )
@@ -86,17 +85,6 @@ func main() {
 			},
 		},
 	}).Run(os.Args)
-}
-
-
-func codeLangMatch(keyword string) *provider.CodeCompileProvider {
-	// 匹配编程语言
-	switch keyword {
-		case "c":
-		case "gcc":
-		case "gnuc":
-
-	}
 }
 
 func RunJudge() {

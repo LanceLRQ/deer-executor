@@ -1,15 +1,15 @@
 package test
 
 import (
+	"github.com/LanceLRQ/deer-executor/executor/obsolete"
 	deer_compiler "github.com/LanceLRQ/deer-executor/provider"
-	"github.com/LanceLRQ/deer-executor/executor"
 	"io/ioutil"
 	"log"
 	"os"
 	"testing"
 )
 
-func Runner (workDir, codeContent, handle string, t *testing.T) *executor.JudgeResult {
+func Runner (workDir, codeContent, handle string, t *testing.T) *obsolete.JudgeResult {
 
 	compiler := deer_compiler.GnucCompileProvider{}
 	//compiler := deer_compiler.JavaCompileProvider{}
@@ -25,7 +25,7 @@ func Runner (workDir, codeContent, handle string, t *testing.T) *executor.JudgeR
 	_ = os.Remove("/tmp/user.out")
 	_ = os.Remove("/tmp/user.err")
 
-	judgeOption := executor.JudgeOption{
+	judgeOption := obsolete.JudgeOption{
 		TimeLimit:     10000,
 		MemoryLimit:   65355,
 		FileSizeLimit: 100 * 1024 * 1024,
@@ -54,7 +54,7 @@ func Runner (workDir, codeContent, handle string, t *testing.T) *executor.JudgeR
 		},
 		Uid: -1,
 	}
-	judgeResult, err := executor.Judge(judgeOption)
+	judgeResult, err := obsolete.Judge(judgeOption)
 	if err != nil {
 		t.Fatal(err.Error())
 	} else {
@@ -75,7 +75,7 @@ func TestNormalRunnerAC(t *testing.T) {
 	}
 	codeContent := string(code)
 	rel := Runner(workDir, codeContent, "0", t)
-	if rel.JudgeResult != executor.JudgeFlagAC {
+	if rel.JudgeResult != obsolete.JudgeFlagAC {
 		t.Fatal("Program not AC")
 	} else {
 		t.Log("OK")
@@ -93,7 +93,7 @@ func TestNormalRunnerPE(t *testing.T) {
 	}
 	codeContent := string(code)
 	rel := Runner(workDir, codeContent, "0", t)
-	if rel.JudgeResult != executor.JudgeFlagPE {
+	if rel.JudgeResult != obsolete.JudgeFlagPE {
 		t.Fatal("Program not PE")
 	} else {
 		t.Log("OK")
@@ -111,7 +111,7 @@ func TestNormalRunnerPETab(t *testing.T) {
 	}
 	codeContent := string(code)
 	rel := Runner(workDir, codeContent, "0", t)
-	if rel.JudgeResult != executor.JudgeFlagPE {
+	if rel.JudgeResult != obsolete.JudgeFlagPE {
 		t.Fatal("Program not PE")
 	} else {
 		t.Log("OK")
@@ -129,7 +129,7 @@ func TestNormalRunnerWA(t *testing.T) {
 	}
 	codeContent := string(code)
 	rel := Runner(workDir, codeContent,"0", t)
-	if rel.JudgeResult != executor.JudgeFlagWA {
+	if rel.JudgeResult != obsolete.JudgeFlagWA {
 		t.Fatal("Program not WA")
 	} else {
 		t.Log("OK")
@@ -147,7 +147,7 @@ func TestNormalRunnerWA2(t *testing.T) {
 	}
 	codeContent := string(code)
 	rel := Runner(workDir, codeContent,"1", t)
-	if rel.JudgeResult != executor.JudgeFlagWA {
+	if rel.JudgeResult != obsolete.JudgeFlagWA {
 		t.Fatal("Program not WA")
 	} else {
 		t.Log("OK")
@@ -165,7 +165,7 @@ func TestNormalRunnerPE3(t *testing.T) {
 	}
 	codeContent := string(code)
 	rel := Runner(workDir, codeContent,"1", t)
-	if rel.JudgeResult != executor.JudgeFlagPE {
+	if rel.JudgeResult != obsolete.JudgeFlagPE {
 		t.Fatal("Program not PE")
 	} else {
 		t.Log("OK")

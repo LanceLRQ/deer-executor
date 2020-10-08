@@ -3,10 +3,11 @@
  *
  * This code is licenced under the GPLv3.
  */
-package executor
+package obsolete
 
 import (
 	"fmt"
+	"github.com/LanceLRQ/deer-executor/executor"
 	"os"
 	"syscall"
 )
@@ -76,7 +77,7 @@ func RunProgram(options JudgeOption, result *JudgeResult, msg chan string) error
 	)
 
 	// Fork a new process
-	pid, err = forkProc()
+	pid, err = executor.forkProc()
 	if err != nil {
 		result.JudgeResult = JudgeFlagSE
 		result.SeInfo += err.Error() + "\n"
@@ -87,19 +88,19 @@ func RunProgram(options JudgeOption, result *JudgeResult, msg chan string) error
 		// child process: set limit & execute target program.
 
 		// Redirect testCaseIn to STDIN
-		stdinFd, childErr = redirectFileDescriptor(syscall.Stdin, options.TestCaseIn, os.O_RDONLY, 0)
+		stdinFd, childErr = executor.redirectFileDescriptor(syscall.Stdin, options.TestCaseIn, os.O_RDONLY, 0)
 		if childErr != nil {
 			return childErr
 		}
 
 		// Redirect userOut to STDOUT
-		stdoutFd, childErr = redirectFileDescriptor(syscall.Stdout, options.ProgramOut, os.O_WRONLY | os.O_CREATE, 0644)
+		stdoutFd, childErr = executor.redirectFileDescriptor(syscall.Stdout, options.ProgramOut, os.O_WRONLY | os.O_CREATE, 0644)
 		if childErr != nil {
 			return childErr
 		}
 
 		// Redirect programError to STDERR
-		stderrFd, childErr = redirectFileDescriptor(syscall.Stderr, options.ProgramError, os.O_WRONLY | os.O_CREATE, 0644)
+		stderrFd, childErr = executor.redirectFileDescriptor(syscall.Stderr, options.ProgramError, os.O_WRONLY | os.O_CREATE, 0644)
 		if childErr != nil {
 			return childErr
 		}
@@ -113,7 +114,7 @@ func RunProgram(options JudgeOption, result *JudgeResult, msg chan string) error
 		}
 
 		// Set resource limit
-		childErr = setLimit(options.TimeLimit, options.MemoryLimit, options.TimeLimit)
+		childErr = executor.setLimit(options.TimeLimit, options.MemoryLimit, options.TimeLimit)
 		if childErr != nil {
 			return childErr
 		}

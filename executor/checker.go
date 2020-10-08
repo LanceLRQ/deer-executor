@@ -8,29 +8,42 @@ package executor
 import (
 	"bufio"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"syscall"
 )
 
-func readLine(buf *bufio.Reader) (string, error) {
+// 使用IOReader读写每一行， 并移除空白字符
+func readLineAndRemoveSpaceChar(buf *bufio.Reader) (string, error) {
 	line, isContinue, err := buf.ReadLine()
 	for isContinue && err == nil {
 		var next []byte
 		next, isContinue, err = buf.ReadLine()
 		line = append(line, next...)
 	}
-	return clearBlank(string(line)), err
+	return removeSpaceChar(string(line)), err
 }
 
-func clearBlank (source string) string {
+// 通常情况下，我们定义Tab、换行和空格字符是"空白字符"
+// Usually, tab, line break and white space are the special blank words, called 'SpaceChar'
+
+// 移除空白字符
+// Remove the special blank words in a string
+func removeSpaceChar (source string) string {
 	source = strings.Replace(source, "\t", "", -1)
+	source = strings.Replace(source, "\r", "", -1)
+	source = strings.Replace(source, "\n", "", -1)
 	source = strings.Replace(source, " ", "", -1)
 	return source
 }
+// 判断是否是空白字符
+func isSpaceChar (ch byte) bool {
+	return ch == '\n' ||  ch == '\r' || ch == ' ' || ch == '\t'
+}
 
-func lineDiff (options *JudgeOption) (sameLines int, totalLines int) {
+// 逐行比较，获取错误行数
+// Compare each line, to find out the number of wrong line
+func lineDiff (options *JudgeOptions) (sameLines int, totalLines int) {
 	answer, err := os.OpenFile(options.TestCaseOut, os.O_RDONLY | syscall.O_NONBLOCK, 0)
 	if err != nil {
 		return 0, 0
@@ -52,7 +65,7 @@ func lineDiff (options *JudgeOption) (sameLines int, totalLines int) {
 	)
 
 	for leftErr == nil {
-		leftStr, leftErr = readLine(answerBuffer)
+		leftStr, leftErr = readLineAndRemoveSpaceChar(answerBuffer)
 		if leftStr == "" {
 			continue
 		}
@@ -60,7 +73,7 @@ func lineDiff (options *JudgeOption) (sameLines int, totalLines int) {
 		leftCnt++
 
 		for rightStr == "" && rightErr == nil {
-			rightStr, rightErr = readLine(useroutBuffer)
+			rightStr, rightErr = readLineAndRemoveSpaceChar(useroutBuffer)
 		}
 
 		if rightStr == leftStr {
@@ -72,40 +85,8 @@ func lineDiff (options *JudgeOption) (sameLines int, totalLines int) {
 	return rightCnt, leftCnt
 }
 
-func isSpaceChar (ch byte) bool {
-	return ch == '\n' ||  ch == '\r' || ch == ' ' || ch == '\t'
-}
-
-//func checkCRC(fp *os.File) (string, error) {
-//	reader := bufio.NewReader(fp)
-//	crc := crc32.NewIEEE()
-//	if  _, err := io.Copy(crc, reader); err != nil {
-//		return "", err
-//	}
-//	return fmt.Sprintf("%x", crc.Sum32()), nil
-//}
-//
-//func compareCRC(options *JudgeOption) (bool, string) {
-//	answer, err := os.Open(options.TestCaseOut)
-//	if err != nil {
-//		return false, fmt.Sprintf("open answer file error: %s", err.Error())
-//	}
-//	defer answer.Close()
-//	userout, err := os.Open(options.ProgramOut)
-//	if err != nil {
-//		return false, fmt.Sprintf("open userout file error: %s", err.Error())
-//	}
-//	defer userout.Close()
-//
-//	crcuser, _ := checkCRC(userout)
-//	crcout, _ := checkCRC(answer)
-//	if crcuser != crcout {
-//		return false, "PE: CRC not match"
-//	}
-//	return true, "AC!"
-//}
-
-// 字符比较（严格比对)
+// 严格比较每一个字符
+// Compare each char in buffer strictly
 func StrictDiff(useroutBuffer, answerBuffer []byte, useroutLen, answerLen int64) bool {
 	if useroutLen != answerLen {
 		return false
@@ -120,7 +101,8 @@ func StrictDiff(useroutBuffer, answerBuffer []byte, useroutLen, answerLen int64)
 	return true
 }
 
-// 字符比较（忽略空白）
+// 比较每一个字符，但是忽略空白
+// Compare each char in buffer, but ignore the 'SpaceChar'
 func CharDiffIoUtil (useroutBuffer, answerBuffer []byte, useroutLen, answerLen int64) (rel int, logtext string) {
 	var (
 		leftPos, rightPos int64 = 0, 0
@@ -194,6 +176,7 @@ func CharDiffIoUtil (useroutBuffer, answerBuffer []byte, useroutLen, answerLen i
 		rightPos++
 	}
 	// 左右匹配，说明AC
+	// if left cursor's position equals right cursor's, means Accepted.
 	if leftPos == rightPos {
 		return JudgeFlagAC, "AC!"
 	} else {
@@ -207,30 +190,9 @@ func CharDiffIoUtil (useroutBuffer, answerBuffer []byte, useroutLen, answerLen i
 	}
 }
 
-func readFile(filePath string, name string) ([]byte, string, error) {
-	errCnt, errText := 0, ""
-	var err error
-	for errCnt < 3 {
-		fp, err := os.OpenFile(filePath, os.O_RDONLY|syscall.O_NONBLOCK, 0)
-		if err != nil {
-			errText = fmt.Sprintf("open %s file error: %s", name, err.Error())
-			errCnt++
-			continue
-		}
-		data, err := ioutil.ReadAll(fp)
-		if err != nil {
-			_ = fp.Close()
-			errText = fmt.Sprintf("read %s file i/o error: %s", name, err.Error())
-			errCnt++
-			continue
-		}
-		_ = fp.Close()
-		return data, errText, nil
-	}
-	return nil, errText, err
-}
-
-func DiffText(options JudgeOption, result *JudgeResult) (err error, logtext string) {
+// 进行结果文本比较（主要工具）
+// Compare the text
+func DiffText(options JudgeOptions, result *JudgeResult) (err error, logtext string) {
 	answerInfo, err := os.Stat(options.TestCaseOut)
 	if err != nil {
 		result.JudgeResult = JudgeFlagSE
@@ -250,13 +212,13 @@ func DiffText(options JudgeOption, result *JudgeResult) (err error, logtext stri
 	var useroutBuffer, answerBuffer []byte
 	errText := ""
 
-	answerBuffer, errText, err = readFile(options.TestCaseOut, "answer")
+	answerBuffer, errText, err = readFile(options.TestCaseOut, "answer", 3)
 	if err != nil {
 		result.JudgeResult = JudgeFlagSE
 		return err, errText
 	}
 
-	useroutBuffer, errText, err = readFile(options.ProgramOut, "userout")
+	useroutBuffer, errText, err = readFile(options.ProgramOut, "userout", 3)
 	if err != nil {
 		result.JudgeResult = JudgeFlagSE
 		return err, errText
@@ -303,65 +265,3 @@ func DiffText(options JudgeOption, result *JudgeResult) (err error, logtext stri
 		return nil, sizeText + "; " + logText
 	}
 }
-
-//func CharDiff (userout *os.File, answer *os.File, useroutLen int64, answerLen int64) (rel int, logtext string) {
-//	_, _ = userout.Seek(0, io.SeekStart)
-//	_, _ = answer.Seek(0, io.SeekStart)
-//
-//	useroutBuffer := bufio.NewReader(userout)
-//	answerBuffer := bufio.NewReader(answer)
-//
-//	var (
-//		leftPos, rightPos int64 = 0, 0
-//		maxLength = Max(useroutLen, answerLen)
-//		leftErr, rightErr error = nil, nil
-//		leftByte, rightByte byte
-//	)
-//
-//	// Lo-runner 源代码中对于格式错误的判断只是判断长度不同，没有判断字符不同的格式错误。
-//	// 这边很暴力的直接用CRC32去测试了
-//	for (leftPos < maxLength) && (rightPos < maxLength) {
-//		leftByte, leftErr = useroutBuffer.ReadByte()
-//		rightByte, rightErr = answerBuffer.ReadByte()
-//
-//		if (leftErr != nil) && (rightErr != nil) {
-//			break
-//		}
-//
-//		for leftErr == nil && isSpaceChar(leftByte) {
-//			leftByte, leftErr = useroutBuffer.ReadByte(); leftPos++
-//		}
-//		for  rightErr == nil && isSpaceChar(rightByte) {
-//			rightByte, rightErr = answerBuffer.ReadByte(); rightPos++
-//		}
-//
-//		if leftByte != rightByte {
-//			return JudgeFlagWA, fmt.Sprintf(
-//				"WA: at leftPos=%d, rightPos=%d, leftByte=%d, rightByte=%d",
-//				leftPos,
-//				rightPos,
-//				leftByte,
-//				rightByte,
-//			)
-//		}
-//		if leftErr == nil { leftPos++ }
-//		if rightErr == nil { rightPos++ }
-//	}
-//
-//	if leftPos == useroutLen && rightPos == answerLen && leftPos == rightPos {
-//		crcuser, _ := checkCRC(userout)
-//		crcout, _ := checkCRC(answer)
-//		if crcuser != crcout {
-//			return JudgeFlagPE, "PE: CRC not match"
-//		}
-//		return JudgeFlagAC, "AC!"
-//	} else {
-//		return JudgeFlagPE, fmt.Sprintf(
-//			"PE: leftPos=%d, rightPos=%d, leftLen=%d, rightLen=%d",
-//			leftPos,
-//			rightPos,
-//			useroutLen,
-//			answerLen,
-//		)
-//	}
-//}
