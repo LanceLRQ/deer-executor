@@ -16,13 +16,13 @@ import (
 )
 
 const (
-	COMPILE_COMMAND_GNUC = "/usr/bin/gcc %s -o %s -ansi -fno-asm -Wall -std=c11 -lm"
-	COMPILE_COMMAND_GNUCPP = "/usr/bin/g++ %s -o %s -ansi -fno-asm -Wall -lm -std=c++11"
-	COMPILE_COMMAND_JAVA = "/usr/bin/javac -encoding utf-8 %s -d %s"
-	COMPILE_COMMAND_GO = "/usr/bin/go build -o %s %s"
-	COMPILE_COMMAND_NODEJS = "/usr/bin/node -c %s"
-	COMPILE_COMMAND_PHP = "/usr/bin/php -l -f %s"
-	COMPILE_COMMAND_RUBY = "/usr/bin/ruby -c %s"
+	CompileCommandGNUC = "/usr/bin/gcc %s -o %s -ansi -fno-asm -Wall -std=c11 -lm"
+	CompileCommandGNUCPP = "/usr/bin/g++ %s -o %s -ansi -fno-asm -Wall -lm -std=c++11"
+	CompileCommandJava = "/usr/bin/javac -encoding utf-8 %s -d %s"
+	CompileCommandGo = "/usr/bin/go build -o %s %s"
+	CompileCommandNodeJS = "/usr/bin/node -c %s"
+	CompileCommandPHP = "/usr/bin/php -l -f %s"
+	CompileCommandRuby = "/usr/bin/ruby -c %s"
 )
 
 type CodeCompileProviderInterface interface {
@@ -110,4 +110,27 @@ func (prov *CodeCompileProvider) IsRealTime() bool {
 
 func (prov *CodeCompileProvider) IsReady() bool {
 	return prov.isReady
+}
+
+// 匹配编程语言
+func MatchCodeLanguage(keyword string) (error, CodeCompileProviderInterface) {
+	switch keyword {
+	case "c", "gcc", "gnu-c":
+		return nil, &GnucCompileProvider{}
+	case "cpp", "gcc-cpp", "gpp", "g++":
+		return nil, &GnucppCompileProvider{}
+	case "java":
+		return nil, &JavaCompileProvider{}
+	case "py2", "python2":
+		return nil, &Py2CompileProvider{}
+	case "py", "py3", "python3":
+		return nil, &Py3CompileProvider{}
+	case "php":
+		return nil, &PHPCompileProvider{}
+	case "node", "nodejs":
+		return nil, &NodeJSCompileProvider{}
+	case "rb", "ruby":
+		return nil, &RubyCompileProvider{}
+	}
+	return fmt.Errorf("unsupported language"), nil
 }

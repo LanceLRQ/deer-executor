@@ -31,7 +31,7 @@ func (prov *NodeJSCompileProvider) Init(code string, workDir string) error {
 }
 
 func (prov *NodeJSCompileProvider) Compile() (result bool, errmsg string) {
-	result, errmsg = prov.shell(fmt.Sprintf(COMPILE_COMMAND_NODEJS, prov.codeFilePath))
+	result, errmsg = prov.shell(fmt.Sprintf(CompileCommandNodeJS, prov.codeFilePath))
 	if result {
 		prov.isReady = true
 	}

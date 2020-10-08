@@ -7,18 +7,18 @@ package executor
 
 import (
 	"fmt"
+	"io/ioutil"
 	"math"
 	"os"
-	"runtime"
 	"syscall"
 	"unsafe"
 )
 
 // 定义ITimer的常量，命名规则遵循Linux的原始设定
 const (
-	ITIMER_REAL 	= 0
-	ITIMER_VIRTUAL 	= 1
-	ITIMER_PROF 	= 2
+	ITimerReal 		= 0
+	ITimerVirtual 	= 1
+	ITimerVProf 	= 2
 )
 
 type ITimerVal struct  {
@@ -31,60 +31,27 @@ type TimeVal struct {
 	TvUsec uint64
 }
 
-// 创建一个新的进程 (fork)
-func forkProc() (pid uintptr, err error) {
-	r1, r2, errMsg := syscall.Syscall(syscall.SYS_FORK, 0, 0, 0)
-	darwin := runtime.GOOS == "darwin"
-	if errMsg != 0 {
-		return 0, fmt.Errorf("system call: fork(); error: %s", errMsg)
-	}
-	if darwin {
-		if r2 == 1 {
-			pid = 0
-		} else {
-			pid = r1
-		}
-	} else {
-		if r1 == 0 && r2 == 0 {
-			pid = 0
-		} else {
-			pid = r1
-		}
-	}
-	return pid, nil
-}
 
 // 打开文件并获取描述符 (open)
-func getFileDescriptor(path string, flag int, perm uint32) (fd int, err error) {
-	var filed = 0
-	_, errMsg := os.Stat(path)
-	if errMsg != nil {
+func openFile(filePath string, flag int, perm os.FileMode) (*os.File, error) {
+	if _, err := os.Stat(filePath); err != nil {
 		if os.IsNotExist(err) {
-			return 0, errMsg
+			return nil, fmt.Errorf("file (%s) not exists", filePath)
+		} else {
+			return nil, fmt.Errorf("open file (%s) error: %s", filePath, err.Error())
 		}
-	}
-	filed, errMsg = syscall.Open(path, flag, perm)
-	return filed, nil
-}
-
-// 重定向文件描述符 (dup2)
-func redirectFileDescriptor(to int, path string, flag int, perm uint32) (fd int, err error) {
-	fd, errMsg := getFileDescriptor(path, flag, perm)
-	if errMsg == nil {
-		errMsg = syscall.Dup2(fd, to)
-		if errMsg != nil {
-			syscall.Close(fd)
-			return -1, errMsg
-		}
-		return fd, nil
 	} else {
-		return -1, errMsg
+		if fp, err := os.OpenFile(filePath, flag, perm); err != nil {
+			return nil, fmt.Errorf("open file (%s) error: %s", filePath, err.Error())
+		} else {
+			return fp, nil
+		}
 	}
 }
 
 // 设置定时器 (setitimer)
 func setITimer(prealt ITimerVal) (err error) {
-	_, _, errMsg := syscall.RawSyscall(syscall.SYS_SETITIMER, ITIMER_REAL, uintptr(unsafe.Pointer(&prealt)), 0)
+	_, _, errMsg := syscall.RawSyscall(syscall.SYS_SETITIMER, ITimerReal, uintptr(unsafe.Pointer(&prealt)), 0)
 	if errMsg != 0 {
 		return fmt.Errorf("system call: setitimer(); error: %s", errMsg)
 	}
@@ -154,6 +121,29 @@ func setLimit(timeLimit, memoryLimit , realTimeLimit int) (err error) {
 	rlimit.Max = rlimit.Cur
 	errMsg = syscall.Setrlimit(syscall.RLIMIT_FSIZE, &rlimit)
 
-
 	return nil
+}
+
+// 文件读写
+func readFile(filePath string, name string, tryOnFailed int) ([]byte, string, error) {
+	errCnt, errText := 0, ""
+	var err error
+	for errCnt < tryOnFailed {
+		fp, err := openFile(filePath, os.O_RDONLY|syscall.O_NONBLOCK, 0)
+		if err != nil {
+			errText = err.Error()
+			errCnt++
+			continue
+		}
+		data, err := ioutil.ReadAll(fp)
+		if err != nil {
+			_ = fp.Close()
+			errText = fmt.Sprintf("read %s file i/o error: %s", name, err.Error())
+			errCnt++
+			continue
+		}
+		_ = fp.Close()
+		return data, errText, nil
+	}
+	return nil, errText, err
 }

@@ -3,10 +3,11 @@
  *
  * This code is licenced under the GPLv3.
  */
-package executor
+package obsolete
 
 import (
 	"fmt"
+	"github.com/LanceLRQ/deer-executor/executor"
 	"os"
 	"runtime"
 	"syscall"
@@ -62,7 +63,7 @@ func CustomChecker(options JudgeOption, result *JudgeResult, msg chan string) er
 		pid uintptr
 		stdinFd, stdoutFd, stderrFd int
 	)
-	pid, err = forkProc()
+	pid, err = executor.forkProc()
 	if err != nil {
 		result.JudgeResult = JudgeFlagSE
 		result.SeInfo += err.Error() + "\n"
@@ -72,20 +73,20 @@ func CustomChecker(options JudgeOption, result *JudgeResult, msg chan string) er
 	if pid == 0 {
 		if options.SpecialJudge.RedirectStd {
 			// Redirect testCaseIn to STDIN
-			stdinFd, childErr = redirectFileDescriptor(syscall.Stdin, options.ProgramOut, os.O_RDONLY, 0)
+			stdinFd, childErr = executor.redirectFileDescriptor(syscall.Stdin, options.ProgramOut, os.O_RDONLY, 0)
 			if childErr != nil {
 				return childErr
 			}
 		}
 
 		// Redirect userOut to STDOUT
-		stdoutFd, childErr = redirectFileDescriptor(syscall.Stdout, options.SpecialJudge.Stdout, os.O_WRONLY | os.O_CREATE, 0644)
+		stdoutFd, childErr = executor.redirectFileDescriptor(syscall.Stdout, options.SpecialJudge.Stdout, os.O_WRONLY | os.O_CREATE, 0644)
 		if childErr != nil {
 			return childErr
 		}
 
 		// Redirect programError to STDERR
-		stderrFd, childErr = redirectFileDescriptor(syscall.Stderr, options.SpecialJudge.Stderr, os.O_WRONLY | os.O_CREATE, 0644)
+		stderrFd, childErr = executor.redirectFileDescriptor(syscall.Stderr, options.SpecialJudge.Stderr, os.O_WRONLY | os.O_CREATE, 0644)
 		if childErr != nil {
 			return childErr
 		}
@@ -95,7 +96,7 @@ func CustomChecker(options JudgeOption, result *JudgeResult, msg chan string) er
 		if options.SpecialJudge.MemoryLimit > 0 { tl = options.SpecialJudge.MemoryLimit  }
 
 		// Set resource limit
-		childErr = setLimit(tl, ml, tl)
+		childErr = executor.setLimit(tl, ml, tl)
 		if childErr != nil {
 			return childErr
 		}
@@ -157,7 +158,7 @@ func InteractiveChecker(options JudgeOption, result *JudgeResult, msg chan strin
 	}
 
 	// Run Program
-	pidProgram, err = forkProc()
+	pidProgram, err = executor.forkProc()
 	if err != nil {
 		result.JudgeResult = JudgeFlagSE
 		result.SeInfo += err.Error() + "\n"
@@ -181,7 +182,7 @@ func InteractiveChecker(options JudgeOption, result *JudgeResult, msg chan strin
 		}
 
 		// Set resource limit
-		childErr = setLimit(options.TimeLimit, options.MemoryLimit, options.TimeLimit)
+		childErr = executor.setLimit(options.TimeLimit, options.MemoryLimit, options.TimeLimit)
 		if childErr != nil {
 			return childErr
 		}
@@ -198,7 +199,7 @@ func InteractiveChecker(options JudgeOption, result *JudgeResult, msg chan strin
 			msg <- fmt.Sprintf("pid:program:%d", pidProgram)
 		}
 		// Run Judger
-		pidJudger, judgerErr = forkProc()
+		pidJudger, judgerErr = executor.forkProc()
 		if judgerErr != nil {
 			return judgerErr
 		}
@@ -220,7 +221,7 @@ func InteractiveChecker(options JudgeOption, result *JudgeResult, msg chan strin
 			if options.SpecialJudge.MemoryLimit > 0 { tl = options.SpecialJudge.MemoryLimit  }
 
 			// Set resource limit
-			childErr = setLimit(tl, ml, options.TimeLimit)
+			childErr = executor.setLimit(tl, ml, options.TimeLimit)
 			if childErr != nil {
 				return childErr
 			}

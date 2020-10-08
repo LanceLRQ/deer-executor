@@ -28,7 +28,7 @@ func (prov *GolangCompileProvider) Init(code string, workDir string) error {
 }
 
 func (prov *GolangCompileProvider) Compile() (result bool, errmsg string) {
-	result, errmsg = prov.shell(fmt.Sprintf(COMPILE_COMMAND_GO, prov.programFilePath, prov.codeFilePath))
+	result, errmsg = prov.shell(fmt.Sprintf(CompileCommandGo, prov.programFilePath, prov.codeFilePath))
 	if result {
 		prov.isReady = true
 	}

@@ -3,12 +3,13 @@
  *
  * This code is licenced under the GPLv3.
  */
-package executor
+package obsolete
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/LanceLRQ/deer-executor/executor"
 )
 
 const (
@@ -97,7 +98,7 @@ func Judge(options JudgeOption) (*JudgeResult, error) {
 		}
 		// Text Diff
 		if judgeResult.JudgeResult == JudgeFlagSpecialJudgeRequireChecker {
-			err, logtext := DiffText(options, judgeResult)
+			err, logtext := executor.DiffText(options, judgeResult)
 			if err != nil {
 				return nil, err
 			}
@@ -116,7 +117,7 @@ func Judge(options JudgeOption) (*JudgeResult, error) {
 			}
 			// Text Diff
 			if judgeResult.JudgeResult == JudgeFlagSpecialJudgeRequireChecker {
-				err, logtext := DiffText(options, judgeResult)
+				err, logtext := executor.DiffText(options, judgeResult)
 				if err != nil {
 					return nil, err
 				}
@@ -125,7 +126,7 @@ func Judge(options JudgeOption) (*JudgeResult, error) {
 		} else {
 			// Text Diff
 			if judgeResult.JudgeResult == JudgeFlagAC {
-				err, logtext := DiffText(options, judgeResult)
+				err, logtext := executor.DiffText(options, judgeResult)
 				if err != nil {
 					return nil, err
 				}
