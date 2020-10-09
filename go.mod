@@ -3,7 +3,7 @@ module github.com/LanceLRQ/deer-executor
 go 1.14
 
 require (
-	github.com/docker/docker v1.13.1 // indirect
+	github.com/docker/docker v1.13.1
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/satori/go.uuid v1.2.0
 	github.com/urfave/cli/v2 v2.2.0
