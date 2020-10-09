@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/LanceLRQ/deer-executor/executor"
+	provider "github.com/LanceLRQ/deer-executor/provider"
 	"github.com/docker/docker/pkg/reexec"
 	"github.com/urfave/cli/v2"
 	"os"
@@ -18,7 +19,9 @@ func init() {
 
 
 func RunJudge(options executor.JudgeOptions) error {
-	//compiler := provider.GnucCompileProvider{}
+	compiler, err := provider.MatchCodeLanguage(options.CodeLangName)
+	if err != nil { return err }
+	//compiler.Init()
 	return nil
 }
 

@@ -3,7 +3,7 @@
  *
  * This code is licenced under the GPLv3.
  */
-package deer_compiler
+package provider
 
 import (
 	"bytes"
@@ -113,24 +113,24 @@ func (prov *CodeCompileProvider) IsReady() bool {
 }
 
 // 匹配编程语言
-func MatchCodeLanguage(keyword string) (error, CodeCompileProviderInterface) {
+func MatchCodeLanguage(keyword string) (CodeCompileProviderInterface, error) {
 	switch keyword {
 	case "c", "gcc", "gnu-c":
-		return nil, &GnucCompileProvider{}
+		return &GnucCompileProvider{}, nil
 	case "cpp", "gcc-cpp", "gpp", "g++":
-		return nil, &GnucppCompileProvider{}
+		return &GnucppCompileProvider{}, nil
 	case "java":
-		return nil, &JavaCompileProvider{}
+		return &JavaCompileProvider{}, nil
 	case "py2", "python2":
-		return nil, &Py2CompileProvider{}
+		return &Py2CompileProvider{}, nil
 	case "py", "py3", "python3":
-		return nil, &Py3CompileProvider{}
+		return &Py3CompileProvider{}, nil
 	case "php":
-		return nil, &PHPCompileProvider{}
+		return &PHPCompileProvider{}, nil
 	case "node", "nodejs":
-		return nil, &NodeJSCompileProvider{}
+		return &NodeJSCompileProvider{}, nil
 	case "rb", "ruby":
-		return nil, &RubyCompileProvider{}
+		return &RubyCompileProvider{}, nil
 	}
-	return fmt.Errorf("unsupported language"), nil
+	return nil, fmt.Errorf("unsupported language")
 }
