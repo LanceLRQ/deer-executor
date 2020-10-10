@@ -8,7 +8,6 @@ package provider
 import (
 	"bytes"
 	"fmt"
-	"github.com/LanceLRQ/deer-executor/executor"
 	"github.com/satori/go.uuid"
 	"os"
 	"os/exec"
@@ -117,51 +116,4 @@ func (prov *CodeCompileProvider) IsRealTime() bool {
 
 func (prov *CodeCompileProvider) IsReady() bool {
 	return prov.isReady
-}
-
-// 匹配编程语言
-func MatchCodeLanguage(keyword string, fileName string) (CodeCompileProviderInterface, error) {
-	_match:
-	switch keyword {
-	case "c", "gcc", "gnu-c":
-		return &GnucCompileProvider{}, nil
-	case "cpp", "gcc-cpp", "gpp", "g++":
-		return &GnucppCompileProvider{}, nil
-	case "java":
-		return &JavaCompileProvider{}, nil
-	case "py2", "python2":
-		return &Py2CompileProvider{}, nil
-	case "py", "py3", "python3":
-		return &Py3CompileProvider{}, nil
-	case "php":
-		return &PHPCompileProvider{}, nil
-	case "node", "nodejs":
-		return &NodeJSCompileProvider{}, nil
-	case "rb", "ruby":
-		return &RubyCompileProvider{}, nil
-	case "auto":
-		keyword = strings.Replace(path.Ext(fileName), ".", "", -1)
-		goto _match
-	}
-	return nil, fmt.Errorf("unsupported language")
-}
-
-// 编译文件
-// 如果不设置codeStr，默认会读取配置文件里的code_file字段并打开对应文件
-func NewCompiler (options executor.JudgeOptions, codeStr string) (CodeCompileProviderInterface, error) {
-	if codeStr == "" {
-		codeFileBytes, err := executor.ReadFile(options.CodeFile)
-		if err != nil {
-			return nil, err
-		}
-		codeStr = string(codeFileBytes)
-	}
-
-	compiler, err := MatchCodeLanguage(options.CodeLangName, options.CodeFile)
-	if err != nil { return nil, err }
-	err = compiler.Init(codeStr, "/tmp")
-	if err != nil {
-		return nil, err
-	}
-	return compiler, err
 }
