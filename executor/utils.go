@@ -23,6 +23,9 @@ const (
 	ITimerVProf 	= 2
 )
 
+// 定义公共环境变量
+var CommonEnvs = []string{ "PYTHONIOENCODING=utf-8" }
+
 type ITimerVal struct  {
 	ItInterval TimeVal
 	ItValue TimeVal
@@ -34,8 +37,8 @@ type TimeVal struct {
 }
 
 
-// 打开文件并获取描述符 (open)
-func openFile(filePath string, flag int, perm os.FileMode) (*os.File, error) {
+// 打开文件并获取描述符 (强制文件检查)
+func OpenFile(filePath string, flag int, perm os.FileMode) (*os.File, error) {
 	if _, err := os.Stat(filePath); err != nil {
 		if os.IsNotExist(err) {
 			return nil, fmt.Errorf("file (%s) not exists", filePath)
@@ -110,13 +113,14 @@ func setLimit(timeLimit, memoryLimit , realTimeLimit int) (err error) {
 		return errMsg
 	}
 
-	// Set stack limit: RLIMIT_STACK
-	rlimit.Cur = uint64(memoryLimit * 1024)
+	// Set stack limit: RLIMIT_STACK (half of memoryLimit)
+	rlimit.Cur = uint64((memoryLimit / 2) * 1024)
 	rlimit.Max = rlimit.Cur
 	errMsg = syscall.Setrlimit(syscall.RLIMIT_STACK, &rlimit)
-	if errMsg != nil {
-		return errMsg
-	}
+	// NOT REQUIRED. Do not throw error.
+	//if errMsg != nil {
+	//	return errMsg
+	//}
 
 	// Set file size limit: RLIMIT_FSIZE
 	rlimit.Cur = uint64(JudgeFileSizeLimit)
@@ -126,12 +130,12 @@ func setLimit(timeLimit, memoryLimit , realTimeLimit int) (err error) {
 	return nil
 }
 
-// 文件读写
-func readFile(filePath string, name string, tryOnFailed int) ([]byte, string, error) {
+// 文件读写(有重试次数，checker专用)
+func readFileWithTry(filePath string, name string, tryOnFailed int) ([]byte, string, error) {
 	errCnt, errText := 0, ""
 	var err error
 	for errCnt < tryOnFailed {
-		fp, err := openFile(filePath, os.O_RDONLY|syscall.O_NONBLOCK, 0)
+		fp, err := OpenFile(filePath, os.O_RDONLY|syscall.O_NONBLOCK, 0)
 		if err != nil {
 			errText = err.Error()
 			errCnt++
@@ -140,7 +144,7 @@ func readFile(filePath string, name string, tryOnFailed int) ([]byte, string, er
 		data, err := ioutil.ReadAll(fp)
 		if err != nil {
 			_ = fp.Close()
-			errText = fmt.Sprintf("read %s file i/o error: %s", name, err.Error())
+			errText = fmt.Sprintf("read file(%s) i/o error: %s", name, err.Error())
 			errCnt++
 			continue
 		}
@@ -148,6 +152,21 @@ func readFile(filePath string, name string, tryOnFailed int) ([]byte, string, er
 		return data, errText, nil
 	}
 	return nil, errText, err
+}
+
+// 文件读写(公共)
+func ReadFile(filePath string) ([]byte, error) {
+	fp, err := OpenFile(filePath, os.O_RDONLY|syscall.O_NONBLOCK, 0)
+	if err != nil {
+		return nil, err
+	}
+	data, err := ioutil.ReadAll(fp)
+	if err != nil {
+		_ = fp.Close()
+		return nil, fmt.Errorf("read file(%s) i/o error: %s", filePath, err.Error())
+	}
+	_ = fp.Close()
+	return data, nil
 }
 
 func ObjectToJSONStringFormatted(conf interface{}) string {
@@ -172,7 +191,7 @@ func ObjectToJSONString(obj interface{}) string {
 	}
 }
 
-func JSONStringObject(jsonStr string, obj interface{}) (bool) {
+func JSONStringObject(jsonStr string, obj interface{}) bool {
 	err := json.Unmarshal([]byte(jsonStr), &obj)
 	if err != nil {
 		return false

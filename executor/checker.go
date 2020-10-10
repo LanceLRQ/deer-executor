@@ -212,13 +212,13 @@ func DiffText(options JudgeOptions, result *JudgeResult) (err error, logtext str
 	var useroutBuffer, answerBuffer []byte
 	errText := ""
 
-	answerBuffer, errText, err = readFile(options.TestCaseOut, "answer", 3)
+	answerBuffer, errText, err = readFileWithTry(options.TestCaseOut, "answer", 3)
 	if err != nil {
 		result.JudgeResult = JudgeFlagSE
 		return err, errText
 	}
 
-	useroutBuffer, errText, err = readFile(options.ProgramOut, "userout", 3)
+	useroutBuffer, errText, err = readFileWithTry(options.ProgramOut, "userout", 3)
 	if err != nil {
 		result.JudgeResult = JudgeFlagSE
 		return err, errText
