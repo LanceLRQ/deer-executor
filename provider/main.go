@@ -8,6 +8,7 @@ package provider
 import (
 	"bytes"
 	"fmt"
+	"github.com/LanceLRQ/deer-executor/executor"
 	"github.com/satori/go.uuid"
 	"os"
 	"os/exec"
@@ -32,6 +33,8 @@ type CodeCompileProviderInterface interface {
 	initFiles(codeExt string, programExt string) error
 	// 编译程序
 	Compile() (result bool, errmsg string)
+	// 清理工作目录
+	Clean()
 	// 获取程序的运行命令参数组
 	GetRunArgs() (args []string)
 	// 判断STDERR的输出内容是否存在编译错误信息，通常用于脚本语言的判定，
@@ -66,6 +69,10 @@ func (prov *CodeCompileProvider) initFiles(codeExt string, programExt string) er
 
 	err := prov.saveCode()
 	return err
+}
+func (prov *CodeCompileProvider) Clean() {
+	_ = os.Remove(prov.codeFilePath)
+	_ = os.Remove(prov.programFilePath)
 }
 
 func (prov *CodeCompileProvider) shell(commands string) (success bool, errout string) {
@@ -113,7 +120,8 @@ func (prov *CodeCompileProvider) IsReady() bool {
 }
 
 // 匹配编程语言
-func MatchCodeLanguage(keyword string) (CodeCompileProviderInterface, error) {
+func MatchCodeLanguage(keyword string, fileName string) (CodeCompileProviderInterface, error) {
+	_match:
 	switch keyword {
 	case "c", "gcc", "gnu-c":
 		return &GnucCompileProvider{}, nil
@@ -131,6 +139,29 @@ func MatchCodeLanguage(keyword string) (CodeCompileProviderInterface, error) {
 		return &NodeJSCompileProvider{}, nil
 	case "rb", "ruby":
 		return &RubyCompileProvider{}, nil
+	case "auto":
+		keyword = strings.Replace(path.Ext(fileName), ".", "", -1)
+		goto _match
 	}
 	return nil, fmt.Errorf("unsupported language")
+}
+
+// 编译文件
+// 如果不设置codeStr，默认会读取配置文件里的code_file字段并打开对应文件
+func NewCompiler (options executor.JudgeOptions, codeStr string) (CodeCompileProviderInterface, error) {
+	if codeStr == "" {
+		codeFileBytes, err := executor.ReadFile(options.CodeFile)
+		if err != nil {
+			return nil, err
+		}
+		codeStr = string(codeFileBytes)
+	}
+
+	compiler, err := MatchCodeLanguage(options.CodeLangName, options.CodeFile)
+	if err != nil { return nil, err }
+	err = compiler.Init(codeStr, "/tmp")
+	if err != nil {
+		return nil, err
+	}
+	return compiler, err
 }

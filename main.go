@@ -3,25 +3,54 @@ package main
 import (
 	"fmt"
 	"github.com/LanceLRQ/deer-executor/executor"
-	provider "github.com/LanceLRQ/deer-executor/provider"
+	"github.com/LanceLRQ/deer-executor/provider"
 	"github.com/docker/docker/pkg/reexec"
 	"github.com/urfave/cli/v2"
+	"log"
 	"os"
 )
 
 func init() {
 	reexec.Register("targetProgram", executor.RunTargetProgramProcess)
-	reexec.Register("judgeProgram", executor.RunTargetProgramProcess)
+	reexec.Register("judgeProgram", executor.RunSpecialJudgeProgramProcess)
 	if reexec.Init() {
 		os.Exit(0)
 	}
 }
 
 
-func RunJudge(options executor.JudgeOptions) error {
-	compiler, err := provider.MatchCodeLanguage(options.CodeLangName)
-	if err != nil { return err }
-	//compiler.Init()
+
+
+func runJudge(options executor.JudgeOptions) error {
+	// 获取对应的编译器提供程序
+	compiler, err := provider.NewCompiler(options, "")
+	if err != nil {
+		return err
+	}
+	// 编译程序
+	success, ceinfo := compiler.Compile()
+	if !success {
+		return fmt.Errorf("compile error:\n%s", ceinfo)
+	}
+	// 清理工作目录
+	defer compiler.Clean()
+	// 获取执行指令
+	options.Commands = compiler.GetRunArgs()
+
+	// 清理输出文件，以免文件数据错误
+	_ = os.Remove(options.ProgramOut)
+	_ = os.Remove(options.ProgramError)
+	_ = os.Remove(options.SpecialJudge.Stdout)
+	_ = os.Remove(options.SpecialJudge.Stderr)
+	_ = os.Remove(options.SpecialJudge.Logfile)
+
+	// 运行judge程序
+	judgeResult := executor.JudgeResult{}
+	err = executor.Run(options, &judgeResult)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -170,7 +199,11 @@ func main() {
 							Logfile: c.String("special-judge-checker-logfile"),
 						},
 					}
-					return RunJudge(options)
+					err := runJudge(options)
+					if err != nil {
+						log.Fatal(err)
+					}
+					return err
 				},
 				Flags: commonFlags,
 			},
