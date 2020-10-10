@@ -9,7 +9,9 @@ import (
 	"syscall"
 )
 
-func runTargetProgram(options JudgeOptions) (*exec.Cmd, error) {
+
+// 运行目标进程
+func (options *JudgeOptions)runTargetProgram() (*exec.Cmd, error) {
 	payload := ObjectToJSONString(options)
 	target := reexec.Command("targetProgram", payload)
 
@@ -34,10 +36,13 @@ func runTargetProgram(options JudgeOptions) (*exec.Cmd, error) {
 	return target, nil
 }
 
+
 // 基于JudgeOptions进行评测调度
-func Run(options JudgeOptions, result *JudgeResult) error {
-	target, err := runTargetProgram(options)
+func (options *JudgeOptions) judge(judgeResult *JudgeResult) error {
+	target, err := options.runTargetProgram()
 	if err != nil {
+		judgeResult.JudgeResult = JudgeFlagSE
+		judgeResult.SeInfo = err.Error()
 		return err
 	}
 	if target.ProcessState.Exited() {
@@ -45,6 +50,47 @@ func Run(options JudgeOptions, result *JudgeResult) error {
 	}
 	return nil
 }
+
+func (options *JudgeOptions)RunJudge() (JudgeResult, error) {
+	judgeResult := JudgeResult{}
+	// 获取对应的编译器提供程序
+	compiler, err := options.getCompiler("")
+	if err != nil {
+		judgeResult.JudgeResult = JudgeFlagSE
+		judgeResult.SeInfo = err.Error()
+		return judgeResult, err
+	}
+	// 编译程序
+	success, ceinfo := compiler.Compile()
+	if !success {
+		judgeResult.JudgeResult = JudgeFlagCE
+		judgeResult.CeInfo = ceinfo
+		return judgeResult, fmt.Errorf("compile error:\n%s", ceinfo)
+	}
+	// 清理工作目录
+	defer compiler.Clean()
+	// 获取执行指令
+	options.Commands = compiler.GetRunArgs()
+
+	// 清理输出文件，以免文件数据错误
+	_ = os.Remove(options.ProgramOut)
+	_ = os.Remove(options.ProgramError)
+	_ = os.Remove(options.SpecialJudge.Stdout)
+	_ = os.Remove(options.SpecialJudge.Stderr)
+	_ = os.Remove(options.SpecialJudge.Logfile)
+
+	// 运行judge程序
+	err = options.judge(&judgeResult)
+	if err != nil {
+		judgeResult.JudgeResult = JudgeFlagSE
+		judgeResult.SeInfo = err.Error()
+		return judgeResult, err
+	}
+
+	return judgeResult, nil
+}
+
+
 
 // 目标程序子进程
 func RunTargetProgramProcess() {
