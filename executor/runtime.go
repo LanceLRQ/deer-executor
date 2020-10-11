@@ -37,16 +37,68 @@ func (options *JudgeOptions)runTargetProgram() (*exec.Cmd, error) {
 }
 
 
+func (options *JudgeOptions) analysisExitStatus(rst *JudgeResult, cmd *exec.Cmd, specialJudge bool) error {
+	status := cmd.ProcessState.Sys().(syscall.WaitStatus)
+	ru := cmd.ProcessState.SysUsage().(*syscall.Rusage)
+	rst.TimeUsed = int(ru.Utime.Sec * 1000 + int64(ru.Utime.Usec) / 1000 + ru.Stime.Sec * 1000 + int64(ru.Stime.Usec) / 1000)
+	rst.MemoryUsed = int(ru.Minflt * int64(syscall.Getpagesize() / 1024 ))
+
+	// If process stopped with a signal
+	if status.Signaled() {
+		sig := status.Signal()
+		rst.ReSignum = int(sig)
+		if sig == syscall.SIGSEGV {
+			// MLE or RE can also get SIGSEGV signal.
+			if rst.MemoryUsed > options.MemoryLimit {
+				rst.JudgeResult = JudgeFlagMLE
+			} else {
+				rst.JudgeResult = JudgeFlagRE
+			}
+		} else if sig == syscall.SIGXFSZ {
+			// SIGXFSZ signal means OLE
+			rst.JudgeResult = JudgeFlagOLE
+		} else if sig == syscall.SIGALRM || sig == syscall.SIGVTALRM || sig == syscall.SIGXCPU {
+			// Normal TLE signal
+			rst.JudgeResult = JudgeFlagTLE
+		} else if sig == syscall.SIGKILL {
+			// Sometimes MLE might get SIGKILL signal.
+			// So if real time used lower than TIME_LIMIT - 100, it might be a TLE error.
+			if rst.TimeUsed > (options.TimeLimit - 100) {
+				rst.JudgeResult = JudgeFlagTLE
+			} else {
+				rst.JudgeResult = JudgeFlagMLE
+			}
+		} else {
+			// Otherwise, called runtime error.
+			rst.JudgeResult = JudgeFlagRE
+		}
+	} else {
+		// Sometimes setrlimit doesn't work accurately.
+		if rst.TimeUsed > options.TimeLimit {
+			rst.JudgeResult = JudgeFlagMLE
+		} else if rst.MemoryUsed > options.MemoryLimit {
+			rst.JudgeResult = JudgeFlagMLE
+		} else {
+			rst.JudgeResult = JudgeFlagAC
+		}
+	}
+	return nil
+}
+
 // 基于JudgeOptions进行评测调度
 func (options *JudgeOptions) judge(judgeResult *JudgeResult) error {
 	target, err := options.runTargetProgram()
-	if err != nil {
+	if target == nil && err != nil {
 		judgeResult.JudgeResult = JudgeFlagSE
 		judgeResult.SeInfo = err.Error()
 		return err
-	}
-	if target.ProcessState.Exited() {
-		fmt.Println("Finish!")
+	} else {
+		err = options.analysisExitStatus(judgeResult, target, false)
+		if err != nil {
+			judgeResult.JudgeResult = JudgeFlagSE
+			judgeResult.SeInfo = err.Error()
+			return err
+		}
 	}
 	return nil
 }
