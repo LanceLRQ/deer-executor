@@ -6,14 +6,24 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strconv"
 	"syscall"
 )
 
 
 // 运行目标进程
 func (options *JudgeOptions)runTargetProgram() (*exec.Cmd, error) {
-	payload := ObjectToJSONString(options)
-	target := reexec.Command("targetProgram", payload)
+
+	params := []string {
+		"targetProgram",
+		strconv.Itoa(options.TimeLimit),
+		strconv.Itoa(options.MemoryLimit),
+		strconv.Itoa(options.RealTimeLimit),
+		strconv.Itoa(options.Uid),
+	}
+	params = append(params, options.Commands...)
+
+	target := reexec.Command(params...)
 
 	tcin, err := OpenFile(options.TestCaseIn, syscall.O_RDONLY|syscall.O_NONBLOCK, 0)
 	if err != nil { return target, err }
@@ -146,32 +156,50 @@ func (options *JudgeOptions)RunJudge() (JudgeResult, error) {
 
 // 目标程序子进程
 func RunTargetProgramProcess() {
-	payload := os.Args[1]
-	options := JudgeOptions{}
-	if !JSONStringObject(payload, &options) {
-		log.Fatalf("parse judge options error")
+	if len(os.Args) < 5 {
+		log.Fatal("params error.")
 		return
 	}
-
+	timeLimit, err := strconv.ParseInt(os.Args[1], 10, 32)
+	if err != nil {
+		log.Fatal("parse time limit number error.")
+		return
+	}
+	memoryLimit, err := strconv.ParseInt(os.Args[2], 10, 32)
+	if err != nil {
+		log.Fatal("parse memory limit number error.")
+		return
+	}
+	realTimeLimit, err := strconv.ParseInt(os.Args[3], 10, 32)
+	if err != nil {
+		log.Fatal("parse real time limit number error.")
+		return
+	}
+	uid, err := strconv.ParseInt(os.Args[4], 10, 32)
+	if err != nil {
+		log.Fatal("parse uid number error.")
+		return
+	}
+	commands := os.Args[5:len(os.Args)]
 	// Set UID
-	if options.Uid > -1 {
-		err := syscall.Setuid(options.Uid)
+	if uid > -1 {
+		err := syscall.Setuid(int(uid))
 		if err != nil {
 			log.Fatalf("set resource limit error: %s", err.Error())
 			return
 		}
 	}
 	// Set Resource Limit
-	err := setLimit(options.TimeLimit, options.MemoryLimit, options.RealTimeLimit)
+	err = setLimit(int(timeLimit), int(memoryLimit), int(realTimeLimit))
 	if err != nil {
 		log.Fatalf("set resource limit error: %s", err.Error())
 		return
 	}
 	// Run Program
-	if len(options.Commands) > 1 {
-		_ = syscall.Exec(options.Commands[0], options.Commands[1:], CommonEnvs)
+	if len(commands) > 1 {
+		_ = syscall.Exec(commands[0], commands[1:], CommonEnvs)
 	} else {
-		_ = syscall.Exec(options.Commands[0], nil, CommonEnvs)
+		_ = syscall.Exec(commands[0], nil, CommonEnvs)
 	}
 }
 
