@@ -114,7 +114,7 @@ func setLimit(timeLimit, memoryLimit , realTimeLimit int) (err error) {
 	}
 
 	// Set stack limit: RLIMIT_STACK (half of memoryLimit)
-	rlimit.Cur = uint64((memoryLimit / 2) * 1024)
+	rlimit.Cur = uint64(memoryLimit * 1024)
 	rlimit.Max = rlimit.Cur
 	errMsg = syscall.Setrlimit(syscall.RLIMIT_STACK, &rlimit)
 	// NOT REQUIRED. Do not throw error.
