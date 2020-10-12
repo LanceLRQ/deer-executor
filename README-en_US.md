@@ -39,7 +39,7 @@ if !success {
 // Get compile result
 cmds := compiler.GetRunArgs()
 
-judgeOptions := deer_executor.JudgeOption {
+JudgeSession := deer_executor.JudgeOption {
 
     // Executable program commands
     // Commands:      []string{ "/tmp/a.out", "-a", "123" },      // It means: /tmp/a.out -a 123
@@ -70,7 +70,7 @@ judgeOptions := deer_executor.JudgeOption {
     Uid:    -1,                              // Linux user id (optional)
 }
 
-judgeResult, err := deer_executor.Judge(judgeOptions)
+judgeResult, err := deer_executor.Judge(JudgeSession)
 ```
 judgeResult define like this:
 ```

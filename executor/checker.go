@@ -43,13 +43,13 @@ func isSpaceChar (ch byte) bool {
 
 // 逐行比较，获取错误行数
 // Compare each line, to find out the number of wrong line
-func lineDiff (options *JudgeOptions) (sameLines int, totalLines int) {
-	answer, err := os.OpenFile(options.TestCaseOut, os.O_RDONLY | syscall.O_NONBLOCK, 0)
+func lineDiff (session *JudgeSession) (sameLines int, totalLines int) {
+	answer, err := os.OpenFile(session.TestCaseOut, os.O_RDONLY | syscall.O_NONBLOCK, 0)
 	if err != nil {
 		return 0, 0
 	}
 	defer answer.Close()
-	userout, err := os.Open(options.ProgramOut)
+	userout, err := os.Open(session.ProgramOut)
 	if err != nil {
 		return 0, 0
 	}
@@ -192,13 +192,13 @@ func CharDiffIoUtil (useroutBuffer, answerBuffer []byte, useroutLen, answerLen i
 
 // 进行结果文本比较（主要工具）
 // Compare the text
-func DiffText(options JudgeOptions, result *JudgeResult) (err error, logtext string) {
-	answerInfo, err := os.Stat(options.TestCaseOut)
+func DiffText(session JudgeSession, result *JudgeResult) (err error, logtext string) {
+	answerInfo, err := os.Stat(session.TestCaseOut)
 	if err != nil {
 		result.JudgeResult = JudgeFlagSE
 		return err, fmt.Sprintf("get answer file info failed: %s", err.Error())
 	}
-	useroutInfo, err := os.Stat(options.ProgramOut)
+	useroutInfo, err := os.Stat(session.ProgramOut)
 	if err != nil {
 		result.JudgeResult = JudgeFlagSE
 		return err, fmt.Sprintf("get userout file info failed: %s", err.Error())
@@ -212,13 +212,13 @@ func DiffText(options JudgeOptions, result *JudgeResult) (err error, logtext str
 	var useroutBuffer, answerBuffer []byte
 	errText := ""
 
-	answerBuffer, errText, err = readFileWithTry(options.TestCaseOut, "answer", 3)
+	answerBuffer, errText, err = readFileWithTry(session.TestCaseOut, "answer", 3)
 	if err != nil {
 		result.JudgeResult = JudgeFlagSE
 		return err, errText
 	}
 
-	useroutBuffer, errText, err = readFileWithTry(options.ProgramOut, "userout", 3)
+	useroutBuffer, errText, err = readFileWithTry(session.ProgramOut, "userout", 3)
 	if err != nil {
 		result.JudgeResult = JudgeFlagSE
 		return err, errText
@@ -229,10 +229,10 @@ func DiffText(options JudgeOptions, result *JudgeResult) (err error, logtext str
 		result.JudgeResult = JudgeFlagAC
 		return nil, sizeText + "; AC=zero size."
 	} else if useroutLen > 0 && answerLen > 0 {
-		if (useroutLen > int64(options.FileSizeLimit)) || (useroutLen > answerLen * 2) {
+		if (useroutLen > int64(session.FileSizeLimit)) || (useroutLen > answerLen * 2) {
 			// OLE
 			result.JudgeResult = JudgeFlagOLE
-			if useroutLen > int64(options.FileSizeLimit) {
+			if useroutLen > int64(session.FileSizeLimit) {
 				return nil, sizeText + "; WA: larger then limitation."
 			} else {
 				return nil, sizeText + "; WA: larger then 2 times."
@@ -259,7 +259,7 @@ func DiffText(options JudgeOptions, result *JudgeResult) (err error, logtext str
 		return nil, sizeText + "; " + logText
 	} else {
 		// WA
-		sameLines, totalLines := lineDiff(&options)
+		sameLines, totalLines := lineDiff(&session)
 		result.SameLines = sameLines
 		result.TotalLines = totalLines
 		return nil, sizeText + "; " + logText

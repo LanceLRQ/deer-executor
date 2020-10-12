@@ -36,16 +36,16 @@ _match:
 
 // 编译文件
 // 如果不设置codeStr，默认会读取配置文件里的code_file字段并打开对应文件
-func (options *JudgeOptions) getCompiler(codeStr string) (provider.CodeCompileProviderInterface, error) {
+func (session *JudgeSession) getCompiler(codeStr string) (provider.CodeCompileProviderInterface, error) {
 	if codeStr == "" {
-		codeFileBytes, err := ReadFile(options.CodeFile)
+		codeFileBytes, err := ReadFile(session.CodeFile)
 		if err != nil {
 			return nil, err
 		}
 		codeStr = string(codeFileBytes)
 	}
 
-	compiler, err := matchCodeLanguage(options.CodeLangName, options.CodeFile)
+	compiler, err := matchCodeLanguage(session.CodeLangName, session.CodeFile)
 	if err != nil { return nil, err }
 	err = compiler.Init(codeStr, "/tmp")
 	if err != nil {

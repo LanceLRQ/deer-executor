@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"github.com/LanceLRQ/deer-executor/executor"
 	"github.com/docker/docker/pkg/reexec"
+	uuid "github.com/satori/go.uuid"
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"
+	"path"
 )
 
 func init() {
@@ -30,18 +32,6 @@ var commonFlags = []cli.Flag {
 		Aliases: []string{"tout"},
 		Required: true,
 		Usage: "Testcase output file",
-	},
-	&cli.StringFlag {
-		Name: "program-output",
-		Value: "/tmp/program.out",
-		Aliases: []string{"pout"},
-		Usage: "Program stdout file",
-	},
-	&cli.StringFlag {
-		Name: "program-stderr",
-		Value: "/tmp/program.err",
-		Aliases: []string{"perr"},
-		Usage: "Program stderr file",
 	},
 	&cli.IntFlag {
 		Name: "time-limit",
@@ -106,23 +96,43 @@ var commonFlags = []cli.Flag {
 		Usage: "Special judge memory limit (kb)",
 	},
 	&cli.StringFlag {
-		Name: "special-judge-checker-stdout",
-		Aliases: []string{"cout"},
-		Value: "/tmp/checker.out",
-		Usage: "Special judge checker's stdout",
+		Name: "session-id",
+		Aliases: []string{"s"},
+		Value: "",
+		Usage: "Custom the session id",
 	},
 	&cli.StringFlag {
-		Name: "special-judge-checker-stderr",
-		Aliases: []string{"cerr"},
-		Value: "/tmp/checker.err",
-		Usage: "Special judge checker's stderr",
+		Name: "work-dir",
+		Aliases: []string{"d"},
+		Value: "/tmp",
+		Usage: "Custom work directory",
 	},
-	&cli.StringFlag {
-		Name: "special-judge-checker-logfile",
-		Aliases: []string{"log"},
-		Value: "/tmp/judge.log",
-		Usage: "Special judge checker's log file params",
+	&cli.BoolFlag {
+		Name: "clean",
+		Aliases: []string{"c"},
+		Value: false,
+		Usage: "Delete session directory after judge",
 	},
+}
+
+// create and get session directory
+func getSessionDir(workDir string, sessionId string) (string, error) {
+	_, err := os.Stat(workDir)
+	if os.IsNotExist(err) {
+		return "", fmt.Errorf("work dir (%s) not exists", workDir)
+	} else if err != nil {
+		return "", err
+	}
+	sessionDir := path.Join(workDir, sessionId)
+	_, err = os.Stat(sessionDir)
+	if os.IsExist(err) {
+		_ = os.RemoveAll(sessionDir)
+	}
+	err = os.Mkdir(sessionDir, 0755)
+	if err != nil {
+		return "", fmt.Errorf("create session dir error: %s", err.Error())
+	}
+	return sessionDir, nil
 }
 
 func main() {
@@ -139,13 +149,12 @@ func main() {
 				Usage: "run code judging",
 				ArgsUsage: "code_file",
 				Action: func(c *cli.Context) error {
-					options := executor.JudgeOptions{
+					// create session
+					session := executor.JudgeSession{
 						CodeFile: c.Args().Get(0),
 						CodeLangName: c.String("language"),
 						TestCaseIn: c.String("testcase-input"),
 						TestCaseOut: c.String("testcase-output"),
-						ProgramOut: c.String("program-output"),
-						ProgramError: c.String("program-stderr"),
 						TimeLimit: c.Int("time-limit"),
 						MemoryLimit: c.Int("memory-limit"),
 						RealTimeLimit: c.Int("real-time-limit"),
@@ -157,16 +166,37 @@ func main() {
 							RedirectStd: c.Bool("special-judge-redirect-std"),
 							TimeLimit: c.Int("special-judge-time-limit"),
 							MemoryLimit: c.Int("special-judge-memory-limit"),
-							Stdout: c.String("special-judge-checker-stdout"),
-							Stderr: c.String("special-judge-checker-stderr"),
-							Logfile: c.String("special-judge-checker-logfile"),
 						},
 					}
-					judgeResult, err := options.RunJudge()
+					// fill session id
+					if c.String("session") == "" {
+						session.SessionId = uuid.NewV1().String()
+					} else {
+						session.SessionId =  c.String("session")
+					}
+					if !c.Bool("clean") {
+						fmt.Printf("Judge Session: %s\n", session.SessionId)
+					}
+
+					// create session dir
+					sessionDir, err := getSessionDir(c.String("work-dir"), session.SessionId)
 					if err != nil {
 						log.Fatal(err)
+						return err
+					}
+					session.SessionDir = sessionDir
+
+					judgeResult, err := session.RunJudge()
+					if err != nil {
+						log.Fatal(err)
+						return err
 					}
 					fmt.Println(executor.ObjectToJSONStringFormatted(judgeResult))
+
+					// Do clean
+					if c.Bool("clean") {
+						_ = os.RemoveAll(sessionDir)
+					}
 					return err
 				},
 				Flags: commonFlags,
