@@ -3,21 +3,12 @@ package main
 import (
 	"fmt"
 	"github.com/LanceLRQ/deer-executor/executor"
-	"github.com/docker/docker/pkg/reexec"
 	uuid "github.com/satori/go.uuid"
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"
 	"path"
 )
-
-func init() {
-	reexec.Register("targetProgram", executor.RunTargetProgramProcess)
-	reexec.Register("judgeProgram", executor.RunSpecialJudgeProgramProcess)
-	if reexec.Init() {
-		os.Exit(0)
-	}
-}
 
 
 var commonFlags = []cli.Flag {

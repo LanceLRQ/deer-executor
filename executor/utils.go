@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"math"
 	"os"
+	"runtime"
 	"syscall"
 	"unsafe"
 )
@@ -36,6 +37,57 @@ type TimeVal struct {
 	TvUsec uint64
 }
 
+
+// 打开并获取文件的描述符
+func getFileDescriptor(path string, flag int, perm uint32) (fd int, err error) {
+	var filed = 0
+	_, errMsg := os.Stat(path)
+	if errMsg != nil {
+		if os.IsNotExist(err) {
+			return 0, errMsg
+		}
+	}
+	filed, errMsg = syscall.Open(path, flag, perm)
+	return filed, nil
+}
+
+// 重映射文件描述符
+func redirectFileDescriptor(to int, path string, flag int, perm uint32) (fd int, err error) {
+	fd, errMsg := getFileDescriptor(path, flag, perm)
+	if errMsg == nil {
+		errMsg = syscall.Dup2(fd, to)
+		if errMsg != nil {
+			syscall.Close(fd)
+			return -1, errMsg
+		}
+		return fd, nil
+	} else {
+		return -1, errMsg
+	}
+}
+
+// fork调用
+func forkProc() (pid uintptr, err error) {
+	r1, r2, errMsg := syscall.Syscall(syscall.SYS_FORK, 0, 0, 0)
+	darwin := runtime.GOOS == "darwin"
+	if errMsg != 0 {
+		return 0, fmt.Errorf("system call: fork(); error: %s", errMsg)
+	}
+	if darwin {
+		if r2 == 1 {
+			pid = 0
+		} else {
+			pid = r1
+		}
+	} else {
+		if r1 == 0 && r2 == 0 {
+			pid = 0
+		} else {
+			pid = r1
+		}
+	}
+	return pid, nil
+}
 
 // 打开文件并获取描述符 (强制文件检查)
 func OpenFile(filePath string, flag int, perm os.FileMode) (*os.File, error) {
