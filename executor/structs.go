@@ -50,9 +50,11 @@ type SpecialJudgeOptions struct {
 	Logfile		string			`json:"log_file"`			// checker's log file params
 }
 
-// Judge options
-type JudgeOptions struct {
-	CodeLangName 	string				`json:"code_lang_name`		// Code file language name
+// Judge session
+type JudgeSession struct {
+	SessionId		string				`json:"session"`			// Judge Session Id
+	SessionDir 		string				`json:"session_dir"`		// Session Directory
+	CodeLangName 	string				`json:"code_lang_name"`		// Code file language name
 	CodeFile	 	string				`json:"code_file"`			// Code File Path
 	Commands [] 	string				`json:"commands"`			// Executable program commands
 	TestCaseIn 		string				`json:"test_case_in"`		// Testcase input file path

@@ -37,7 +37,7 @@ if !success {
 // 获取编译后目标程序的执行参数
 cmds := compiler.GetRunArgs()
 
-judgeOptions := deer_executor.JudgeOption {
+JudgeSession := deer_executor.JudgeOption {
 
     // 目标可执行程序的命令
     // Commands:      []string{ "/tmp/a.out", "-a", "123" },      // 参数列表以数组的形式存在，上述可以视作调用了 /tmp/a.out -a 123
@@ -68,7 +68,7 @@ judgeOptions := deer_executor.JudgeOption {
     Uid:    -1,                              // 执行时的Linux用户ID，通常它是可选的
 }
 
-judgeResult, err := deer_executor.Judge(judgeOptions)
+judgeResult, err := deer_executor.Judge(JudgeSession)
 ```
 评测结果信息的结构体定义如下:
 ```

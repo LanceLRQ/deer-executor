@@ -1,39 +1,33 @@
 package executor
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/docker/docker/pkg/reexec"
 	"log"
 	"os"
 	"os/exec"
+	"path"
 	"strconv"
 	"syscall"
 )
 
 
 // 运行目标进程
-func (options *JudgeOptions)runTargetProgram() (*exec.Cmd, error) {
+func (session *JudgeSession)runTargetProgram() (*exec.Cmd, error) {
 
-	params := []string {
-		"targetProgram",
-		strconv.Itoa(options.TimeLimit),
-		strconv.Itoa(options.MemoryLimit),
-		strconv.Itoa(options.RealTimeLimit),
-		strconv.Itoa(options.Uid),
-	}
-	params = append(params, options.Commands...)
+	opt := ObjectToJSONString(session)
+	target := reexec.Command("targetProgram", opt)
 
-	target := reexec.Command(params...)
-
-	tcin, err := OpenFile(options.TestCaseIn, syscall.O_RDONLY|syscall.O_NONBLOCK, 0)
+	tcin, err := OpenFile(session.TestCaseIn, syscall.O_RDONLY|syscall.O_NONBLOCK, 0)
 	if err != nil { return target, err }
 	target.Stdin = tcin
 
-	pout, err := os.OpenFile(options.ProgramOut, os.O_WRONLY | os.O_CREATE, 0644)
+	pout, err := os.OpenFile(session.ProgramOut, os.O_WRONLY | os.O_CREATE, 0644)
 	if err != nil { return target, err }
 	target.Stdout = pout
 
-	perr, err := os.OpenFile(options.ProgramError, os.O_WRONLY | os.O_CREATE, 0644)
+	perr, err := os.OpenFile(session.ProgramError, os.O_WRONLY | os.O_CREATE, 0644)
 	if err != nil { return target, err }
 	target.Stderr = perr
 
@@ -47,11 +41,27 @@ func (options *JudgeOptions)runTargetProgram() (*exec.Cmd, error) {
 }
 
 
-func (options *JudgeOptions) analysisExitStatus(rst *JudgeResult, cmd *exec.Cmd, specialJudge bool) error {
+func (session *JudgeSession) analysisExitStatus(rst *JudgeResult, cmd *exec.Cmd, specialJudge bool) error {
 	status := cmd.ProcessState.Sys().(syscall.WaitStatus)
 	ru := cmd.ProcessState.SysUsage().(*syscall.Rusage)
 	rst.TimeUsed = int(ru.Utime.Sec * 1000 + int64(ru.Utime.Usec) / 1000 + ru.Stime.Sec * 1000 + int64(ru.Stime.Usec) / 1000)
 	rst.MemoryUsed = int(ru.Minflt * int64(syscall.Getpagesize() / 1024 ))
+
+	// Fix time used & mem used
+	if sysLog, err := os.OpenFile(path.Join(session.SessionDir, "sys.log"), syscall.O_RDONLY | syscall.O_NONBLOCK, 0644); err == nil {
+		reader := bufio.NewReader(sysLog)
+
+		if line, _, err := reader.ReadLine(); err == nil {
+			if tu, err := strconv.ParseInt(string(line), 10, 32); err == nil {
+				rst.TimeUsed -= int(tu)
+			}
+		}
+		if line, _, err := reader.ReadLine(); err == nil {
+			if mu, err := strconv.ParseInt(string(line), 10, 32); err == nil {
+				rst.MemoryUsed -= int(mu)
+			}
+		}
+	}
 
 	// If process stopped with a signal
 	if status.Signaled() {
@@ -59,7 +69,7 @@ func (options *JudgeOptions) analysisExitStatus(rst *JudgeResult, cmd *exec.Cmd,
 		rst.ReSignum = int(sig)
 		if sig == syscall.SIGSEGV {
 			// MLE or RE can also get SIGSEGV signal.
-			if rst.MemoryUsed > options.MemoryLimit {
+			if rst.MemoryUsed > session.MemoryLimit {
 				rst.JudgeResult = JudgeFlagMLE
 			} else {
 				rst.JudgeResult = JudgeFlagRE
@@ -73,7 +83,7 @@ func (options *JudgeOptions) analysisExitStatus(rst *JudgeResult, cmd *exec.Cmd,
 		} else if sig == syscall.SIGKILL {
 			// Sometimes MLE might get SIGKILL signal.
 			// So if real time used lower than TIME_LIMIT - 100, it might be a TLE error.
-			if rst.TimeUsed > (options.TimeLimit - 100) {
+			if rst.TimeUsed > (session.TimeLimit - 100) {
 				rst.JudgeResult = JudgeFlagTLE
 			} else {
 				rst.JudgeResult = JudgeFlagMLE
@@ -84,9 +94,9 @@ func (options *JudgeOptions) analysisExitStatus(rst *JudgeResult, cmd *exec.Cmd,
 		}
 	} else {
 		// Sometimes setrlimit doesn't work accurately.
-		if rst.TimeUsed > options.TimeLimit {
+		if rst.TimeUsed > session.TimeLimit {
 			rst.JudgeResult = JudgeFlagMLE
-		} else if rst.MemoryUsed > options.MemoryLimit {
+		} else if rst.MemoryUsed > session.MemoryLimit {
 			rst.JudgeResult = JudgeFlagMLE
 		} else {
 			rst.JudgeResult = JudgeFlagAC
@@ -96,14 +106,14 @@ func (options *JudgeOptions) analysisExitStatus(rst *JudgeResult, cmd *exec.Cmd,
 }
 
 // 基于JudgeOptions进行评测调度
-func (options *JudgeOptions) judge(judgeResult *JudgeResult) error {
-	target, err := options.runTargetProgram()
-	if target == nil && err != nil {
+func (session *JudgeSession) judge(judgeResult *JudgeResult) error {
+	target, err := session.runTargetProgram()
+	if err != nil && target == nil {
 		judgeResult.JudgeResult = JudgeFlagSE
 		judgeResult.SeInfo = err.Error()
 		return err
 	} else {
-		err = options.analysisExitStatus(judgeResult, target, false)
+		err = session.analysisExitStatus(judgeResult, target, false)
 		if err != nil {
 			judgeResult.JudgeResult = JudgeFlagSE
 			judgeResult.SeInfo = err.Error()
@@ -113,10 +123,10 @@ func (options *JudgeOptions) judge(judgeResult *JudgeResult) error {
 	return nil
 }
 
-func (options *JudgeOptions)RunJudge() (JudgeResult, error) {
+func (session *JudgeSession)RunJudge() (JudgeResult, error) {
 	judgeResult := JudgeResult{}
 	// 获取对应的编译器提供程序
-	compiler, err := options.getCompiler("")
+	compiler, err := session.getCompiler("")
 	if err != nil {
 		judgeResult.JudgeResult = JudgeFlagSE
 		judgeResult.SeInfo = err.Error()
@@ -132,17 +142,17 @@ func (options *JudgeOptions)RunJudge() (JudgeResult, error) {
 	// 清理工作目录
 	defer compiler.Clean()
 	// 获取执行指令
-	options.Commands = compiler.GetRunArgs()
+	session.Commands = compiler.GetRunArgs()
 
-	// 清理输出文件，以免文件数据错误
-	_ = os.Remove(options.ProgramOut)
-	_ = os.Remove(options.ProgramError)
-	_ = os.Remove(options.SpecialJudge.Stdout)
-	_ = os.Remove(options.SpecialJudge.Stderr)
-	_ = os.Remove(options.SpecialJudge.Logfile)
+	// 创建相关的文件路径
+	session.ProgramOut = path.Join(session.SessionDir, "program.out")
+	session.ProgramError = path.Join(session.SessionDir, "program.err")
+	session.SpecialJudge.Stdout = path.Join(session.SessionDir, "judger.out")
+	session.SpecialJudge.Stderr = path.Join(session.SessionDir, "judger.err")
+	session.SpecialJudge.Logfile = path.Join(session.SessionDir, "judger.log")
 
 	// 运行judge程序
-	err = options.judge(&judgeResult)
+	err = session.judge(&judgeResult)
 	if err != nil {
 		judgeResult.JudgeResult = JudgeFlagSE
 		judgeResult.SeInfo = err.Error()
@@ -156,46 +166,45 @@ func (options *JudgeOptions)RunJudge() (JudgeResult, error) {
 
 // 目标程序子进程
 func RunTargetProgramProcess() {
-	if len(os.Args) < 5 {
-		log.Fatal("params error.")
+	var ru syscall.Rusage
+	payload := os.Args[1]
+	session := JudgeSession{}
+
+	if !JSONStringObject(payload, &session) {
+		log.Fatal("[system_error]parse judge session error")
 		return
 	}
-	timeLimit, err := strconv.ParseInt(os.Args[1], 10, 32)
-	if err != nil {
-		log.Fatal("parse time limit number error.")
-		return
-	}
-	memoryLimit, err := strconv.ParseInt(os.Args[2], 10, 32)
-	if err != nil {
-		log.Fatal("parse memory limit number error.")
-		return
-	}
-	realTimeLimit, err := strconv.ParseInt(os.Args[3], 10, 32)
-	if err != nil {
-		log.Fatal("parse real time limit number error.")
-		return
-	}
-	uid, err := strconv.ParseInt(os.Args[4], 10, 32)
-	if err != nil {
-		log.Fatal("parse uid number error.")
-		return
-	}
-	commands := os.Args[5:len(os.Args)]
 	// Set UID
-	if uid > -1 {
-		err := syscall.Setuid(int(uid))
+	if session.Uid > -1 {
+		err := syscall.Setuid(session.Uid)
 		if err != nil {
-			log.Fatalf("set resource limit error: %s", err.Error())
+			log.Fatalf("[system_error]set resource limit error: %s", err.Error())
 			return
 		}
 	}
+
+	_ = syscall.Getrusage(syscall.RUSAGE_SELF, &ru)
+	tu := int(ru.Utime.Sec * 1000 + int64(ru.Utime.Usec) / 1000 + ru.Stime.Sec * 1000 + int64(ru.Stime.Usec) / 1000)
+	mu := int(ru.Minflt * int64(syscall.Getpagesize() / 1024 ))
+
 	// Set Resource Limit
-	err = setLimit(int(timeLimit), int(memoryLimit), int(realTimeLimit))
+	err := setLimit(session.TimeLimit + tu, session.MemoryLimit + mu, session.RealTimeLimit)
 	if err != nil {
-		log.Fatalf("set resource limit error: %s", err.Error())
+		log.Fatalf("[system_error]set resource limit error: %s", err.Error())
 		return
 	}
+
+	// Save current rusage of judger
+	if sysLog, err := os.OpenFile(path.Join(session.SessionDir, "sys.log"), syscall.O_WRONLY | syscall.O_CREAT, 0644); err == nil {
+
+
+		_, _ = sysLog.WriteString(strconv.Itoa(tu) + "\n")
+		_, _ = sysLog.WriteString(strconv.Itoa(mu) + "\n")
+		_ = sysLog.Close()
+	}
+
 	// Run Program
+	commands := session.Commands
 	if len(commands) > 1 {
 		_ = syscall.Exec(commands[0], commands[1:], CommonEnvs)
 	} else {
