@@ -3,47 +3,40 @@ package executor
 import (
 	"bufio"
 	"fmt"
-	"github.com/docker/docker/pkg/reexec"
-	"log"
 	"os"
-	"os/exec"
 	"path"
 	"strconv"
 	"syscall"
 )
 
 
-// 运行目标进程
-func (session *JudgeSession)runTargetProgram() (*exec.Cmd, error) {
-
-	opt := ObjectToJSONString(session)
-	target := reexec.Command("targetProgram", opt)
-
-	tcin, err := OpenFile(session.TestCaseIn, syscall.O_RDONLY|syscall.O_NONBLOCK, 0)
-	if err != nil { return target, err }
-	target.Stdin = tcin
-
-	pout, err := os.OpenFile(session.ProgramOut, os.O_WRONLY | os.O_CREATE, 0644)
-	if err != nil { return target, err }
-	target.Stdout = pout
-
-	perr, err := os.OpenFile(session.ProgramError, os.O_WRONLY | os.O_CREATE, 0644)
-	if err != nil { return target, err }
-	target.Stderr = perr
-
-	if err := target.Start(); err != nil {
-		return target, fmt.Errorf("failed to run target program: %s", err)
+// 普通评测进程
+func (session *JudgeSession)runProgramNormal() (*syscall.WaitStatus, *syscall.Rusage, error) {
+	pid, fds, err := session.runTargetProgramProcess()
+	if err != nil {
+		return nil, nil, err
 	}
-	if err := target.Wait(); err != nil {
-		return target, fmt.Errorf("failed to wait command: %s", err)
+	// before wait4, do something~
+	var (
+		status syscall.WaitStatus
+		ru syscall.Rusage
+	)
+	// Wait4
+	_, err = syscall.Wait4(int(pid), &status, syscall.WUNTRACED, &ru)
+	if err != nil {
+		return nil, nil, err
 	}
-	return target, nil
+
+	// Close Files
+	for _, fd := range fds {
+		_ = syscall.Close(fd)
+	}
+
+	return &status, &ru, err
 }
 
 
-func (session *JudgeSession) analysisExitStatus(rst *JudgeResult, cmd *exec.Cmd, specialJudge bool) error {
-	status := cmd.ProcessState.Sys().(syscall.WaitStatus)
-	ru := cmd.ProcessState.SysUsage().(*syscall.Rusage)
+func (session *JudgeSession) analysisExitStatus(rst *JudgeResult, status *syscall.WaitStatus, ru *syscall.Rusage, specialJudge bool) error {
 	rst.TimeUsed = int(ru.Utime.Sec * 1000 + int64(ru.Utime.Usec) / 1000 + ru.Stime.Sec * 1000 + int64(ru.Stime.Usec) / 1000)
 	rst.MemoryUsed = int(ru.Minflt * int64(syscall.Getpagesize() / 1024 ))
 
@@ -107,18 +100,16 @@ func (session *JudgeSession) analysisExitStatus(rst *JudgeResult, cmd *exec.Cmd,
 
 // 基于JudgeOptions进行评测调度
 func (session *JudgeSession) judge(judgeResult *JudgeResult) error {
-	target, err := session.runTargetProgram()
-	if err != nil && target == nil {
+	status, ru, err := session.runProgramNormal()
+	if err != nil {
 		judgeResult.JudgeResult = JudgeFlagSE
 		judgeResult.SeInfo = err.Error()
 		return err
-	} else {
-		err = session.analysisExitStatus(judgeResult, target, false)
-		if err != nil {
-			judgeResult.JudgeResult = JudgeFlagSE
-			judgeResult.SeInfo = err.Error()
-			return err
-		}
+	}
+
+	err = session.analysisExitStatus(judgeResult, status, ru, false)
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -165,51 +156,79 @@ func (session *JudgeSession)RunJudge() (JudgeResult, error) {
 
 
 // 目标程序子进程
-func RunTargetProgramProcess() {
-	var ru syscall.Rusage
-	payload := os.Args[1]
-	session := JudgeSession{}
+func (session *JudgeSession)runTargetProgramProcess() (uintptr, []int, error) {
+	var (
+		err error
+		pid uintptr
+		fds []int
+	)
 
-	if !JSONStringObject(payload, &session) {
-		log.Fatal("[system_error]parse judge session error")
-		return
-	}
-	// Set UID
-	if session.Uid > -1 {
-		err := syscall.Setuid(session.Uid)
-		if err != nil {
-			log.Fatalf("[system_error]set resource limit error: %s", err.Error())
-			return
-		}
-	}
+	fds = make([]int, 3)
 
-	_ = syscall.Getrusage(syscall.RUSAGE_SELF, &ru)
-	tu := int(ru.Utime.Sec * 1000 + int64(ru.Utime.Usec) / 1000 + ru.Stime.Sec * 1000 + int64(ru.Stime.Usec) / 1000)
-	mu := int(ru.Minflt * int64(syscall.Getpagesize() / 1024 ))
-
-	// Set Resource Limit
-	err := setLimit(session.TimeLimit + tu, session.MemoryLimit + mu, session.RealTimeLimit)
+	// Fork a new process
+	pid, err = forkProc()
 	if err != nil {
-		log.Fatalf("[system_error]set resource limit error: %s", err.Error())
-		return
+		return 0, nil, fmt.Errorf("fork process error: %s", err.Error())
 	}
 
-	// Save current rusage of judger
-	if sysLog, err := os.OpenFile(path.Join(session.SessionDir, "sys.log"), syscall.O_WRONLY | syscall.O_CREAT, 0644); err == nil {
+	if pid == 0 {
+		var logWriter *bufio.Writer
+		logfile, err := os.OpenFile(path.Join(session.SessionDir, "program.log"), os.O_WRONLY|os.O_CREATE, 0644)
+		if err != nil {
+			panic("cannot create program.log")
+			return 0, nil, err
+		} else {
+			logWriter = bufio.NewWriter(logfile)
+		}
 
+		// Redirect testCaseIn to STDIN
+		fds[0], err = redirectFileDescriptor(syscall.Stdin, session.TestCaseIn, os.O_RDONLY, 0)
+		if err != nil {
+			_, _ = logWriter.WriteString(fmt.Sprintf("[system_error]direct stdin error: %s\n", err.Error()))
+			return 0, nil, err
+		}
 
-		_, _ = sysLog.WriteString(strconv.Itoa(tu) + "\n")
-		_, _ = sysLog.WriteString(strconv.Itoa(mu) + "\n")
-		_ = sysLog.Close()
+		// Redirect userOut to STDOUT
+		fds[1], err = redirectFileDescriptor(syscall.Stdout, session.ProgramOut, os.O_WRONLY|os.O_CREATE, 0644)
+		if err != nil {
+			_, _ = logWriter.WriteString(fmt.Sprintf("[system_error]direct stdout error: %s\n", err.Error()))
+			return 0, nil, err
+		}
+
+		// Redirect programError to STDERR
+		fds[2], err = redirectFileDescriptor(syscall.Stderr, session.ProgramError, os.O_WRONLY|os.O_CREATE, 0644)
+		if err != nil {
+			_, _ = logWriter.WriteString(fmt.Sprintf("[system_error]direct stderr error: %s\n", err.Error()))
+			return 0, nil, err
+		}
+
+		// Set UID
+		if session.Uid > -1 {
+			err = syscall.Setuid(session.Uid)
+			if err != nil {
+				_, _ = logWriter.WriteString(fmt.Sprintf("[system_error]set resource limit error: %s\n", err.Error()))
+				return 0, nil, err
+			}
+		}
+
+		// Set Resource Limit
+		err = setLimit(session.TimeLimit, session.MemoryLimit, session.RealTimeLimit)
+		if err != nil {
+			_, _ = logWriter.WriteString(fmt.Sprintf("[system_error]set resource limit error: %s", err.Error()))
+			return 0, nil, err
+		}
+
+		// Run Program
+		commands := session.Commands
+		if len(commands) > 1 {
+			_ = syscall.Exec(commands[0], commands[1:], CommonEnvs)
+		} else {
+			_ = syscall.Exec(commands[0], nil, CommonEnvs)
+		}
+		// it won't be run.
 	}
-
-	// Run Program
-	commands := session.Commands
-	if len(commands) > 1 {
-		_ = syscall.Exec(commands[0], commands[1:], CommonEnvs)
-	} else {
-		_ = syscall.Exec(commands[0], nil, CommonEnvs)
-	}
+	// parent process
+	return pid, fds, nil
 }
 
 // 特判程序子进程
