@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"strconv"
 	"syscall"
 )
 
@@ -39,22 +38,6 @@ func (session *JudgeSession)runProgramNormal() (*syscall.WaitStatus, *syscall.Ru
 func (session *JudgeSession) analysisExitStatus(rst *JudgeResult, status *syscall.WaitStatus, ru *syscall.Rusage, specialJudge bool) error {
 	rst.TimeUsed = int(ru.Utime.Sec * 1000 + int64(ru.Utime.Usec) / 1000 + ru.Stime.Sec * 1000 + int64(ru.Stime.Usec) / 1000)
 	rst.MemoryUsed = int(ru.Minflt * int64(syscall.Getpagesize() / 1024 ))
-
-	// Fix time used & mem used
-	if sysLog, err := os.OpenFile(path.Join(session.SessionDir, "sys.log"), syscall.O_RDONLY | syscall.O_NONBLOCK, 0644); err == nil {
-		reader := bufio.NewReader(sysLog)
-
-		if line, _, err := reader.ReadLine(); err == nil {
-			if tu, err := strconv.ParseInt(string(line), 10, 32); err == nil {
-				rst.TimeUsed -= int(tu)
-			}
-		}
-		if line, _, err := reader.ReadLine(); err == nil {
-			if mu, err := strconv.ParseInt(string(line), 10, 32); err == nil {
-				rst.MemoryUsed -= int(mu)
-			}
-		}
-	}
 
 	// If process stopped with a signal
 	if status.Signaled() {
