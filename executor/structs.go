@@ -61,6 +61,7 @@ type JudgeSession struct {
 	TestCaseOut		string				`json:"test_case_out"`		// Testcase output file path
 	ProgramOut 		string				`json:"program_out"`		// Program-stdout file path
 	ProgramError 	string				`json:"program_error"`		// Program-stderr file path
+	ProgramLog 		string				`json:"program_log"`		// Program-log file path
 	TimeLimit 		int					`json:"time_limit"`			// Time limit (ms)
 	MemoryLimit 	int					`json:"memory_limit"`		// Memory limit (KB)
 	RealTimeLimit 	int					`json:"real_time_limit"`	// Real Time Limit (ms) (optional)

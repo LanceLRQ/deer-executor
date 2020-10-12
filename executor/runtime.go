@@ -121,6 +121,7 @@ func (session *JudgeSession)RunJudge() (JudgeResult, error) {
 	// 创建相关的文件路径
 	session.ProgramOut = path.Join(session.SessionDir, "program.out")
 	session.ProgramError = path.Join(session.SessionDir, "program.err")
+	session.ProgramLog = path.Join(session.SessionDir, "program.log")
 	session.SpecialJudge.Stdout = path.Join(session.SessionDir, "judger.out")
 	session.SpecialJudge.Stderr = path.Join(session.SessionDir, "judger.err")
 	session.SpecialJudge.Logfile = path.Join(session.SessionDir, "judger.log")
@@ -156,7 +157,7 @@ func (session *JudgeSession)runTargetProgramProcess() (uintptr, []int, error) {
 
 	if pid == 0 {
 		var logWriter *bufio.Writer
-		logfile, err := os.OpenFile(path.Join(session.SessionDir, "program.log"), os.O_WRONLY|os.O_CREATE, 0644)
+		logfile, err := os.OpenFile(session.ProgramLog, os.O_WRONLY|os.O_CREATE, 0644)
 		if err != nil {
 			panic("cannot create program.log")
 			return 0, nil, err
