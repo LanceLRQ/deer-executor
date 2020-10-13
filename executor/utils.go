@@ -89,6 +89,15 @@ func forkProc() (pid uintptr, err error) {
 	return pid, nil
 }
 
+func getPipe() ([]int, error) {
+	var pipe = []int{0, 0}
+	err := syscall.Pipe(pipe)
+	if err != nil {
+		return nil, err
+	}
+	return pipe, nil
+}
+
 // 打开文件并获取描述符 (强制文件检查)
 func OpenFile(filePath string, flag int, perm os.FileMode) (*os.File, error) {
 	if _, err := os.Stat(filePath); err != nil {
