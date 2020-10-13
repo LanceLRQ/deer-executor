@@ -1,5 +1,7 @@
 package executor
 
+import "syscall"
+
 const (
 	JudgeFlagAC 	int 	= 0   							// 0 Accepted
 	JudgeFlagPE 	int 	= 1	    						// 1 Presentation Error
@@ -39,15 +41,22 @@ type JudgeResult struct {
 	CeInfo 			string			`json:"ce_info"`				// CeInfo When CeInfo
 }
 
+type ProcessInfo struct {
+	Pid uintptr						`json:"pid"`
+	Status syscall.WaitStatus		`json:"status"`
+	Rusage syscall.Rusage			`json:"rusage"`
+}
+
 type SpecialJudgeOptions struct {
-	Mode 		int				`json:"mode"`				// Mode；0-Disabled；1-Normal；2-Interactor
-	Checker 	string			`json:"checker"`			// Checker file path
-	RedirectStd bool 			`json:"redirect_std"`		// Redirect target program's Stdout to checker's Stdin (checker mode)
-	TimeLimit 	int				`json:"time_limit"`			// Time limit (ms)
-	MemoryLimit int				`json:"memory_limit"`		// Memory limit (kb)
-	Stdout 		string			`json:"stdout"`				// checker's stdout
-	Stderr 		string			`json:"stderr"`				// checker's stderr
-	Logfile		string			`json:"log_file"`			// checker's log file params
+	Mode 				int				`json:"mode"`					// Mode；0-Disabled；1-Normal；2-Interactor
+	Checker 			string			`json:"checker"`				// Checker file path
+	RedirectProgramOut 	bool 			`json:"redirect_program_out"`	// Redirect target program's STDOUT to checker's STDIN (checker mode). if not, redirect testcase-in file to checker's STDIN
+	TimeLimit 			int				`json:"time_limit"`				// Time limit (ms)
+	MemoryLimit 		int				`json:"memory_limit"`			// Memory limit (kb)
+	Stdout 				string			`json:"stdout"`					// checker's stdout
+	Stderr 				string			`json:"stderr"`					// checker's stderr
+	LogFile				string			`json:"log_file"`				// checker's log file params
+	ReportFile			string			`json:"report_file"`			// checker's report file params
 }
 
 // Judge session
