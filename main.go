@@ -70,9 +70,9 @@ var commonFlags = []cli.Flag {
 		Usage: "Checker file path",
 	},
 	&cli.BoolFlag {
-		Name: "special-judge-redirect-std",
+		Name: "special-judge-redirect-program-out",
 		Value: true,
-		Usage: "Redirect target program's Stdout to checker's Stdin (checker mode)",
+		Usage: "Redirect target program's Stdout to checker's Stdin (checker mode). if not, redirect testcase-in file to checker's STDIN",
 	},
 	&cli.IntFlag {
 		Name: "special-judge-time-limit",
@@ -154,7 +154,7 @@ func main() {
 						SpecialJudge: executor.SpecialJudgeOptions {
 							Mode: c.Int("special-judge"),
 							Checker: c.String("special-judge-checker"),
-							RedirectStd: c.Bool("special-judge-redirect-std"),
+							RedirectProgramOut: c.Bool("special-judge-redirect-program-out"),
 							TimeLimit: c.Int("special-judge-time-limit"),
 							MemoryLimit: c.Int("special-judge-memory-limit"),
 						},
