@@ -43,13 +43,13 @@ func isSpaceChar (ch byte) bool {
 
 // 逐行比较，获取错误行数
 // Compare each line, to find out the number of wrong line
-func lineDiff (session *JudgeSession) (sameLines int, totalLines int) {
-	answer, err := os.OpenFile(session.TestCaseOut, os.O_RDONLY | syscall.O_NONBLOCK, 0)
+func lineDiff(rst *TestCaseResult) (sameLines int, totalLines int) {
+	answer, err := os.OpenFile(rst.TestCaseOut, os.O_RDONLY | syscall.O_NONBLOCK, 0)
 	if err != nil {
 		return 0, 0
 	}
 	defer answer.Close()
-	userout, err := os.Open(session.ProgramOut)
+	userout, err := os.Open(rst.ProgramOut)
 	if err != nil {
 		return 0, 0
 	}
@@ -87,7 +87,7 @@ func lineDiff (session *JudgeSession) (sameLines int, totalLines int) {
 
 // 严格比较每一个字符
 // Compare each char in buffer strictly
-func StrictDiff(useroutBuffer, answerBuffer []byte, useroutLen, answerLen int64) bool {
+func strictDiff(useroutBuffer, answerBuffer []byte, useroutLen, answerLen int64) bool {
 	if useroutLen != answerLen {
 		return false
 	}
@@ -103,7 +103,7 @@ func StrictDiff(useroutBuffer, answerBuffer []byte, useroutLen, answerLen int64)
 
 // 比较每一个字符，但是忽略空白
 // Compare each char in buffer, but ignore the 'SpaceChar'
-func CharDiffIoUtil (useroutBuffer, answerBuffer []byte, useroutLen, answerLen int64) (rel int, logtext string) {
+func charDiffIoUtil (useroutBuffer, answerBuffer []byte, useroutLen, answerLen int64) (rel int, logtext string) {
 	var (
 		leftPos, rightPos int64 = 0, 0
 		maxLength = Max(useroutLen, answerLen)
@@ -192,13 +192,13 @@ func CharDiffIoUtil (useroutBuffer, answerBuffer []byte, useroutLen, answerLen i
 
 // 进行结果文本比较（主要工具）
 // Compare the text
-func DiffText(session JudgeSession, result *JudgeResult) (err error, logtext string) {
-	answerInfo, err := os.Stat(session.TestCaseOut)
+func (session *JudgeSession)DiffText(result *TestCaseResult) (err error, logtext string) {
+	answerInfo, err := os.Stat(result.TestCaseOut)
 	if err != nil {
 		result.JudgeResult = JudgeFlagSE
 		return err, fmt.Sprintf("get answer file info failed: %s", err.Error())
 	}
-	useroutInfo, err := os.Stat(session.ProgramOut)
+	useroutInfo, err := os.Stat(result.ProgramOut)
 	if err != nil {
 		result.JudgeResult = JudgeFlagSE
 		return err, fmt.Sprintf("get userout file info failed: %s", err.Error())
@@ -212,13 +212,13 @@ func DiffText(session JudgeSession, result *JudgeResult) (err error, logtext str
 	var useroutBuffer, answerBuffer []byte
 	errText := ""
 
-	answerBuffer, errText, err = readFileWithTry(session.TestCaseOut, "answer", 3)
+	answerBuffer, errText, err = readFileWithTry(result.TestCaseOut, "answer", 3)
 	if err != nil {
 		result.JudgeResult = JudgeFlagSE
 		return err, errText
 	}
 
-	useroutBuffer, errText, err = readFileWithTry(session.ProgramOut, "userout", 3)
+	useroutBuffer, errText, err = readFileWithTry(result.ProgramOut, "userout", 3)
 	if err != nil {
 		result.JudgeResult = JudgeFlagSE
 		return err, errText
@@ -244,13 +244,13 @@ func DiffText(session JudgeSession, result *JudgeResult) (err error, logtext str
 		return nil, sizeText + "; WA: less then zero size"
 	}
 
-	rel, logText := CharDiffIoUtil(useroutBuffer, answerBuffer, useroutLen ,answerLen)
+	rel, logText := charDiffIoUtil(useroutBuffer, answerBuffer, useroutLen ,answerLen)
 	result.JudgeResult = rel
 
 	if rel != JudgeFlagWA {
 		// PE or AC or SE
 		if rel == JudgeFlagAC {
-			sret := StrictDiff(useroutBuffer, answerBuffer, useroutLen ,answerLen)
+			sret := strictDiff(useroutBuffer, answerBuffer, useroutLen ,answerLen)
 			if !sret {
 				result.JudgeResult = JudgeFlagPE
 				logText = "strict check: PE"
@@ -259,7 +259,7 @@ func DiffText(session JudgeSession, result *JudgeResult) (err error, logtext str
 		return nil, sizeText + "; " + logText
 	} else {
 		// WA
-		sameLines, totalLines := lineDiff(&session)
+		sameLines, totalLines := lineDiff(result)
 		result.SameLines = sameLines
 		result.TotalLines = totalLines
 		return nil, sizeText + "; " + logText

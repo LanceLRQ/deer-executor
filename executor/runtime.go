@@ -9,9 +9,9 @@ import (
 
 
 // 运行评测进程
-func (session *JudgeSession)runProgramCommon(judger bool, pipeMode bool, pipeStd []int) (*ProcessInfo, error) {
+func (session *JudgeSession)runProgramCommon(rst *TestCaseResult, judger bool, pipeMode bool, pipeStd []int) (*ProcessInfo, error) {
 	pinfo := ProcessInfo{}
-	pid, fds, err := session.runProgramProcess(judger, pipeMode, pipeStd)
+	pid, fds, err := session.runProgramProcess(rst, judger, pipeMode, pipeStd)
 	if err != nil {
 		return nil, err
 	}
@@ -35,15 +35,15 @@ func (session *JudgeSession)runProgramCommon(judger bool, pipeMode bool, pipeStd
 }
 
 // 运行目标程序
-func (session *JudgeSession)runNormalJudge() (*ProcessInfo, error) {
-	return session.runProgramCommon(false, false, nil)
+func (session *JudgeSession)runNormalJudge(rst *TestCaseResult) (*ProcessInfo, error) {
+	return session.runProgramCommon(rst, false, false, nil)
 }
 
 // 运行特殊评测
-func (session *JudgeSession)runSpecialJudge() (*ProcessInfo, *ProcessInfo, error) {
+func (session *JudgeSession)runSpecialJudge(rst *TestCaseResult) (*ProcessInfo, *ProcessInfo, error) {
 	if session.SpecialJudge.Mode == SpecialJudgeModeChecker {
-		targetInfo, err := session.runProgramCommon(false, false, nil)
-		judgerInfo, err := session.runProgramCommon(true, false, nil)
+		targetInfo, err := session.runProgramCommon(rst, false, false, nil)
+		judgerInfo, err := session.runProgramCommon(rst, true, false, nil)
 		return targetInfo, judgerInfo, err
 	} else if session.SpecialJudge.Mode == SpecialJudgeModeInteractive {
 
@@ -57,8 +57,8 @@ func (session *JudgeSession)runSpecialJudge() (*ProcessInfo, *ProcessInfo, error
 			return nil, nil, fmt.Errorf("create pipe error: %s", err.Error())
 		}
 
-		targetInfo, err := session.runProgramCommon(false, true, []int{fdtarget[0], fdjudger[1]})
-		judgerInfo, err := session.runProgramCommon(true, true, []int{fdjudger[0], fdtarget[1]})
+		targetInfo, err := session.runProgramCommon(rst, false, true, []int{fdtarget[0], fdjudger[1]})
+		judgerInfo, err := session.runProgramCommon(rst, true, true, []int{fdjudger[0], fdtarget[1]})
 		return targetInfo, judgerInfo, err
 	}
 	return nil, nil, fmt.Errorf("unkonw special judge mode")
@@ -66,7 +66,7 @@ func (session *JudgeSession)runSpecialJudge() (*ProcessInfo, *ProcessInfo, error
 
 
 // 目标程序子进程
-func (session *JudgeSession)runProgramProcess(judger bool, pipeMode bool, pipeStd []int) (uintptr, []int, error) {
+func (session *JudgeSession)runProgramProcess(rst *TestCaseResult, judger bool, pipeMode bool, pipeStd []int) (uintptr, []int, error) {
 	var (
 		logfile *os.File
 		err error
@@ -85,9 +85,9 @@ func (session *JudgeSession)runProgramProcess(judger bool, pipeMode bool, pipeSt
 	if pid == 0 {
 		var logWriter *bufio.Writer
 		if judger {
-			logfile, err = os.OpenFile(session.SpecialJudge.LogFile, os.O_WRONLY|os.O_CREATE, 0644)
+			logfile, err = os.OpenFile(rst.JudgerLog, os.O_WRONLY|os.O_CREATE, 0644)
 		} else {
-			logfile, err = os.OpenFile(session.ProgramLog, os.O_WRONLY|os.O_CREATE, 0644)
+			logfile, err = os.OpenFile(rst.ProgramLog, os.O_WRONLY|os.O_CREATE, 0644)
 		}
 		if err != nil {
 			panic("cannot create program.log")
@@ -111,12 +111,12 @@ func (session *JudgeSession)runProgramProcess(judger bool, pipeMode bool, pipeSt
 			// Redirect testCaseIn to STDIN
 			if judger {
 				if session.SpecialJudge.RedirectProgramOut {
-					fds[0], err = redirectFileDescriptor(syscall.Stdin, session.ProgramOut, os.O_RDONLY, 0)
+					fds[0], err = redirectFileDescriptor(syscall.Stdin, rst.ProgramOut, os.O_RDONLY, 0)
 				} else {
-					fds[0], err = redirectFileDescriptor(syscall.Stdin, session.TestCaseIn, os.O_RDONLY, 0)
+					fds[0], err = redirectFileDescriptor(syscall.Stdin, rst.TestCaseIn, os.O_RDONLY, 0)
 				}
 			} else {
-				fds[0], err = redirectFileDescriptor(syscall.Stdin, session.TestCaseIn, os.O_RDONLY, 0)
+				fds[0], err = redirectFileDescriptor(syscall.Stdin, rst.TestCaseIn, os.O_RDONLY, 0)
 			}
 			if err != nil {
 				_, _ = logWriter.WriteString(fmt.Sprintf("[system_error]direct stdin error: %s\n", err.Error()))
@@ -125,9 +125,9 @@ func (session *JudgeSession)runProgramProcess(judger bool, pipeMode bool, pipeSt
 
 			// Redirect userOut to STDOUT
 			if judger {
-				fds[1], err = redirectFileDescriptor(syscall.Stdout, session.SpecialJudge.Stdout, os.O_WRONLY|os.O_CREATE, 0644)
+				fds[1], err = redirectFileDescriptor(syscall.Stdout, rst.JudgerOut, os.O_WRONLY|os.O_CREATE, 0644)
 			} else {
-				fds[1], err = redirectFileDescriptor(syscall.Stdout, session.ProgramOut, os.O_WRONLY|os.O_CREATE, 0644)
+				fds[1], err = redirectFileDescriptor(syscall.Stdout, rst.ProgramOut, os.O_WRONLY|os.O_CREATE, 0644)
 			}
 			if err != nil {
 				_, _ = logWriter.WriteString(fmt.Sprintf("[system_error]direct stdout error: %s\n", err.Error()))
@@ -137,9 +137,9 @@ func (session *JudgeSession)runProgramProcess(judger bool, pipeMode bool, pipeSt
 
 		// Redirect programError to STDERR
 		if judger {
-			fds[2], err = redirectFileDescriptor(syscall.Stderr, session.SpecialJudge.Stderr, os.O_WRONLY|os.O_CREATE, 0644)
+			fds[2], err = redirectFileDescriptor(syscall.Stderr, rst.JudgerError, os.O_WRONLY|os.O_CREATE, 0644)
 		} else {
-			fds[2], err = redirectFileDescriptor(syscall.Stderr, session.ProgramError, os.O_WRONLY|os.O_CREATE, 0644)
+			fds[2], err = redirectFileDescriptor(syscall.Stderr, rst.ProgramError, os.O_WRONLY|os.O_CREATE, 0644)
 		}
 		if err != nil {
 			_, _ = logWriter.WriteString(fmt.Sprintf("[system_error]direct stderr error: %s\n", err.Error()))
@@ -171,10 +171,10 @@ func (session *JudgeSession)runProgramProcess(judger bool, pipeMode bool, pipeSt
 			// ./checker <input-file> <output-file> <answer-file> <report-file>
 			args := []string{
 				session.SpecialJudge.Checker,
-				session.TestCaseIn,
-				session.TestCaseOut,
-				session.ProgramOut,
-				session.SpecialJudge.ReportFile,
+				rst.TestCaseIn,
+				rst.TestCaseOut,
+				rst.ProgramOut,
+				rst.JudgerReport,
 			}
 			err = syscall.Exec(session.SpecialJudge.Checker, args, nil)
 		} else {
