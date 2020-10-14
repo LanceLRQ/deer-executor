@@ -6,7 +6,6 @@ import (
 )
 
 const (
-	JudgeFlagNotRun 	 					= -1   					// -1 Not Run
 	JudgeFlagAC 	 						= 0   					// 0 Accepted
 	JudgeFlagPE 	 						= 1	    				// 1 Presentation Error
 	JudgeFlagTLE 							= 2						// 2 Time Limit Exceeded

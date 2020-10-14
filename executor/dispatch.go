@@ -61,7 +61,7 @@ func (session *JudgeSession) analysisExitStatus(rst *TestCaseResult, pinfo *Proc
 					rst.JudgeResult = JudgeFlagMLE
 				} else {
 					rst.JudgeResult = JudgeFlagRE
-					if r, e := SignumMap[rst.ReSignum]; e {
+					if r, e := SignalNumberMap[rst.ReSignum]; e {
 						rst.ReInfo = fmt.Sprintf("%s: %s", r[0], r[1])
 					}
 				}
@@ -82,7 +82,7 @@ func (session *JudgeSession) analysisExitStatus(rst *TestCaseResult, pinfo *Proc
 			} else {
 				// Otherwise, called runtime error.
 				rst.JudgeResult = JudgeFlagRE
-				if r, e := SignumMap[rst.ReSignum]; e {
+				if r, e := SignalNumberMap[rst.ReSignum]; e {
 					rst.ReInfo = fmt.Sprintf("%s: %s", r[0], r[1])
 				}
 			}
@@ -258,14 +258,14 @@ func (session *JudgeSession) generateFinallyResult(result *JudgeResult, exitcode
 }
 
 // 执行评测
-func (session *JudgeSession)RunJudge() (JudgeResult, error) {
+func (session *JudgeSession)RunJudge() JudgeResult {
 	judgeResult := JudgeResult{}
 
 	err := session.compileTargetProgram(&judgeResult)
 	if err != nil {
-		return judgeResult, err
+		return judgeResult
 	}
-	exitcodes := make([]int, 0, 1)
+	exitCodes := make([]int, 0, 1)
 	for i := 0; i < len(session.TestCases); i++ {
 		if session.TestCases[i].Id == "" {
 			session.TestCases[i].Id = strconv.Itoa(i)
@@ -274,17 +274,17 @@ func (session *JudgeSession)RunJudge() (JudgeResult, error) {
 
 		tcResult := session.runOneCase(session.TestCases[i], id)
 
-		isFalut := session.isDisastrousFault(&judgeResult, tcResult)
+		isFault := session.isDisastrousFault(&judgeResult, tcResult)
 		judgeResult.TestCases = append(judgeResult.TestCases, *tcResult)
 		judgeResult.MemoryUsed = Max32(tcResult.MemoryUsed, judgeResult.MemoryUsed)
 		judgeResult.TimeUsed = Max32(tcResult.TimeUsed, judgeResult.TimeUsed)
 		// 如果发生灾难性错误，直接退出
-		if isFalut {
+		if isFault {
 			break
 		}
-		// 这里使用动态增加的方式是为了保证len(exitcodes)<=len(testCases)
+		// 这里使用动态增加的方式是为了保证len(exitCodes)<=len(testCases)
 		// 方便计算最终结果的时候判定测试数据是否全部跑完
-		exitcodes = append(exitcodes, tcResult.JudgeResult)
+		exitCodes = append(exitCodes, tcResult.JudgeResult)
 
 		//判定是否继续判题
 		keep := false
@@ -298,9 +298,9 @@ func (session *JudgeSession)RunJudge() (JudgeResult, error) {
 		}
 	}
 	// 计算最终结果
-	session.generateFinallyResult(&judgeResult, exitcodes)
+	session.generateFinallyResult(&judgeResult, exitCodes)
 
-	return judgeResult, nil
+	return judgeResult
 }
 
 func (session *JudgeSession)Clean() {
