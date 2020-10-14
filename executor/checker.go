@@ -231,7 +231,7 @@ func (session *JudgeSession) DiffText(result *TestCaseResult) error {
 	if useroutLen == 0 && answerLen == 0 {
 		// Empty File AC
 		result.JudgeResult = JudgeFlagAC
-		result.TextDiffLog = sizeText + "; AC=zero size."
+		result.TextDiffLog = sizeText + "; Accepted with zero size."
 		return nil
 	} else if useroutLen > 0 && answerLen > 0 {
 		if (useroutLen > int64(session.FileSizeLimit)) || (useroutLen > answerLen * 2) {
@@ -248,7 +248,7 @@ func (session *JudgeSession) DiffText(result *TestCaseResult) error {
 	} else {
 		// WTF?
 		result.JudgeResult = JudgeFlagWA
-		result.TextDiffLog = sizeText + "; WA: less then zero size"
+		result.TextDiffLog = sizeText + "; WA: less then zero size."
 		return nil
 	}
 
@@ -262,9 +262,9 @@ func (session *JudgeSession) DiffText(result *TestCaseResult) error {
 			sret := strictDiff(useroutBuffer, answerBuffer, useroutLen ,answerLen)
 			if !sret {
 				result.JudgeResult = JudgeFlagPE
-				logText = "Strict check: PE"
+				logText = "Strict check: Presentation Error."
 			} else {
-				logText = "Accepted"
+				logText = "Accepted."
 			}
 		}
 	} else {
