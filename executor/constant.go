@@ -1,0 +1,38 @@
+package executor
+
+var SignumMap = map[int][]string {
+	1: []string{"SIGHUP", "Hangup (POSIX)."},
+	2:  []string{"SIGINT", "Interrupt (ANSI)."},
+	3:  []string{"SIGQUIT", "Quit (POSIX)."},
+	4:  []string{"SIGILL", "Illegal instruction (ANSI)."},
+	5:  []string{"SIGTRAP", "Trace trap (POSIX)."},
+	6:  []string{"SIGABRT", "Abort (ANSI)."},
+	//6:  []string{"SIGIOT", "IOT trap (4.2 BSD)."},
+	7:  []string{"SIGBUS", "BUS error (4.2 BSD)."},
+	8:  []string{"SIGFPE", "Floating-point exception (ANSI)."},
+	9:  []string{"SIGKILL", "Kill, unblockable (POSIX)."},
+	10:  []string{"SIGUSR1", "User-defined signal 1 (POSIX)."},
+	11:  []string{"SIGSEGV", "Segmentation violation (ANSI)."},
+	12:  []string{"SIGUSR2", "User-defined signal 2 (POSIX)."},
+	13:  []string{"SIGPIPE", "Broken pipe (POSIX)."},
+	14:  []string{"SIGALRM", "Alarm clock (POSIX)."},
+	15:  []string{"SIGTERM", "Termination (ANSI)."},
+	16:  []string{"SIGSTKFLT", "Stack fault."},
+	17:  []string{"SIGCHLD", "Child status has changed (POSIX)."},
+	18:  []string{"SIGCONT", "Continue (POSIX)."},
+	19:  []string{"SIGSTOP", "Stop, unblockable (POSIX)."},
+	20:  []string{"SIGTSTP", "Keyboard stop (POSIX)."},
+	21:  []string{"SIGTTIN", "Background read from tty (POSIX)."},
+	22:  []string{"SIGTTOU", "Background write to tty (POSIX)."},
+	23:  []string{"SIGURG", "Urgent condition on socket (4.2 BSD)."},
+	24:  []string{"SIGXCPU", "CPU limit exceeded (4.2 BSD)."},
+	25:  []string{"SIGXFSZ", "File size limit exceeded (4.2 BSD)."},
+	26:  []string{"SIGVTALRM", "Virtual alarm clock (4.2 BSD)."},
+	27:  []string{"SIGPROF", "Profiling alarm clock (4.2 BSD)."},
+	28:  []string{"SIGWINCH", "Window size change (4.3 BSD, Sun)."},
+	29:  []string{"SIGIO", "I/O now possible (4.2 BSD)."},
+	30:  []string{"SIGPWR", "Power failure restart (System V)."},
+	31:  []string{"SIGSYS", "Bad system call."},
+}
+
+

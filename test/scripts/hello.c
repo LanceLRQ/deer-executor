@@ -6,5 +6,6 @@
 int main(int argc, char **argv)
 {
 //    memset(arr, -1, N * sizeof(arr[0]));
-	printf("Hello World!\n");
+    int a = 1, b = 0;
+	printf("Hello World!%d\n", a / b);
 }
