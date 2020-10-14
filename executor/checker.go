@@ -192,16 +192,18 @@ func charDiffIoUtil (useroutBuffer, answerBuffer []byte, useroutLen, answerLen i
 
 // 进行结果文本比较（主要工具）
 // Compare the text
-func (session *JudgeSession)DiffText(result *TestCaseResult) (err error, logtext string) {
+func (session *JudgeSession) DiffText(result *TestCaseResult) error {
 	answerInfo, err := os.Stat(result.TestCaseOut)
 	if err != nil {
 		result.JudgeResult = JudgeFlagSE
-		return err, fmt.Sprintf("get answer file info failed: %s", err.Error())
+		result.TextDiffLog = fmt.Sprintf("Get answer file info failed: %s", err.Error())
+		return err
 	}
 	useroutInfo, err := os.Stat(result.ProgramOut)
 	if err != nil {
 		result.JudgeResult = JudgeFlagSE
-		return err, fmt.Sprintf("get userout file info failed: %s", err.Error())
+		result.TextDiffLog = fmt.Sprintf("Get userout file info failed: %s", err.Error())
+		return err
 	}
 
 	useroutLen := useroutInfo.Size()
@@ -215,33 +217,39 @@ func (session *JudgeSession)DiffText(result *TestCaseResult) (err error, logtext
 	answerBuffer, errText, err = readFileWithTry(result.TestCaseOut, "answer", 3)
 	if err != nil {
 		result.JudgeResult = JudgeFlagSE
-		return err, errText
+		result.TextDiffLog = errText
+		return err
 	}
 
 	useroutBuffer, errText, err = readFileWithTry(result.ProgramOut, "userout", 3)
 	if err != nil {
 		result.JudgeResult = JudgeFlagSE
-		return err, errText
+		result.TextDiffLog = errText
+		return err
 	}
 
 	if useroutLen == 0 && answerLen == 0 {
 		// Empty File AC
 		result.JudgeResult = JudgeFlagAC
-		return nil, sizeText + "; AC=zero size."
+		result.TextDiffLog = sizeText + "; AC=zero size."
+		return nil
 	} else if useroutLen > 0 && answerLen > 0 {
 		if (useroutLen > int64(session.FileSizeLimit)) || (useroutLen > answerLen * 2) {
 			// OLE
 			result.JudgeResult = JudgeFlagOLE
 			if useroutLen > int64(session.FileSizeLimit) {
-				return nil, sizeText + "; WA: larger then limitation."
+				result.TextDiffLog = sizeText + "; WA: larger then limitation."
+				return nil
 			} else {
-				return nil, sizeText + "; WA: larger then 2 times."
+				result.TextDiffLog = sizeText + "; WA: larger then 2 times."
+				return nil
 			}
 		}
 	} else {
 		// WTF?
 		result.JudgeResult = JudgeFlagWA
-		return nil, sizeText + "; WA: less then zero size"
+		result.TextDiffLog = sizeText + "; WA: less then zero size"
+		return nil
 	}
 
 	rel, logText := charDiffIoUtil(useroutBuffer, answerBuffer, useroutLen ,answerLen)
@@ -250,18 +258,21 @@ func (session *JudgeSession)DiffText(result *TestCaseResult) (err error, logtext
 	if rel != JudgeFlagWA {
 		// PE or AC or SE
 		if rel == JudgeFlagAC {
+			// AC 时执行强制检查，可以排除空白字符的顺序不一致也是AC的情况
 			sret := strictDiff(useroutBuffer, answerBuffer, useroutLen ,answerLen)
 			if !sret {
 				result.JudgeResult = JudgeFlagPE
-				logText = "strict check: PE"
+				logText = "Strict check: PE"
+			} else {
+				logText = "Accepted"
 			}
 		}
-		return nil, sizeText + "; " + logText
 	} else {
 		// WA
 		sameLines, totalLines := lineDiff(result)
 		result.SameLines = sameLines
 		result.TotalLines = totalLines
-		return nil, sizeText + "; " + logText
 	}
+	result.TextDiffLog = sizeText + "; " + logText
+	return  nil
 }

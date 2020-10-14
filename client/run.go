@@ -6,7 +6,6 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/urfave/cli/v2"
 	"log"
-	"os"
 )
 
 var RunFlags = []cli.Flag {
@@ -129,6 +128,10 @@ func Run(c *cli.Context) error {
 			MemoryLimit: c.Int("special-judge-memory-limit"),
 		},
 	}
+	// Do clean
+	if c.Bool("clean") {
+		defer session.Clean()
+	}
 	// fill session id
 	if c.String("session") == "" {
 		session.SessionId = uuid.NewV1().String()
@@ -155,9 +158,5 @@ func Run(c *cli.Context) error {
 	}
 	fmt.Println(executor.ObjectToJSONStringFormatted(judgeResult))
 
-	// Do clean
-	if c.Bool("clean") {
-		_ = os.RemoveAll(sessionDir)
-	}
 	return err
 }

@@ -2,6 +2,8 @@ package executor
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"path"
 	"strconv"
 	"syscall"
@@ -109,11 +111,19 @@ func (session *JudgeSession) judgeOnce(judgeResult *TestCaseResult) error {
 			judgeResult.SeInfo = err.Error()
 			return err
 		}
-
+		// 分析目标程序的状态
 		err = session.analysisExitStatus(judgeResult, pinfo, false)
 		if err != nil {
 			return err
 		}
+		// 进行文本比较
+		err = session.DiffText(judgeResult)
+		if err != nil {
+			judgeResult.JudgeResult = JudgeFlagSE
+			judgeResult.SeInfo = err.Error()
+			return err
+		}
+
 	case SpecialJudgeModeChecker, SpecialJudgeModeInteractive:
 		tinfo, jinfo, err := session.runSpecialJudge(judgeResult)
 		if err != nil {
@@ -132,6 +142,18 @@ func (session *JudgeSession) judgeOnce(judgeResult *TestCaseResult) error {
 			err = session.analysisExitStatus(judgeResult, jinfo, true)
 			if err != nil {
 				return err
+			}
+		}
+		// 普通checker的时候支持按判题机的意愿进行文本比较
+		if session.SpecialJudge.Mode == SpecialJudgeModeChecker {
+			if judgeResult.JudgeResult == JudgeFlagSpecialJudgeRequireChecker {
+				// 进行文本比较
+				err = session.DiffText(judgeResult)
+				if err != nil {
+					judgeResult.JudgeResult = JudgeFlagSE
+					judgeResult.SeInfo = err.Error()
+					return err
+				}
 			}
 		}
 	}
@@ -164,6 +186,77 @@ func (session *JudgeSession)runOneCase(tc TestCase, Id string) *TestCaseResult {
 	return  &tcResult
 }
 
+// 判定是否是灾难性结果
+func (session *JudgeSession) isDisastrousFault(judgeResult *JudgeResult, tcResult *TestCaseResult) bool {
+	if tcResult.JudgeResult == JudgeFlagSE {
+		judgeResult.JudgeResult = JudgeFlagSE
+		judgeResult.SeInfo = fmt.Sprintf("testcase %s caused a problem", tcResult.Id)
+		return true
+	}
+
+	// 如果是实时运行的语言
+	if session.compiler.IsRealTime() {
+		outfile, e := ioutil.ReadFile(tcResult.ProgramError)
+		if e == nil {
+			if len(outfile) > 0 {
+				remsg := string(outfile)
+
+				if session.compiler.IsCompileError(remsg) {
+					tcResult.JudgeResult = JudgeFlagCE
+					tcResult.CeInfo = remsg
+					judgeResult.JudgeResult = JudgeFlagCE
+					judgeResult.CeInfo = remsg
+				} else {
+					tcResult.JudgeResult = JudgeFlagRE
+					tcResult.SeInfo = fmt.Sprintf("%s\n%s\n", tcResult.SeInfo, remsg)
+					judgeResult.JudgeResult = JudgeFlagRE
+					judgeResult.SeInfo = tcResult.SeInfo
+				}
+				return true
+			}
+		}
+	}
+	return false
+}
+// 计算判题结果
+func (session *JudgeSession) generateFinallyResult(result *JudgeResult, exitcodes []int) {
+	var (
+		ac, pe, wa int = 0, 0, 0
+	)
+	for _, exitcode := range exitcodes {
+		// 如果，不是AC、PE、WA
+		if exitcode != JudgeFlagWA && exitcode != JudgeFlagPE && exitcode != JudgeFlagAC {
+			//直接应用结果
+			result.JudgeResult = exitcode
+			return
+		}
+		if exitcode == JudgeFlagWA { wa++ }
+		if exitcode == JudgeFlagPE { pe++ }
+		if exitcode == JudgeFlagAC { ac++ }
+	}
+	// 在严格判题模式下，由于第一组数据不是AC\PE就会直接报错，因此要判定测试数据是否全部跑完。
+	if len(exitcodes) != len(session.TestCases) {
+		// 如果测试数据未全部跑完
+		result.JudgeResult = JudgeFlagWA
+	} else {
+		// 如果测试数据未全部跑了
+		if wa > 0 {
+			// 如果存在WA，报WA
+			result.JudgeResult = JudgeFlagWA
+		} else if pe > 0 {	// 如果PE > 0
+			if session.StrictMode {
+				// 非严格模式，报AC
+				result.JudgeResult = JudgeFlagAC
+			} else {
+				// 严格模式下报PE
+				result.JudgeResult = JudgeFlagPE
+			}
+		} else {
+			result.JudgeResult = JudgeFlagAC
+		}
+	}
+}
+
 // 执行评测
 func (session *JudgeSession)RunJudge() (JudgeResult, error) {
 	judgeResult := JudgeResult{}
@@ -172,21 +265,44 @@ func (session *JudgeSession)RunJudge() (JudgeResult, error) {
 	if err != nil {
 		return judgeResult, err
 	}
-
+	exitcodes := make([]int, 0, 1)
 	for i := 0; i < len(session.TestCases); i++ {
 		if session.TestCases[i].Id == "" {
 			session.TestCases[i].Id = strconv.Itoa(i)
 		}
 		id := session.TestCases[i].Id
+
 		tcResult := session.runOneCase(session.TestCases[i], id)
+
+		isFalut := session.isDisastrousFault(&judgeResult, tcResult)
 		judgeResult.TestCases = append(judgeResult.TestCases, *tcResult)
-		if tcResult.JudgeResult == JudgeFlagSE {
-			judgeResult.JudgeResult = JudgeFlagSE
-			judgeResult.SeInfo = fmt.Sprintf("testcase %s caused a problem", id)
-			// SE的情况下直接终止执行
-			return judgeResult, err
+		judgeResult.MemoryUsed = Max32(tcResult.MemoryUsed, judgeResult.MemoryUsed)
+		judgeResult.TimeUsed = Max32(tcResult.TimeUsed, judgeResult.TimeUsed)
+		// 如果发生灾难性错误，直接退出
+		if isFalut {
+			break
+		}
+		// 这里使用动态增加的方式是为了保证len(exitcodes)<=len(testCases)
+		// 方便计算最终结果的时候判定测试数据是否全部跑完
+		exitcodes = append(exitcodes, tcResult.JudgeResult)
+
+		//判定是否继续判题
+		keep := false
+		if tcResult.JudgeResult == JudgeFlagAC || tcResult.JudgeResult == JudgeFlagPE {
+			keep = true
+		} else if !session.StrictMode && tcResult.JudgeResult == JudgeFlagWA {
+			keep = true
+		}
+		if !keep {
+			break
 		}
 	}
+	// 计算最终结果
+	session.generateFinallyResult(&judgeResult, exitcodes)
 
 	return judgeResult, nil
+}
+
+func (session *JudgeSession)Clean() {
+	_ = os.RemoveAll(session.SessionDir)
 }

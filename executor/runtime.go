@@ -111,7 +111,7 @@ func (session *JudgeSession)runProgramProcess(rst *TestCaseResult, judger bool, 
 			// Redirect testCaseIn to STDIN
 			if judger {
 				if session.SpecialJudge.RedirectProgramOut {
-					fds[0], err = redirectFileDescriptor(syscall.Stdin, rst.ProgramOut, os.O_RDONLY, 0)
+					fds[0], err = redirectFileDescriptor(syscall.Stdout, rst.ProgramOut, os.O_RDONLY, 0)
 				} else {
 					fds[0], err = redirectFileDescriptor(syscall.Stdin, rst.TestCaseIn, os.O_RDONLY, 0)
 				}
@@ -187,6 +187,8 @@ func (session *JudgeSession)runProgramProcess(rst *TestCaseResult, judger bool, 
 			}
 		}
 		// it won't be run.
+	} else if pid < 0 {
+		return 0, fds, fmt.Errorf("fork process error: pid < 0")
 	}
 	// parent process
 	return pid, fds, nil

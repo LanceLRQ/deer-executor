@@ -47,7 +47,7 @@ func (session *JudgeSession) getCompiler(codeStr string) (provider.CodeCompilePr
 
 	compiler, err := matchCodeLanguage(session.CodeLangName, session.CodeFile)
 	if err != nil { return nil, err }
-	err = compiler.Init(codeStr, "/tmp")
+	err = compiler.Init(codeStr, session.SessionDir)
 	if err != nil {
 		return nil, err
 	}
@@ -70,9 +70,8 @@ func (session *JudgeSession)compileTargetProgram(judgeResult *JudgeResult) error
 		judgeResult.CeInfo = ceinfo
 		return fmt.Errorf("compile error:\n%s", ceinfo)
 	}
-	// 清理工作目录
-	defer compiler.Clean()
 	// 获取执行指令
 	session.Commands = compiler.GetRunArgs()
+	session.compiler = compiler
 	return nil
 }

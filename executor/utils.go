@@ -131,6 +131,10 @@ func Max(x, y int64) int64 {
 	return y
 }
 
+func Max32(a, b int) int {
+	if a > b { return a } else { return b }
+}
+
 // 设置资源限制 (setrlimit)
 func setLimit(timeLimit, memoryLimit , realTimeLimit int) (err error) {
 	var rlimit syscall.Rlimit
@@ -205,7 +209,7 @@ func readFileWithTry(filePath string, name string, tryOnFailed int) ([]byte, str
 		data, err := ioutil.ReadAll(fp)
 		if err != nil {
 			_ = fp.Close()
-			errText = fmt.Sprintf("read file(%s) i/o error: %s", name, err.Error())
+			errText = fmt.Sprintf("Read file(%s) i/o error: %s", name, err.Error())
 			errCnt++
 			continue
 		}
