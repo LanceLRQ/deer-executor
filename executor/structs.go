@@ -1,6 +1,9 @@
 package executor
 
-import "syscall"
+import (
+	"github.com/LanceLRQ/deer-executor/provider"
+	"syscall"
+)
 
 const (
 	JudgeFlagNotRun 	 					= -1   					// -1 Not Run
@@ -65,6 +68,7 @@ type TestCaseResult struct {
 	JudgerReport	string				`json:"judger_report"`			// Special judger checker's report file
 
 	JudgeResult 	int 				`json:"judge_result"`			// Judge result flag number
+	TextDiffLog		string				`json:"text_diff_log"`			// Text Checkup Log
 	TimeUsed 		int					`json:"time_used"`				// Maximum time used
 	MemoryUsed 		int					`json:"memory_used"`			// Maximum memory used
 	ReSignum 		int					`json:"re_signal_num"`			// Runtime error signal number
@@ -91,7 +95,7 @@ type JudgeResult struct {
 type JudgeSession struct {
 	SessionId		string				`json:"session"`				// Judge Session Id
 	SessionRoot		string				`json:"session_root"`			// Session Root Directory
-	SessionDir		string				`json:"session_dir"`			// Session Directory
+	SessionDir		string				`json:"-"`						// Session Directory
 	WorkDir			string				`json:"work_dir"`				// Working Directory
 	CodeLangName 	string				`json:"code_lang_name"`			// Code file language name
 	CodeFile	 	string				`json:"code_file"`				// Code File Path
@@ -102,6 +106,9 @@ type JudgeSession struct {
 	RealTimeLimit 	int					`json:"real_time_limit"`		// Real Time Limit (ms) (optional)
 	FileSizeLimit 	int					`json:"file_size_limit"`		// File Size Limit (bytes) (optional)
 	Uid 			int					`json:"uid"`					// User id (optional)
+	StrictMode 		bool				`json:"strict_mode"`			// Strict Mode (if close, PE will be ignore)
 	SpecialJudge  	SpecialJudgeOptions `json:"special_judge"`			// Special Judge Options
+
+	compiler		provider.CodeCompileProviderInterface				// Compiler entity
 }
 
