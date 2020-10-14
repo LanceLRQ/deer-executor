@@ -6,6 +6,8 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/urfave/cli/v2"
 	"log"
+	"strconv"
+	"time"
 )
 
 var RunFlags = []cli.Flag {
@@ -35,6 +37,7 @@ var RunFlags = []cli.Flag {
 	},
 	&cli.IntFlag {
 		Name: "real-time-limit",
+		Aliases: []string{"rtl"},
 		Value: 0,
 		Usage: "Real Time Limit (ms)",
 	},
@@ -101,9 +104,14 @@ var RunFlags = []cli.Flag {
 		Value: false,
 		Usage: "Delete session directory after judge",
 	},
+	&cli.IntFlag {
+		Name: "benchmark",
+		Value: 0,
+		Usage: "Start benchmark",
+	},
 }
 
-func Run(c *cli.Context) error {
+func run(c *cli.Context, counter int) (*executor.JudgeResult, error) {
 	// create session
 	session := executor.JudgeSession{
 		CodeFile: c.Args().Get(0),
@@ -129,16 +137,21 @@ func Run(c *cli.Context) error {
 		},
 	}
 	// Do clean
-	if c.Bool("clean") {
+	if c.Bool("clean") || c.Int("benchmark") <= 1 {
 		defer session.Clean()
 	}
 	// fill session id
-	if c.String("session") == "" {
-		session.SessionId = uuid.NewV1().String()
+	if c.Int("benchmark") <= 1 {
+		if c.String("session") == "" {
+			session.SessionId = uuid.NewV1().String()
+		} else {
+			session.SessionId = c.String("session")
+		}
 	} else {
-		session.SessionId =  c.String("session")
+		session.SessionId = uuid.NewV1().String() + strconv.Itoa(counter)
 	}
-	if !c.Bool("clean") {
+
+	if !c.Bool("clean") && c.Int("benchmark") <= 1 {
 		fmt.Printf("Judge Session: %s\n", session.SessionId)
 	}
 
@@ -147,16 +160,55 @@ func Run(c *cli.Context) error {
 	sessionDir, err := getSessionDir(session.SessionRoot, session.SessionId)
 	if err != nil {
 		log.Fatal(err)
-		return err
+		return nil, err
 	}
 	session.SessionDir = sessionDir
 
-	judgeResult, err := session.RunJudge()
-	if err != nil {
-		log.Fatal(err)
-		return err
-	}
-	fmt.Println(executor.ObjectToJSONStringFormatted(judgeResult))
+	judgeResult := session.RunJudge()
 
-	return err
+	return &judgeResult, err
+}
+
+func Run(c *cli.Context) error {
+	n := c.Int("benchmark")
+	if n <= 1 {
+		judgeResult, err := run(c, 0)
+		if err != nil {
+			return err
+		}
+		fmt.Println(executor.ObjectToJSONStringFormatted(judgeResult))
+	} else {
+		//rfp, err := os.OpenFile("./report.log", os.O_WRONLY | os.O_CREATE, 0644)
+		//if err != nil {
+		//	return err
+		//}
+		//defer rfp.Close()
+
+		startTime := time.Now().UnixNano()
+		exitCounter := map[int]int {}
+		for i := 0; i < n; i++ {
+			if i % 10 == 0 {
+				fmt.Printf("%d / %d\n", i, n)
+			}
+			judgeResult, err := run(c, i)
+			if err != nil {
+				fmt.Printf("break! %s\n", err.Error())
+				break
+			}
+			if judgeResult.JudgeResult != executor.JudgeFlagAC {
+				fmt.Println(executor.ObjectToJSONStringFormatted(judgeResult))
+				//_, _ = rfp.WriteString(executor.ObjectToJSONStringFormatted(judgeResult) + "\n")
+			}
+			exitCounter[judgeResult.JudgeResult]++
+		}
+		endTime := time.Now().UnixNano()
+		for key, value := range exitCounter {
+			name, ok := executor.FlagMeansMap[key]
+			if !ok { name = "Unknown" }
+			fmt.Printf("%s: %d\n", name, value)
+		}
+		duration := float64(endTime - startTime) / float64(time.Second)
+		fmt.Printf("total time used: %.2fs\n", duration)
+	}
+	return nil
 }

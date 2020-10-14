@@ -1,7 +1,6 @@
 package executor
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"syscall"
@@ -83,7 +82,7 @@ func (session *JudgeSession)runProgramProcess(rst *TestCaseResult, judger bool, 
 	}
 
 	if pid == 0 {
-		var logWriter *bufio.Writer
+		var logWriter *os.File
 		if judger {
 			logfile, err = os.OpenFile(rst.JudgerLog, os.O_WRONLY|os.O_CREATE, 0644)
 		} else {
@@ -92,8 +91,6 @@ func (session *JudgeSession)runProgramProcess(rst *TestCaseResult, judger bool, 
 		if err != nil {
 			panic("cannot create program.log")
 			return 0, fds, err
-		} else {
-			logWriter = bufio.NewWriter(logfile)
 		}
 
 		if pipeMode {
@@ -165,6 +162,8 @@ func (session *JudgeSession)runProgramProcess(rst *TestCaseResult, judger bool, 
 			_, _ = logWriter.WriteString(fmt.Sprintf("[system_error]set resource limit error: %s", err.Error()))
 			return 0, fds, err
 		}
+
+		logfile.Close()
 
 		if judger {
 			// Run Judger (Testlib compatible)

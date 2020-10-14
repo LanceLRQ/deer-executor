@@ -1,6 +1,6 @@
 package executor
 
-var SignumMap = map[int][]string {
+var SignalNumberMap = map[int][]string {
 	1: []string{"SIGHUP", "Hangup (POSIX)."},
 	2:  []string{"SIGINT", "Interrupt (ANSI)."},
 	3:  []string{"SIGQUIT", "Quit (POSIX)."},
@@ -33,6 +33,21 @@ var SignumMap = map[int][]string {
 	29:  []string{"SIGIO", "I/O now possible (4.2 BSD)."},
 	30:  []string{"SIGPWR", "Power failure restart (System V)."},
 	31:  []string{"SIGSYS", "Bad system call."},
+}
+
+var FlagMeansMap = map[int]string {
+	0: "Accepted",
+	1: "Presentation Error",
+	2: "Time Limit Exceeded",
+	3: "Memory Limit Exceeded",
+	4: "Wrong Answer",
+	5: "Runtime Error",
+	6: "Output Limit Exceeded",
+	7: "Compile Error",
+	8: "System Error",
+	9: "Special Judger Time OUT",
+	10: "Special Judger ERROR",
+	11: "Special Judger Finish, Need Standard Checkup",
 }
 
 
