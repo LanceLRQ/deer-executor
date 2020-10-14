@@ -192,6 +192,41 @@ func main() {
 				},
 				Flags: commonFlags,
 			},
+			{
+				Name: "make",
+				Usage: "make configurations",
+				Action: func(c *cli.Context) error {
+					config := executor.JudgeSession{}
+					output := c.String("output")
+					if output != "" {
+						_, err := os.Stat(output)
+						if os.IsExist(err) {
+							log.Fatal("output file exists")
+							return nil
+						}
+						fp, err := os.OpenFile(output, os.O_WRONLY | os.O_CREATE, 0644)
+						if err != nil {
+							log.Fatalf("open output file error: %s\n", err.Error())
+							return nil
+						}
+						defer fp.Close()
+						_, err = fp.WriteString(executor.ObjectToJSONStringFormatted(config))
+						if err != nil {
+							return err
+						}
+					} else {
+						fmt.Println(executor.ObjectToJSONStringFormatted(config))
+					}
+					return nil
+				},
+				Flags: []cli.Flag {
+					&cli.StringFlag {
+						Name: "output",
+						Aliases: []string{"out"},
+						Usage: "output config file",
+					},
+				},
+			},
 		},
 	}).Run(os.Args)
 }
