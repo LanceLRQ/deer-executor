@@ -8,13 +8,8 @@ import (
 )
 
 
-// 运行目标程序
-func (session *JudgeSession)runProgram() (*ProcessInfo, error) {
-	return session.runProgramNormal(false, false, nil)
-}
-
-// 运行普通评测进程
-func (session *JudgeSession)runProgramNormal(judger bool, pipeMode bool, pipeStd []int) (*ProcessInfo, error) {
+// 运行评测进程
+func (session *JudgeSession)runProgramCommon(judger bool, pipeMode bool, pipeStd []int) (*ProcessInfo, error) {
 	pinfo := ProcessInfo{}
 	pid, fds, err := session.runProgramProcess(judger, pipeMode, pipeStd)
 	if err != nil {
@@ -39,12 +34,16 @@ func (session *JudgeSession)runProgramNormal(judger bool, pipeMode bool, pipeStd
 	return &pinfo, err
 }
 
+// 运行目标程序
+func (session *JudgeSession)runNormalJudge() (*ProcessInfo, error) {
+	return session.runProgramCommon(false, false, nil)
+}
 
-// 运行特殊评测进程(交互)
-func (session *JudgeSession)runInteractiveSpecialJudge() (*ProcessInfo, *ProcessInfo, error) {
+// 运行特殊评测
+func (session *JudgeSession)runSpecialJudge() (*ProcessInfo, *ProcessInfo, error) {
 	if session.SpecialJudge.Mode == SpecialJudgeModeChecker {
-		targetInfo, err := session.runProgramNormal(false, false, nil)
-		judgerInfo, err := session.runProgramNormal(true, false, nil)
+		targetInfo, err := session.runProgramCommon(false, false, nil)
+		judgerInfo, err := session.runProgramCommon(true, false, nil)
 		return targetInfo, judgerInfo, err
 	} else if session.SpecialJudge.Mode == SpecialJudgeModeInteractive {
 
@@ -58,8 +57,8 @@ func (session *JudgeSession)runInteractiveSpecialJudge() (*ProcessInfo, *Process
 			return nil, nil, fmt.Errorf("create pipe error: %s", err.Error())
 		}
 
-		targetInfo, err := session.runProgramNormal(false, true, []int{fdtarget[0], fdjudger[1]})
-		judgerInfo, err := session.runProgramNormal(true, true, []int{fdjudger[0], fdtarget[1]})
+		targetInfo, err := session.runProgramCommon(false, true, []int{fdtarget[0], fdjudger[1]})
+		judgerInfo, err := session.runProgramCommon(true, true, []int{fdjudger[0], fdtarget[1]})
 		return targetInfo, judgerInfo, err
 	}
 	return nil, nil, fmt.Errorf("unkonw special judge mode")

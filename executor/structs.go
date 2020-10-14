@@ -37,8 +37,10 @@ type JudgeResult struct {
 	ReSignum 		int				`json:"re_signal_num"`			// Runtime error signal number
 	SameLines 		int				`json:"same_lines"`				// sameLines when WA
 	TotalLines 		int				`json:"total_lines"`			// totalLines when WA
-	SeInfo 			string			`json:"se_info"`				// SeInfo When System Error
-	CeInfo 			string			`json:"ce_info"`				// CeInfo When CeInfo
+	ReInfo 			string			`json:"re_info"`				// ReInfo when Runtime Error or special judge Runtime Error
+	SeInfo 			string			`json:"se_info"`				// SeInfo when System Error
+	CeInfo 			string			`json:"ce_info"`				// CeInfo when Compile Error
+	SPJExitCode  	int				`json:"spj_exit_code"`			// Special judge exit code
 }
 
 type ProcessInfo struct {
