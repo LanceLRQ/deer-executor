@@ -53,3 +53,26 @@ func (session *JudgeSession) getCompiler(codeStr string) (provider.CodeCompilePr
 	}
 	return compiler, err
 }
+
+// 编译目标程序
+func (session *JudgeSession)compileTargetProgram(judgeResult *JudgeResult) error {
+	// 获取对应的编译器提供程序
+	compiler, err := session.getCompiler("")
+	if err != nil {
+		judgeResult.JudgeResult = JudgeFlagSE
+		judgeResult.SeInfo = err.Error()
+		return err
+	}
+	// 编译程序
+	success, ceinfo := compiler.Compile()
+	if !success {
+		judgeResult.JudgeResult = JudgeFlagCE
+		judgeResult.CeInfo = ceinfo
+		return fmt.Errorf("compile error:\n%s", ceinfo)
+	}
+	// 清理工作目录
+	defer compiler.Clean()
+	// 获取执行指令
+	session.Commands = compiler.GetRunArgs()
+	return nil
+}

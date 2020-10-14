@@ -3,11 +3,12 @@ package executor
 import (
 	"fmt"
 	"path"
+	"strconv"
 	"syscall"
 )
 
 // 分析进程退出状态
-func (session *JudgeSession) analysisExitStatus(rst *JudgeResult, pinfo *ProcessInfo, specialJudge bool) error {
+func (session *JudgeSession) analysisExitStatus(rst *TestCaseResult, pinfo *ProcessInfo, specialJudge bool) error {
 	ru := pinfo.Rusage
 	status := pinfo.Status
 
@@ -99,10 +100,10 @@ func (session *JudgeSession) analysisExitStatus(rst *JudgeResult, pinfo *Process
 
 
 // 基于JudgeOptions进行评测调度
-func (session *JudgeSession) judge(judgeResult *JudgeResult) error {
+func (session *JudgeSession) judgeOnce(judgeResult *TestCaseResult) error {
 	switch session.SpecialJudge.Mode {
 	case SpecialJudgeModeDisabled:
-		pinfo, err := session.runNormalJudge()
+		pinfo, err := session.runNormalJudge(judgeResult)
 		if err != nil {
 			judgeResult.JudgeResult = JudgeFlagSE
 			judgeResult.SeInfo = err.Error()
@@ -114,7 +115,7 @@ func (session *JudgeSession) judge(judgeResult *JudgeResult) error {
 			return err
 		}
 	case SpecialJudgeModeChecker, SpecialJudgeModeInteractive:
-		tinfo, jinfo, err := session.runSpecialJudge()
+		tinfo, jinfo, err := session.runSpecialJudge(judgeResult)
 		if err != nil {
 			judgeResult.JudgeResult = JudgeFlagSE
 			judgeResult.SeInfo = err.Error()
@@ -137,42 +138,54 @@ func (session *JudgeSession) judge(judgeResult *JudgeResult) error {
 	return nil
 }
 
+// 对一组测试数据运行一次评测
+func (session *JudgeSession)runOneCase(tc TestCase, Id string) *TestCaseResult {
+
+	tcResult := TestCaseResult{}
+	tcResult.Id = Id
+	// 创建相关的文件路径
+	tcResult.TestCaseIn = tc.TestCaseIn
+	tcResult.TestCaseOut = tc.TestCaseOut
+	tcResult.ProgramOut = path.Join(session.SessionDir, Id + "_program.out")
+	tcResult.ProgramError = path.Join(session.SessionDir,  Id + "_program.err")
+	tcResult.ProgramLog = path.Join(session.SessionDir,  Id + "_program.log")
+	tcResult.JudgerOut = path.Join(session.SessionDir,  Id + "_judger.out")
+	tcResult.JudgerError = path.Join(session.SessionDir,  Id + "_judger.err")
+	tcResult.JudgerLog = path.Join(session.SessionDir,  Id + "_judger.log")
+	tcResult.JudgerReport = path.Join(session.SessionDir,  Id + "_judger.report")
+
+	// 运行judge程序
+	err := session.judgeOnce(&tcResult)
+	if err != nil {
+		tcResult.JudgeResult = JudgeFlagSE
+		tcResult.SeInfo = err.Error()
+	}
+
+	return  &tcResult
+}
+
 // 执行评测
 func (session *JudgeSession)RunJudge() (JudgeResult, error) {
 	judgeResult := JudgeResult{}
-	// 获取对应的编译器提供程序
-	compiler, err := session.getCompiler("")
+
+	err := session.compileTargetProgram(&judgeResult)
 	if err != nil {
-		judgeResult.JudgeResult = JudgeFlagSE
-		judgeResult.SeInfo = err.Error()
 		return judgeResult, err
 	}
-	// 编译程序
-	success, ceinfo := compiler.Compile()
-	if !success {
-		judgeResult.JudgeResult = JudgeFlagCE
-		judgeResult.CeInfo = ceinfo
-		return judgeResult, fmt.Errorf("compile error:\n%s", ceinfo)
-	}
-	// 清理工作目录
-	defer compiler.Clean()
-	// 获取执行指令
-	session.Commands = compiler.GetRunArgs()
 
-	// 创建相关的文件路径
-	session.ProgramOut = path.Join(session.SessionDir, "program.out")
-	session.ProgramError = path.Join(session.SessionDir, "program.err")
-	session.ProgramLog = path.Join(session.SessionDir, "program.log")
-	session.SpecialJudge.Stdout = path.Join(session.SessionDir, "judger.out")
-	session.SpecialJudge.Stderr = path.Join(session.SessionDir, "judger.err")
-	session.SpecialJudge.LogFile = path.Join(session.SessionDir, "judger.log")
-
-	// 运行judge程序
-	err = session.judge(&judgeResult)
-	if err != nil {
-		judgeResult.JudgeResult = JudgeFlagSE
-		judgeResult.SeInfo = err.Error()
-		return judgeResult, err
+	for i := 0; i < len(session.TestCases); i++ {
+		if session.TestCases[i].Id == "" {
+			session.TestCases[i].Id = strconv.Itoa(i)
+		}
+		id := session.TestCases[i].Id
+		tcResult := session.runOneCase(session.TestCases[i], id)
+		judgeResult.TestCases = append(judgeResult.TestCases, *tcResult)
+		if tcResult.JudgeResult == JudgeFlagSE {
+			judgeResult.JudgeResult = JudgeFlagSE
+			judgeResult.SeInfo = fmt.Sprintf("testcase %s caused a problem", id)
+			// SE的情况下直接终止执行
+			return judgeResult, err
+		}
 	}
 
 	return judgeResult, nil
