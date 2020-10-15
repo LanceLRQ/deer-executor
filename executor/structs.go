@@ -61,6 +61,7 @@ type TestCaseResult struct {
 	ProgramOut 		string				`json:"program_out"`			// Program-stdout file path
 	ProgramError 	string				`json:"program_error"`			// Program-stderr file path
 	ProgramLog 		string				`json:"program_log"`			// Program-log file path
+
 	JudgerOut 		string				`json:"judger_out"`				// Special judger checker's stdout
 	JudgerError 	string				`json:"judger_error"`			// Special judger checker's stderr
 	JudgerLog		string				`json:"judger_log"`				// Special judger checker's log file
@@ -76,7 +77,11 @@ type TestCaseResult struct {
 	ReInfo 			string				`json:"re_info"`				// ReInfo when Runtime Error or special judge Runtime Error
 	SeInfo 			string				`json:"se_info"`				// SeInfo when System Error
 	CeInfo 			string				`json:"ce_info"`				// CeInfo when Compile Error
+
 	SPJExitCode  	int					`json:"spj_exit_code"`			// Special judge exit code
+	SPJTimeUsed 	int					`json:"spj_time_used"`			// Special judge maximum time used
+	SPJMemoryUsed 	int					`json:"spj_memory_used"`		// Special judge maximum memory used
+	SPJReSignum 	int					`json:"spj_re_signal_num"`		// Special judge runtime error signal number
 }
 
 // Judge result
