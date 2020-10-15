@@ -6,6 +6,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/urfave/cli/v2"
 	"log"
+	"os"
 	"strconv"
 	"time"
 )
@@ -136,8 +137,8 @@ func run(c *cli.Context, counter int) (*executor.JudgeResult, error) {
 			MemoryLimit: c.Int("special-judge-memory-limit"),
 		},
 	}
-	// Do clean
-	if c.Bool("clean") || c.Int("benchmark") <= 1 {
+	// Do clean (or benchmark on)
+	if c.Bool("clean") || c.Int("benchmark") > 1 {
 		defer session.Clean()
 	}
 	// fill session id
@@ -178,11 +179,11 @@ func Run(c *cli.Context) error {
 		}
 		fmt.Println(executor.ObjectToJSONStringFormatted(judgeResult))
 	} else {
-		//rfp, err := os.OpenFile("./report.log", os.O_WRONLY | os.O_CREATE, 0644)
-		//if err != nil {
-		//	return err
-		//}
-		//defer rfp.Close()
+		rfp, err := os.OpenFile("./report.log", os.O_WRONLY | os.O_CREATE, 0644)
+		if err != nil {
+			return err
+		}
+		defer rfp.Close()
 
 		startTime := time.Now().UnixNano()
 		exitCounter := map[int]int {}
@@ -193,11 +194,14 @@ func Run(c *cli.Context) error {
 			judgeResult, err := run(c, i)
 			if err != nil {
 				fmt.Printf("break! %s\n", err.Error())
+				_, _ = rfp.WriteString(fmt.Sprintf("[%s]: %s\n", strconv.Itoa(i), err.Error()))
 				break
 			}
+			name, ok := executor.FlagMeansMap[judgeResult.JudgeResult]
+			if !ok { name = "Unknown" }
+			_, _ = rfp.WriteString(fmt.Sprintf("[%s]: %s\n", judgeResult.SessionId, name))
 			if judgeResult.JudgeResult != executor.JudgeFlagAC {
-				fmt.Println(executor.ObjectToJSONStringFormatted(judgeResult))
-				//_, _ = rfp.WriteString(executor.ObjectToJSONStringFormatted(judgeResult) + "\n")
+				_, _ = rfp.WriteString(executor.ObjectToJSONStringFormatted(judgeResult) + "\n")
 			}
 			exitCounter[judgeResult.JudgeResult]++
 		}

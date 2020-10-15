@@ -81,6 +81,7 @@ type TestCaseResult struct {
 
 // Judge result
 type JudgeResult struct {
+	SessionId 		string				`json:"session_id"`				// Judge Session Id
 	JudgeResult 	int 				`json:"judge_result"`			// Judge result flag number
 	TimeUsed 		int					`json:"time_used"`				// Maximum time used
 	MemoryUsed 		int					`json:"memory_used"`			// Maximum memory used
@@ -92,7 +93,7 @@ type JudgeResult struct {
 
 // Judge session
 type JudgeSession struct {
-	SessionId		string				`json:"session"`				// Judge Session Id
+	SessionId		string				`json:"session_id"`				// Judge Session Id
 	SessionRoot		string				`json:"session_root"`			// Session Root Directory
 	SessionDir		string				`json:"-"`						// Session Directory
 	WorkDir			string				`json:"work_dir"`				// Working Directory
