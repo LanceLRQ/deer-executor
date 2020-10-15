@@ -260,6 +260,7 @@ func (session *JudgeSession) generateFinallyResult(result *JudgeResult, exitcode
 // 执行评测
 func (session *JudgeSession)RunJudge() JudgeResult {
 	judgeResult := JudgeResult{}
+	judgeResult.SessionId = session.SessionId
 
 	err := session.compileTargetProgram(&judgeResult)
 	if err != nil {
