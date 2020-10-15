@@ -7,18 +7,20 @@ import (
 )
 
 // 分析进程退出状态
-func (session *JudgeSession) analysisExitStatus(rst *TestCaseResult, pinfo *ProcessInfo, specialJudge bool) error {
+func (session *JudgeSession) analysisExitStatus(rst *TestCaseResult, pinfo *ProcessInfo, judger bool) error {
 	ru := pinfo.Rusage
 	status := pinfo.Status
 
-	rst.TimeUsed = int(ru.Utime.Sec * 1000 + int64(ru.Utime.Usec) / 1000 + ru.Stime.Sec * 1000 + int64(ru.Stime.Usec) / 1000)
-	rst.MemoryUsed = int(ru.Minflt * int64(syscall.Getpagesize() / 1024 ))
+	tu := int(ru.Utime.Sec*1000 + int64(ru.Utime.Usec)/1000 + ru.Stime.Sec*1000 + int64(ru.Stime.Usec)/1000)
+	mu := int(ru.Minflt * int64(syscall.Getpagesize()/1024))
 
 	// 特判
-	if specialJudge {
+	if judger {
+		rst.SPJTimeUsed = tu
+		rst.SPJMemoryUsed = mu
 		if status.Signaled() {
 			sig := status.Signal()
-			rst.ReSignum = int(sig)
+			rst.SPJReSignum = int(sig)
 			if session.SpecialJudge.Mode != SpecialJudgeModeInteractive {
 				// 检查判题程序是否超时
 				if sig == syscall.SIGXCPU || sig == syscall.SIGALRM {
@@ -48,6 +50,8 @@ func (session *JudgeSession) analysisExitStatus(rst *TestCaseResult, pinfo *Proc
 			}
 		}
 	} else {
+		rst.TimeUsed = tu
+		rst.MemoryUsed = mu
 		// If process stopped with a signal
 		if status.Signaled() {
 			sig := status.Signal()
