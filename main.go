@@ -1,10 +1,11 @@
 package main
 
 import (
+	"encoding/hex"
 	"fmt"
 	"github.com/LanceLRQ/deer-executor/client"
 	"github.com/LanceLRQ/deer-executor/executor"
-	"github.com/LanceLRQ/deer-executor/provider"
+	"github.com/LanceLRQ/deer-executor/persistence"
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"
@@ -67,15 +68,19 @@ func main() {
 				Hidden: true,
 				Usage: "",
 				Action: func(c *cli.Context) error {
-					var t provider.CodeCompileProviderInterface
-					t = &provider.GnucppCompileProvider{}
-					switch t.(type) {
-					case *provider.GnucCompileProvider:
-						fmt.Println("true")
-					default:
-						fmt.Println("false")
+					pkey, err := persistence.ReadPemFile("./test/certs/test.key")
+					if err != nil { return err }
+					sign, err := persistence.RSA2048SignString("Hello World", pkey)
+					if err != nil { return err }
+					fmt.Println(hex.EncodeToString(sign))
+
+					pukey, err := persistence.ReadPemFile("./test/certs/test.pem")
+					if err != nil { return err }
+					err = persistence.RSA2048VerifyString("Hello World", sign, pukey)
+					if err == nil {
+						fmt.Println("Yes!")
 					}
-					return nil
+					return err
 				},
 			},
 		},
