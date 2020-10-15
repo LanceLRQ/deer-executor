@@ -7,6 +7,7 @@ package executor
 
 import (
 	"bytes"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -36,7 +37,6 @@ type TimeVal struct {
 	TvSec uint64
 	TvUsec uint64
 }
-
 
 // 打开并获取文件的描述符
 func getFileDescriptor(path string, flag int, perm uint32) (fd int, err error) {
@@ -263,4 +263,26 @@ func JSONStringObject(jsonStr string, obj interface{}) bool {
 	} else {
 		return true
 	}
+}
+
+func IsExecutableFile (filePath string) (bool, error) {
+	fp, err := os.OpenFile(filePath, os.O_RDONLY | syscall.O_NONBLOCK, 0)
+	if err != nil {
+		return false, fmt.Errorf("open file error")
+	}
+	defer fp.Close()
+
+	var magic uint32 = 0
+	err = binary.Read(fp, binary.BigEndian, &magic)
+	if err != nil {
+		return false, err
+	}
+
+	isExec := false
+	if runtime.GOOS == "darwin" {
+		isExec = magic == 0xCFFAEDFE || magic == 0xCEFAEDFE || magic == 0xFEEDFACF || magic == 0xFEEDFACE
+	} else if runtime.GOOS == "linux" {
+		isExec = magic == 0x7F454C46
+	}
+	return isExec, nil
 }

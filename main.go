@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/LanceLRQ/deer-executor/client"
 	"github.com/LanceLRQ/deer-executor/executor"
+	"github.com/LanceLRQ/deer-executor/provider"
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"
@@ -59,6 +60,22 @@ func main() {
 						Aliases: []string{"out"},
 						Usage: "output config file",
 					},
+				},
+			},
+			{
+				Name: "test",
+				Hidden: true,
+				Usage: "",
+				Action: func(c *cli.Context) error {
+					var t provider.CodeCompileProviderInterface
+					t = &provider.GnucppCompileProvider{}
+					switch t.(type) {
+					case *provider.GnucCompileProvider:
+						fmt.Println("true")
+					default:
+						fmt.Println("false")
+					}
+					return nil
 				},
 			},
 		},

@@ -20,6 +20,7 @@ func (prov *GnucCompileProvider) Init(code string, workDir string) error {
 	prov.realTime = false
 	prov.codeContent = code
 	prov.workDir = workDir
+	prov.Name = "GCC"
 
 	err := prov.checkWorkDir()
 	if err != nil {
@@ -52,6 +53,7 @@ func (prov *GnucppCompileProvider) Init(code string, workDir string) error {
 	prov.realTime = false
 	prov.codeContent = code
 	prov.workDir = workDir
+	prov.Name = "GCC-CPP"
 
 	err := prov.checkWorkDir()
 	if err != nil {

@@ -68,7 +68,7 @@ var RunFlags = []cli.Flag {
 		Name: "special-judge-checker",
 		Aliases: []string{"checker"},
 		Value: "",
-		Usage: "Checker file path",
+		Usage: "Executable checker file or checker's source code",
 	},
 	&cli.BoolFlag {
 		Name: "special-judge-redirect-program-out",
@@ -105,6 +105,11 @@ var RunFlags = []cli.Flag {
 		Value: false,
 		Usage: "Delete session directory after judge",
 	},
+	&cli.BoolFlag {
+		Name: "debug",
+		Value: false,
+		Usage: "print debug log",
+	},
 	&cli.IntFlag {
 		Name: "benchmark",
 		Value: 0,
@@ -113,6 +118,8 @@ var RunFlags = []cli.Flag {
 }
 
 func run(c *cli.Context, counter int) (*executor.JudgeResult, error) {
+	isBenchmarkMode := c.Int("benchmark") > 1
+
 	// create session
 	session := executor.JudgeSession{
 		CodeFile: c.Args().Get(0),
@@ -138,22 +145,22 @@ func run(c *cli.Context, counter int) (*executor.JudgeResult, error) {
 		},
 	}
 	// Do clean (or benchmark on)
-	if c.Bool("clean") || c.Int("benchmark") > 1 {
+	if c.Bool("clean") || isBenchmarkMode {
 		defer session.Clean()
 	}
 	// fill session id
-	if c.Int("benchmark") <= 1 {
+	if isBenchmarkMode {
+		session.SessionId = uuid.NewV1().String() + strconv.Itoa(counter)
+	} else {
 		if c.String("session") == "" {
 			session.SessionId = uuid.NewV1().String()
 		} else {
 			session.SessionId = c.String("session")
 		}
-	} else {
-		session.SessionId = uuid.NewV1().String() + strconv.Itoa(counter)
 	}
 
 	if !c.Bool("clean") && c.Int("benchmark") <= 1 {
-		fmt.Printf("Judge Session: %s\n", session.SessionId)
+		log.Println(fmt.Sprintf("Judge Session: %s\n", session.SessionId))
 	}
 
 	// create session dir

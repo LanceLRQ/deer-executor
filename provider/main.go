@@ -48,16 +48,19 @@ type CodeCompileProviderInterface interface {
 	saveCode() error
 	// 检查工作目录是否存在
 	checkWorkDir() error
+	// 获取名称
+	GetName() string
 }
 
 type CodeCompileProvider struct {
 	CodeCompileProviderInterface
-	codeContent string		// 代码
-	realTime bool			// 是否为实时编译的语言
-	isReady bool			// 是否已经编译完毕
-	codeFileName, codeFilePath string			// 目标程序源文件
-	programFileName, programFilePath string		// 目标程序文件
-	workDir string			// 工作目录
+	Name								string			// 编译器提供程序名称
+	codeContent 						string			// 代码
+	realTime 							bool			// 是否为实时编译的语言
+	isReady 							bool			// 是否已经编译完毕
+	codeFileName, codeFilePath 			string			// 目标程序源文件
+	programFileName, programFilePath 	string			// 目标程序文件
+	workDir 							string			// 工作目录
 }
 
 func (prov *CodeCompileProvider) initFiles(codeExt string, programExt string) error {
@@ -69,6 +72,11 @@ func (prov *CodeCompileProvider) initFiles(codeExt string, programExt string) er
 	err := prov.saveCode()
 	return err
 }
+
+func (prov *CodeCompileProvider) GetName() string {
+	return prov.Name
+}
+
 func (prov *CodeCompileProvider) Clean() {
 	_ = os.Remove(prov.codeFilePath)
 	_ = os.Remove(prov.programFilePath)

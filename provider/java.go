@@ -34,6 +34,7 @@ func (prov *JavaCompileProvider) Init(code string, workDir string) error {
 	prov.realTime = false
 	prov.codeContent = code
 	prov.workDir = workDir
+	prov.Name = "Java"
 
 	javaClassName, err := getJavaClassName(prov.codeContent)
 	if err != nil {
