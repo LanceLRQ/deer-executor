@@ -3,6 +3,7 @@ package client
 import (
 	"fmt"
 	"github.com/LanceLRQ/deer-executor/executor"
+	"github.com/LanceLRQ/deer-executor/persistence"
 	uuid "github.com/satori/go.uuid"
 	"github.com/urfave/cli/v2"
 	"log"
@@ -173,6 +174,9 @@ func run(c *cli.Context, counter int) (*executor.JudgeResult, error) {
 	session.SessionDir = sessionDir
 
 	judgeResult := session.RunJudge()
+
+	fp, _ := persistence.MergeResultBinary(&judgeResult)
+	fmt.Println(fp)
 
 	return &judgeResult, err
 }

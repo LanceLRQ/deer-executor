@@ -1,6 +1,7 @@
 package persistence
 
 import (
+	"bufio"
 	"bytes"
 	"crypto"
 	"crypto/rand"
@@ -111,4 +112,20 @@ func ReadPemFile(filename string) ([]byte, error) {
 		return nil, err
 	}
 	return pemBytes, nil
+}
+
+func Gets(reader io.Reader) string {
+	buf := make([]byte, 16, 16)
+	rd := bufio.NewReader(reader)
+	for {
+		t, err := rd.ReadByte()
+		if err != nil {
+			return string(buf)
+		}
+		buf = append(buf, t)
+		if t == 13 || t == 0 {
+			break
+		}
+	}
+	return string(buf)
 }

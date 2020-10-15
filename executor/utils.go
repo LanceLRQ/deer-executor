@@ -247,6 +247,14 @@ func ObjectToJSONStringFormatted(conf interface{}) string {
 	return out.String()
 }
 
+func ObjectToJSONByte(obj interface{}) []byte {
+	b, err := json.Marshal(obj)
+	if err != nil {
+		return []byte("{}")
+	}
+	return b
+}
+
 func ObjectToJSONString(obj interface{}) string {
 	b, err := json.Marshal(obj)
 	if err != nil {
