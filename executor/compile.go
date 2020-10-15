@@ -3,6 +3,9 @@ package executor
 import (
 	"fmt"
 	"github.com/LanceLRQ/deer-executor/provider"
+	"io/ioutil"
+	"log"
+	"os"
 	"path"
 	"strings"
 )
@@ -75,3 +78,67 @@ func (session *JudgeSession)compileTargetProgram(judgeResult *JudgeResult) error
 	session.compiler = compiler
 	return nil
 }
+
+// 编译裁判程序
+func (session *JudgeSession)compileJudgerProgram(judgeResult *JudgeResult) error {
+	_, err := os.Stat(session.SpecialJudge.Checker)
+	if os.IsNotExist(err) {
+		judgeResult.JudgeResult = JudgeFlagSE
+		judgeResult.SeInfo = fmt.Sprintf("checker file not exists")
+		return fmt.Errorf(judgeResult.SeInfo)
+	}
+
+	execuable, err := IsExecutableFile(session.SpecialJudge.Checker)
+	if err != nil {
+		judgeResult.JudgeResult = JudgeFlagSE
+		judgeResult.SeInfo = fmt.Sprintf("checker file not exists")
+		return fmt.Errorf("compile checker error: %s", err)
+	}
+	// 如果是可执行程序，直接放行
+	if execuable {
+		return nil
+	}
+
+	// 判断文件格式
+	compiler, err := matchCodeLanguage("auto", session.SpecialJudge.Checker)
+	if err != nil { return fmt.Errorf("compile checker error: %s", err) }
+	switch compiler.(type) {
+	case *provider.GnucCompileProvider, *provider.GnucppCompileProvider, *provider.GolangCompileProvider:
+		// 初始化编译程序
+		codeFile, err := os.Open(session.SpecialJudge.Checker)
+		if err != nil {
+			judgeResult.JudgeResult = JudgeFlagSE
+			judgeResult.SeInfo = fmt.Sprintf("special judge checker source file open error:\n%s", err.Error())
+			return fmt.Errorf(judgeResult.SeInfo)
+		}
+		defer codeFile.Close()
+		code, err := ioutil.ReadAll(codeFile)
+		if err != nil {
+			judgeResult.JudgeResult = JudgeFlagSE
+			judgeResult.SeInfo = fmt.Sprintf("special judge checker source file read error:\n%s", err.Error())
+			return fmt.Errorf(judgeResult.SeInfo)
+		}
+		err = compiler.Init(string(code), session.SessionDir)
+		if err != nil {
+			return err
+		}
+		log.Println(fmt.Sprintf("compile (%s) with %s provider", session.SpecialJudge.Checker, compiler.GetName()))
+	default:
+		judgeResult.JudgeResult = JudgeFlagSE
+		judgeResult.SeInfo = "special judge checker only support c/c++/go language"
+		return fmt.Errorf(judgeResult.SeInfo)
+	}
+
+	// 编译程序
+	success, ceinfo := compiler.Compile()
+	if !success {
+		judgeResult.JudgeResult = JudgeFlagSE
+		judgeResult.SeInfo = fmt.Sprintf("special judge checker compile error:\n%s", ceinfo)
+		return fmt.Errorf("special judge checker compile error:\n%s", ceinfo)
+	}
+	// 获取执行指令
+	session.SpecialJudge.Checker = compiler.GetRunArgs()[0]
+	session.compiler = compiler
+	return nil
+}
+

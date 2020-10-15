@@ -4,8 +4,8 @@
 @author: QuanQqqqq
 @algorithm: check code
 */
-#include <cstdio>
-#include <bits/stdc++.h>
+#include <iostream>
+//#include <bits/stdc++.h>
 
 using namespace std;
 

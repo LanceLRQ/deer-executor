@@ -20,6 +20,7 @@ func (prov *NodeJSCompileProvider) Init(code string, workDir string) error {
 	prov.realTime = true
 	prov.codeContent = code
 	prov.workDir = workDir
+	prov.Name = "NodeJS"
 
 	err := prov.checkWorkDir()
 	if err != nil {

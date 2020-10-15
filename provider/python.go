@@ -19,6 +19,7 @@ func (prov *Py2CompileProvider) Init(code string, workDir string) error {
 	prov.realTime = true
 	prov.codeContent = code
 	prov.workDir = workDir
+	prov.Name = "Python2"
 
 	err := prov.checkWorkDir()
 	if err != nil {
@@ -54,6 +55,7 @@ func (prov *Py3CompileProvider) Init(code string, workDir string) error {
 	prov.realTime = true
 	prov.codeContent = code
 	prov.workDir = workDir
+	prov.Name = "Python3"
 
 	err := prov.checkWorkDir()
 	if err != nil {
