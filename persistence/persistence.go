@@ -12,39 +12,6 @@ import (
 	"path"
 )
 
-/*********
-------------------------
-|MAG|VER|CMP|RSZ|BSZ|CSZ| Certificate |CSZ| Signature | Result | Body
-------------------------
-| 2 | 1 | 1 | 4 | 4 | 2 | ... | 2 | ...
-------------------------
-**********/
-type JudgeResultPackage struct {
-	Version 		uint8				// (VER) Package Version
-	ResultSize 		uint32				// (RSZ) Result JSON Text Size
-	BodySize 		uint32				// (BSZ) Result Body Size
-	CertSize		uint16				// (CSZ) Public Certificate Size
-	CompressorType	uint8				// (CMP) Compressor type: 0-disabled; 1-gzip
-	SignSize		uint16				// (CSZ) Public Certificate Size
-	Certificate		[]byte				// Public Certificate
-	Result 			[]byte				// Result JSON
-	//Body			[]byte				// Body Binary
-	//Signature     []byte		 		// Signature: SHA256(Result + Body)
-}
-
-type JudgeResultPackageBody struct {
-	Size 			uint32
-	FileName 		string
-	Content			[]byte
-}
-
-type JudgeResultPersisOptions struct {
-	DigitalSign		bool
-	DigitalPEM		DigitalSignPEM
-	CompressorType  uint8
-	OutFile			string
-}
-
 func readAndWriteToTempFile(writer io.Writer, filePath string) error {
 	buf32 := make([]byte, 4)
 	body, err := executor.ReadFile(filePath)

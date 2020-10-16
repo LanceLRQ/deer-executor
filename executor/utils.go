@@ -265,7 +265,11 @@ func ObjectToJSONString(obj interface{}) string {
 }
 
 func JSONStringObject(jsonStr string, obj interface{}) bool {
-	err := json.Unmarshal([]byte(jsonStr), &obj)
+	return JSONBytesObject([]byte(jsonStr), obj)
+}
+
+func JSONBytesObject(jsonBytes []byte, obj interface{}) bool {
+	err := json.Unmarshal(jsonBytes, &obj)
 	if err != nil {
 		return false
 	} else {
