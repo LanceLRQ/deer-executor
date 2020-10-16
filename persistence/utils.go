@@ -14,6 +14,13 @@ import (
 	"io/ioutil"
 )
 
+type DigitalSignPEM struct {
+	PublicKey 			*rsa.PublicKey
+	PrivateKey 			*rsa.PrivateKey
+	PublicKeyRaw 		[]byte
+	PrivateKeyRaw 		[]byte
+}
+
 /* SHA256 */
 
 func SHA256String(body string) ([]byte, error) {
@@ -22,13 +29,15 @@ func SHA256String(body string) ([]byte, error) {
 
 func SHA256Bytes(body []byte) ([]byte, error) {
 	buf := bytes.NewBuffer(body)
-	return SHA256Stream(buf)
+	return SHA256Streams([]io.Reader{buf})
 }
 
-func SHA256Stream(body io.Reader) ([]byte, error) {
+func SHA256Streams(streams []io.Reader) ([]byte, error) {
 	hash := sha256.New()
-	if _, err := io.Copy(hash, body); err != nil {
-		return nil, err
+	for _, stream := range streams {
+		if _, err := io.Copy(hash, stream); err != nil {
+			return nil, err
+		}
 	}
 	ret := hash.Sum(nil)
 	//hex.EncodeToString(ret)
@@ -37,22 +46,17 @@ func SHA256Stream(body io.Reader) ([]byte, error) {
 
 /* RSA Sign */
 
-func RSA2048SignString(body string, key []byte) ([]byte, error) {
-	return RSA2048SignBytes([]byte(body), key)
+func RSA2048SignString(body string, privateKey *rsa.PrivateKey) ([]byte, error) {
+	return RSA2048SignBytes([]byte(body), privateKey)
 }
 
-func RSA2048SignBytes(body []byte, key []byte) ([]byte, error) {
-	buf := bytes.NewBuffer(body)
-	return RSA2048SignStream(buf, key)
+func RSA2048SignBytes(body []byte, privateKey *rsa.PrivateKey) ([]byte, error) {
+	hash, err := SHA256Bytes(body)
+	if err != nil { return nil, err }
+	return RSA2048Sign(hash, privateKey)
 }
 
-func RSA2048SignStream(body io.Reader, key []byte) ([]byte, error) {
-	hash, err := SHA256Stream(body)
-	if err != nil { return nil, err }
-	// read private key
-	privateKey, err := ReadAndParsePrivateKey(key)
-	if err != nil { return nil, err }
-	// sign with private key
+func RSA2048Sign(hash []byte, privateKey *rsa.PrivateKey) ([]byte, error) {
 	sign, err := rsa.SignPKCS1v15(rand.Reader, privateKey, crypto.SHA256, hash)
 	if err != nil {
 		return nil, err
@@ -62,21 +66,17 @@ func RSA2048SignStream(body io.Reader, key []byte) ([]byte, error) {
 
 /* RSA Verify */
 
-func RSA2048VerifyString(body string, sign []byte, cert []byte) error {
-	return RSA2048VerifyBytes([]byte(body), sign, cert)
+func RSA2048VerifyString(body string, sign []byte, publicKey *rsa.PublicKey) error {
+	return RSA2048VerifyBytes([]byte(body), sign, publicKey)
 }
 
-func RSA2048VerifyBytes(body []byte, sign []byte, cert []byte) error {
-	buf := bytes.NewBuffer(body)
-	return RSA2048VerifyStream(buf, sign, cert)
+func RSA2048VerifyBytes(body []byte, sign []byte, publicKey *rsa.PublicKey) error {
+	hash, err := SHA256Bytes(body)
+	if err != nil { return err }
+	return RSA2048Verify(hash, sign, publicKey)
 }
 
-func RSA2048VerifyStream(body io.Reader, sign []byte, cert []byte) error {
-	hash, err := SHA256Stream(body)
-	if err != nil { return err }
-	// read public key
-	publicKey, err := ReadAndParsePublicKey(cert)
-	if err != nil { return err }
+func RSA2048Verify(hash []byte, sign []byte, publicKey *rsa.PublicKey) error {
 	return rsa.VerifyPKCS1v15(publicKey, crypto.SHA256, hash, sign)
 }
 
@@ -112,6 +112,40 @@ func ReadPemFile(filename string) ([]byte, error) {
 		return nil, err
 	}
 	return pemBytes, nil
+}
+
+func GetDigitalPEMFromFile (publicKeyFile string, privateKeyFile string) (*DigitalSignPEM, error) {
+	publicKey, err := ReadPemFile(publicKeyFile)
+	if err != nil {
+		return nil, err
+	}
+	privateKey, err := ReadPemFile(privateKeyFile)
+	if err != nil {
+		return nil, err
+	}
+	dp := GetDigitalPEM(publicKey, privateKey)
+	return dp, nil
+}
+
+func GetDigitalPEM (publicKey []byte, privateKey []byte) *DigitalSignPEM {
+	dp := DigitalSignPEM{}
+	if publicKey != nil {
+		dp.PublicKeyRaw = publicKey
+		pk, err := ReadAndParsePublicKey(publicKey)
+		dp.PublicKey = pk
+		if err != nil {
+			dp.PublicKey = nil
+		}
+	}
+	if privateKey != nil {
+		dp.PrivateKeyRaw = privateKey
+		pk, err := ReadAndParsePrivateKey(privateKey)
+		dp.PrivateKey = pk
+		if err != nil {
+			dp.PrivateKey = nil
+		}
+	}
+	return &dp
 }
 
 func Gets(reader io.Reader) string {
