@@ -116,10 +116,65 @@ var RunFlags = []cli.Flag {
 		Value: 0,
 		Usage: "Start benchmark",
 	},
+	&cli.StringFlag {
+		Name: "persistence",
+		Aliases: []string{"p"},
+		Value: "gzip",
+		Usage: "Persistent judge result to file (support: gzip, none)",
+	},
+	&cli.StringFlag {
+		Name: "compressor",
+		Value: "",
+		Usage: "Persistent compressor type",
+	},
+	&cli.BoolFlag {
+		Name: "digital-sign",
+		Aliases: []string{"sign"},
+		Value: false,
+		Usage: "Enable digital sign",
+	},
+	&cli.StringFlag {
+		Name: "public-key",
+		Value: "",
+		Usage: "Digital sign public key",
+	},
+	&cli.StringFlag {
+		Name: "private-key",
+		Value: "",
+		Usage: "Digital sign private key",
+	},
 }
 
 func run(c *cli.Context, counter int) (*executor.JudgeResult, error) {
 	isBenchmarkMode := c.Int("benchmark") > 1
+	persistenceOn := c.String("persistence") != ""
+	digitalSign := c.Bool("digital-sign")
+	compressorType := uint8(1)
+	if c.String("compressor") == "none" {
+		compressorType = uint8(0)
+	}
+
+	jOption := persistence.JudgeResultPersisOptions{
+		OutFile: c.String("persistence"),
+		CompressorType: compressorType,
+		DigitalSign: digitalSign,
+	}
+	if !isBenchmarkMode && persistenceOn {
+		if digitalSign {
+			if c.String("public-key") == "" || c.String("private-key") == "" {
+				return nil, fmt.Errorf("digital sign need public key and private key")
+			}
+			digPEM, err := persistence.GetDigitalPEMFromFile(c.String("public-key"), c.String("private-key"))
+			if err != nil {
+				return nil, err
+			}
+			if digPEM.PrivateKey == nil || digPEM.PublicKey == nil {
+				return nil, fmt.Errorf("parse public key or private key error")
+			}
+			jOption.DigitalPEM = *digPEM
+		}
+	}
+
 
 	// create session
 	session := executor.JudgeSession{
@@ -175,10 +230,15 @@ func run(c *cli.Context, counter int) (*executor.JudgeResult, error) {
 
 	judgeResult := session.RunJudge()
 
-	fp, _ := persistence.MergeResultBinary(&judgeResult)
-	fmt.Println(fp)
+	if !isBenchmarkMode && persistenceOn {
+		err = persistence.PersistentJudgeResult(&judgeResult, jOption)
+		if err != nil {
+			log.Fatal(err)
+			return nil, err
+		}
+	}
 
-	return &judgeResult, err
+	return &judgeResult, nil
 }
 
 func Run(c *cli.Context) error {

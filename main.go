@@ -1,10 +1,8 @@
 package main
 
 import (
-	"encoding/hex"
 	"fmt"
 	"github.com/LanceLRQ/deer-executor/client"
-	"github.com/LanceLRQ/deer-executor/persistence"
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"
@@ -60,25 +58,34 @@ func main() {
 				Hidden: true,
 				Usage:  "",
 				Action: func(c *cli.Context) error {
-					pkey, err := persistence.ReadPemFile("./test/certs/test.key")
-					if err != nil {
-						return err
-					}
-					sign, err := persistence.RSA2048SignString("Hello World", pkey)
-					if err != nil {
-						return err
-					}
-					fmt.Println(hex.EncodeToString(sign))
+					//privateKey, err := persistence.ReadPemFile("./test/certs/test.key")
+					//if err != nil {
+					//	return err
+					//}
+					//sign, err := persistence.RSA2048SignString("Hello World", pkey)
+					//if err != nil {
+					//	return err
+					//}
+					//fmt.Println(hex.EncodeToString(sign))
+					//
+					//publicKey, err := persistence.ReadPemFile("./test/certs/test.pem")
+					//if err != nil {
+					//	return err
+					//}
+					//err = persistence.RSA2048VerifyString("Hello World", sign, publicKey)
+					//if err == nil {
+					//	fmt.Println("Yes!")
+					//}
 
-					publicKey, err := persistence.ReadPemFile("./test/certs/test.pem")
-					if err != nil {
-						return err
-					}
-					err = persistence.RSA2048VerifyString("Hello World", sign, publicKey)
-					if err == nil {
-						fmt.Println("Yes!")
-					}
-					return err
+					//rel, err := persistence.SHA256Streams([]io.Reader{
+					//	bytes.NewReader(publicKey),
+					//	bytes.NewReader(privateKey),
+					//})
+					//if err != nil {
+					//	return err
+					//}
+					//fmt.Println(hex.EncodeToString(rel))
+					return nil
 				},
 			},
 		},
