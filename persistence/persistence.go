@@ -19,6 +19,9 @@ func readAndWriteToTempFile(writer io.Writer, filePath string) error {
 		return err
 	}
 	binary.BigEndian.PutUint32(buf32, uint32(len(body)))
+	if _, err := writer.Write([]byte{ 0xF5, 0x40 }); err != nil {
+		return fmt.Errorf("write temp file error: %s", err.Error())
+	}
 	if _, err := writer.Write(buf32); err != nil {
 		return fmt.Errorf("write temp file error: %s", err.Error())
 	}

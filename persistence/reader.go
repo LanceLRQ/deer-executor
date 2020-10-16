@@ -3,6 +3,7 @@ package persistence
 import (
 	"bufio"
 	"bytes"
+	"compress/gzip"
 	"encoding/binary"
 	"fmt"
 	"github.com/LanceLRQ/deer-executor/executor"
@@ -11,6 +12,7 @@ import (
 	"os"
 	"path"
 	"reflect"
+	"strings"
 )
 
 func parseJudgeResultBinary(reader io.Reader ) (*JudgeResultPackage, error) {
@@ -68,16 +70,6 @@ func parseJudgeResultBinary(reader io.Reader ) (*JudgeResultPackage, error) {
 		return nil, fmt.Errorf("create body package temp file error: %s", err.Error())
 	}
 	defer tmpBodyFile.Close()
-	//var bodyReader io.Reader
-	//// 如果使用了Gz
-	//if pack.CompressorType == 1 {
-	//	bodyReader, err = gzip.NewReader(tmpBodyFile)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//} else {
-	//	bodyReader = bufio.NewReader(tmpBodyFile)
-	//}
 	if _, err := io.Copy(tmpBodyFile, reader); err != nil {
 		return nil, fmt.Errorf("write body package temp file error: %s", err.Error())
 	}
@@ -139,6 +131,28 @@ func ReadJudgeResult(resultFile string) (*executor.JudgeResult, error) {
 
 	judgeResult := executor.JudgeResult{}
 	executor.JSONBytesObject(pack.Result, &judgeResult)
+
+	// 如果使用了Gz
+	if pack.CompressorType == 1 {
+		fp, err := os.Open(pack.BodyPackageFile)
+		if err != nil {
+			return nil, err
+		}
+		zipReader, err := gzip.NewReader(fp)
+		if err != nil {
+			return nil, err
+		}
+		fn := strings.Replace(pack.BodyPackageFile, ".tmp.gz", ".tmp", -1)
+		fout, err := os.Create(fn)
+		if err != nil {
+			return nil, err
+		}
+		defer fout.Close()
+		if _, err = io.Copy(fout, zipReader); err != nil {
+			return nil, err
+		}
+		pack.BodyPackageFile = fn
+	}
 
 	return &judgeResult, nil
 }

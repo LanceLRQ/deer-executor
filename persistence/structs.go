@@ -20,10 +20,20 @@ type JudgeResultPackage struct {
 	BodyPackageFile	string				// Body package file
 }
 
+/***
+------------------------
+Magic | Size | FileName | Content
+------------------------
+  2   |  4  | (Sep: \n) |  ...
+------------------------
+***/
 type JudgeResultPackageBody struct {
-	Size 			uint32
-	FileName 		string
-	Content			[]byte
+	BodyPackageFile		string
+	Files 				[]struct {
+		Size     		uint32
+		FileName 		string
+		Position 		uint32
+	}
 }
 
 type JudgeResultPersisOptions struct {
