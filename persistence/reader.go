@@ -15,13 +15,14 @@ import (
 	"strings"
 )
 
+// 解析判题结果
 func parseJudgeResultBinary(reader io.Reader ) (*JudgeResultPackage, error) {
 	// 校验魔数
 	magic := uint16(0)
 	if err := binary.Read(reader, binary.BigEndian, &magic); err != nil {
 		return nil, fmt.Errorf("read file error: %s", err.Error())
 	}
-	if magic != 0xB540 {
+	if magic != JudgeResultMagicCode {
 		return nil, fmt.Errorf("not deer-executor judge result file")
 	}
 	// 开始解析package
@@ -77,6 +78,7 @@ func parseJudgeResultBinary(reader io.Reader ) (*JudgeResultPackage, error) {
 	return &pack, nil
 }
 
+// 校验判题结果数据包
 func validateJudgeResultPackage (pack *JudgeResultPackage) (bool, error) {
 	// 打开临时文件
 	tmpBodyFile, err := os.Open(pack.BodyPackageFile)
@@ -109,6 +111,7 @@ func validateJudgeResultPackage (pack *JudgeResultPackage) (bool, error) {
 	return true, nil
 }
 
+// 读取判题结果
 func ReadJudgeResult(resultFile string) (*executor.JudgeResult, error) {
 	rf, err := os.Open(resultFile)
 	if err != nil {

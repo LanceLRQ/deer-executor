@@ -13,13 +13,15 @@ import (
 )
 
 func readAndWriteToTempFile(writer io.Writer, filePath string) error {
+	buf16 := make([]byte, 16)
 	buf32 := make([]byte, 4)
 	body, err := executor.ReadFile(filePath)
 	if err != nil {
 		return err
 	}
+	binary.BigEndian.PutUint16(buf16, JudgeBodyPackageMagicCode)
 	binary.BigEndian.PutUint32(buf32, uint32(len(body)))
-	if _, err := writer.Write([]byte{ 0xF5, 0x40 }); err != nil {
+	if _, err := writer.Write(buf16); err != nil {
 		return fmt.Errorf("write temp file error: %s", err.Error())
 	}
 	if _, err := writer.Write(buf32); err != nil {
@@ -70,7 +72,7 @@ func writeFileHeaderAndResult (writer io.Writer, pack JudgeResultPackage) error 
 	buf32 := make([]byte, 4)
 
 	// magic
-	binary.BigEndian.PutUint16(buf16, 0xB540)
+	binary.BigEndian.PutUint16(buf16, JudgeResultMagicCode)
 	if _, err := writer.Write(buf16); err != nil {
 		return fmt.Errorf("write result file error: %s", err.Error())
 	}
