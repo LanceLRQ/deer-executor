@@ -183,7 +183,10 @@ func setLimit(timeLimit, memoryLimit , realTimeLimit int) error {
 	}
 
 	// Set stack limit
-	stack := uint64(float64(mem) * 0.9)
+	stack := mem
+	if runtime.GOOS == "darwin" {  // WTF?! mem * 1.0 caused an operation not permitted!
+		stack = uint64(float64(mem) * 0.9)
+	}
 	err = setRLimit(syscall.RLIMIT_STACK, stack,  stack)
 	if err != nil {
 		return err

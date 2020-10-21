@@ -119,12 +119,12 @@ var RunFlags = []cli.Flag {
 	&cli.StringFlag {
 		Name: "persistence",
 		Aliases: []string{"p"},
-		Value: "gzip",
+		Value: "",
 		Usage: "Persistent judge result to file (support: gzip, none)",
 	},
 	&cli.StringFlag {
 		Name: "compressor",
-		Value: "",
+		Value: "gzip",
 		Usage: "Persistent compressor type",
 	},
 	&cli.BoolFlag {
@@ -229,7 +229,6 @@ func run(c *cli.Context, counter int) (*executor.JudgeResult, error) {
 	session.SessionDir = sessionDir
 
 	judgeResult := session.RunJudge()
-
 	if !isBenchmarkMode && persistenceOn {
 		err = persistence.PersistentJudgeResult(&judgeResult, jOption)
 		if err != nil {
