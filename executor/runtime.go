@@ -12,6 +12,10 @@ func (session *JudgeSession)runProgramCommon(rst *TestCaseResult, judger bool, p
 	pinfo := ProcessInfo{}
 	pid, fds, err := session.runProgramProcess(rst, judger, pipeMode, pipeStd)
 	if err != nil {
+		if pid == 0 {
+			// 如果是子进程错误了，输出到程序的error去
+			panic(err.Error())
+		}
 		return nil, err
 	}
 	pinfo.Pid = pid
