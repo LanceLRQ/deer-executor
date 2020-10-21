@@ -115,15 +115,6 @@ func OpenFile(filePath string, flag int, perm os.FileMode) (*os.File, error) {
 	}
 }
 
-// 设置定时器 (setitimer)
-func setITimer(prealt ITimerVal) (err error) {
-	_, _, errMsg := syscall.RawSyscall(syscall.SYS_SETITIMER, ITimerReal, uintptr(unsafe.Pointer(&prealt)), 0)
-	if errMsg != 0 {
-		return fmt.Errorf("system call: setitimer(); error: %s", errMsg)
-	}
-	return nil
-}
-
 func Max(x, y int64) int64 {
 	if x > y {
 		return x
@@ -135,62 +126,74 @@ func Max32(a, b int) int {
 	if a > b { return a } else { return b }
 }
 
-// 设置资源限制 (setrlimit)
-func setLimit(timeLimit, memoryLimit , realTimeLimit int) (err error) {
+// setrlimit
+func setRLimit(which int, cur, max uint64) error {
 	var rlimit syscall.Rlimit
+	rlimit.Cur = cur
+	rlimit.Max = max
+	err := syscall.Setrlimit(which, &rlimit)
+	if err != nil {
+		return fmt.Errorf("setrlimit(%d) error: %s", which, err)
+	}
+	return nil
+}
+
+// 硬件计时器
+func setHardTimer(realTimeLimit int) error {
 	var prealt ITimerVal
-	var errMsg error
+	prealt.ItInterval.TvSec = uint64(math.Floor(float64(realTimeLimit) / 1000.0))
+	prealt.ItInterval.TvUsec = uint64(realTimeLimit % 1000 * 1000)
+	prealt.ItValue.TvSec = prealt.ItInterval.TvSec
+	prealt.ItValue.TvUsec = prealt.ItInterval.TvUsec
+	_, _, err := syscall.RawSyscall(syscall.SYS_SETITIMER, ITimerReal, uintptr(unsafe.Pointer(&prealt)), 0)
+	if err != 0 {
+		return fmt.Errorf("system call setitimer() error: %s", err)
+	}
+	return nil
+}
 
+// 设置资源限制 (setrlimit)
+func setLimit(timeLimit, memoryLimit , realTimeLimit int) error {
 	// Set time limit: RLIMIT_CPU
-	rlimit.Cur = uint64(math.Ceil(float64(timeLimit) / 1000.0))
-	rlimit.Max = rlimit.Cur + 1
-
-	errMsg = syscall.Setrlimit(syscall.RLIMIT_CPU, &rlimit)
-	if errMsg != nil {
-		return errMsg
+	cpu := uint64(math.Ceil(float64(timeLimit) / 1000.0))
+	err := setRLimit(syscall.RLIMIT_CPU, cpu,  cpu)
+	if err != nil {
+		return err
 	}
 
+	// Set time limit: setITimer
 	if realTimeLimit > 0 {
-		// Set time limit: setITimer
-		prealt.ItInterval.TvSec = uint64(math.Floor(float64(realTimeLimit) / 1000.0))
-		prealt.ItInterval.TvUsec = uint64(realTimeLimit % 1000 * 1000)
-		prealt.ItValue.TvSec = prealt.ItInterval.TvSec
-		prealt.ItValue.TvUsec = prealt.ItInterval.TvUsec
-		errMsg = setITimer(prealt)
-		if errMsg != nil {
-			return errMsg
+		err = setHardTimer(realTimeLimit)
+		if err != nil {
+			return err
 		}
 	}
 
 	// Set memory limit: RLIMIT_DATA
-	rlimit.Cur = uint64(memoryLimit * 1024)
-	rlimit.Max = rlimit.Cur
-	errMsg = syscall.Setrlimit(syscall.RLIMIT_DATA, &rlimit)
-	if errMsg != nil {
-		return errMsg
+	mem := uint64(memoryLimit * 1024)
+	err = setRLimit(syscall.RLIMIT_DATA, mem,  mem)
+	if err != nil {
+		return err
 	}
 
 	// Set memory limit: RLIMIT_AS
-	rlimit.Cur = uint64(memoryLimit * 1024) * 2
-	rlimit.Max = rlimit.Cur + 1024
-	errMsg = syscall.Setrlimit(syscall.RLIMIT_AS, &rlimit)
-	if errMsg != nil {
-		return errMsg
+	err = setRLimit(syscall.RLIMIT_AS, mem * 2,  mem * 2 + 1024)
+	if err != nil {
+		return err
 	}
 
-	// Set stack limit: RLIMIT_STACK (half of memoryLimit)
-	rlimit.Cur = uint64(memoryLimit * 1024)
-	rlimit.Max = rlimit.Cur
-	errMsg = syscall.Setrlimit(syscall.RLIMIT_STACK, &rlimit)
-	// NOT REQUIRED. Do not throw error.
-	//if errMsg != nil {
-	//	return errMsg
-	//}
+	// Set stack limit
+	stack := uint64(float64(mem) * 0.9)
+	err = setRLimit(syscall.RLIMIT_STACK, stack,  stack)
+	if err != nil {
+		return err
+	}
 
 	// Set file size limit: RLIMIT_FSIZE
-	rlimit.Cur = uint64(JudgeFileSizeLimit)
-	rlimit.Max = rlimit.Cur
-	errMsg = syscall.Setrlimit(syscall.RLIMIT_FSIZE, &rlimit)
+	err = setRLimit(syscall.RLIMIT_FSIZE, uint64(JudgeFileSizeLimit),  uint64(JudgeFileSizeLimit))
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

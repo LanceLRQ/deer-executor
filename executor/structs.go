@@ -22,7 +22,7 @@ const (
 )
 
 const (
-	JudgeFileSizeLimit 						= 200 * 1024 * 1024  	// 200MB
+	JudgeFileSizeLimit 						= 50 * 1024 * 1024  	// 50MB
 
 	SpecialJudgeModeDisabled 				= 0
 	SpecialJudgeModeChecker 				= 1
