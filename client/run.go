@@ -64,43 +64,13 @@ var RunFlags = []cli.Flag {
 	},
 }
 
-func run(c *cli.Context, counter int) (*executor.JudgeResult, error) {
+func run(c *cli.Context,  counter int) (*executor.JudgeResult, error) {
 	isBenchmarkMode := c.Int("benchmark") > 1
-	persistenceOn := c.String("persistence") != ""
-	digitalSign := c.Bool("digital-sign")
-	compressorType := uint8(1)
-	if c.String("compressor") == "none" {
-		compressorType = uint8(0)
-	}
-	jOption := judge_result.JudgeResultPersisOptions{
-		OutFile: c.String("persistence"),
-		CompressorType: compressorType,
-		DigitalSign: digitalSign,
-	}
-	if !isBenchmarkMode && persistenceOn {
-		if digitalSign {
-			if c.String("public-key") == "" || c.String("private-key") == "" {
-				return nil, fmt.Errorf("digital sign need public key and private key")
-			}
-			digPEM, err := persistence.GetDigitalPEMFromFile(c.String("public-key"), c.String("private-key"))
-			if err != nil {
-				return nil, err
-			}
-			if digPEM.PrivateKey == nil || digPEM.PublicKey == nil {
-				return nil, fmt.Errorf("parse public key or private key error")
-			}
-			jOption.DigitalPEM = *digPEM
-		}
-	}
+	configFile := c.String("config")
 	// create session
-	session := executor.NewSession()
-	// laod configuration
-	if c.String("config") != "" {
-		cbody, err := executor.ReadFile(c.String("config"))
-		if err != nil {
-			return nil, err
-		}
-		executor.JSONBytesObject(cbody, session)
+	session, err := executor.NewSession(configFile)
+	if err != nil {
+		return nil, err
 	}
 	// init files
 	session.CodeFile = c.Args().Get(0)
@@ -119,9 +89,6 @@ func run(c *cli.Context, counter int) (*executor.JudgeResult, error) {
 	if session.SessionRoot != "" {
 		session.SessionRoot = "/tmp"
 	}
-	//if !c.Bool("clean") && c.Int("benchmark") <= 1 {
-	//	log.Println(fmt.Sprintf("Judge Session: %s\n", session.SessionId))
-	//}
 	sessionDir, err := getSessionDir(session.SessionRoot, session.SessionId)
 	if err != nil {
 		log.Fatal(err)
@@ -131,25 +98,56 @@ func run(c *cli.Context, counter int) (*executor.JudgeResult, error) {
 	// start judge
 	judgeResult := session.RunJudge()
 	// persistence
-	if !isBenchmarkMode && persistenceOn {
-		err = judge_result.PersistentJudgeResult(&judgeResult, jOption)
-		if err != nil {
-			log.Fatal(err)
-			return nil, err
-		}
-	}
 	return &judgeResult, nil
 }
 
 func Run(c *cli.Context) error {
-	n := c.Int("benchmark")
-	if n <= 1 {
+	isBenchmarkMode := c.Int("benchmark") > 1
+	benchmarkN := c.Int("benchmark")
+	if !isBenchmarkMode {
+		// 正常运行
+		// 解析持久化参数
+		persistenceOn := c.String("persistence") != ""
+		digitalSign := c.Bool("digital-sign")
+		compressorType := uint8(1)
+		if c.String("compressor") == "none" {
+			compressorType = uint8(0)
+		}
+		jOption := judge_result.JudgeResultPersisOptions{
+			OutFile: c.String("persistence"),
+			CompressorType: compressorType,
+			DigitalSign: digitalSign,
+		}
+		if persistenceOn {
+			if digitalSign {
+				if c.String("public-key") == "" || c.String("private-key") == "" {
+					return fmt.Errorf("digital sign need public key and private key")
+				}
+				digPEM, err := persistence.GetDigitalPEMFromFile(c.String("public-key"), c.String("private-key"))
+				if err != nil {
+					return err
+				}
+				if digPEM.PrivateKey == nil || digPEM.PublicKey == nil {
+					return fmt.Errorf("parse public key or private key error")
+				}
+				jOption.DigitalPEM = *digPEM
+			}
+		}
+		// Start Judge
 		judgeResult, err := run(c, 0)
 		if err != nil {
 			return err
 		}
+		if !isBenchmarkMode && persistenceOn {
+			err = judge_result.PersistentJudgeResult(judgeResult, jOption)
+			if err != nil {
+				return err
+			}
+		}
+		judgeResult.TestCases = nil
 		fmt.Println(executor.ObjectToJSONStringFormatted(judgeResult))
 	} else {
+		// 基准测试
 		rfp, err := os.OpenFile("./report.log", os.O_WRONLY | os.O_CREATE, 0644)
 		if err != nil {
 			return err
@@ -158,9 +156,9 @@ func Run(c *cli.Context) error {
 
 		startTime := time.Now().UnixNano()
 		exitCounter := map[int]int {}
-		for i := 0; i < n; i++ {
+		for i := 0; i < benchmarkN; i++ {
 			if i % 10 == 0 {
-				fmt.Printf("%d / %d\n", i, n)
+				fmt.Printf("%d / %d\n", i, benchmarkN)
 			}
 			judgeResult, err := run(c, i)
 			if err != nil {

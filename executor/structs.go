@@ -1,6 +1,7 @@
 package executor
 
 import (
+	"encoding/json"
 	"github.com/LanceLRQ/deer-executor/provider"
 	"syscall"
 )
@@ -116,7 +117,7 @@ type JudgeSession struct {
 	compiler		provider.CodeCompileProviderInterface				// Compiler entity
 }
 
-func NewSession() *JudgeSession {
+func NewSession(configFile string) (*JudgeSession, error) {
 	session := JudgeSession{}
 	session.SessionRoot = "/tmp"
 	session.CodeLangName = "auto"
@@ -128,6 +129,16 @@ func NewSession() *JudgeSession {
 	session.SpecialJudge.RedirectProgramOut = true
 	session.SpecialJudge.TimeLimit = 1000
 	session.SpecialJudge.MemoryLimit = 65535
-	return &session
+	if configFile != "" {
+		cbody, err := ReadFile(configFile)
+		if err != nil {
+			return nil, err
+		}
+		err = json.Unmarshal(cbody, &session)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &session, nil
 }
 
