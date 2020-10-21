@@ -32,7 +32,7 @@ func (prov *GnucCompileProvider) Init(code string, workDir string) error {
 }
 
 func (prov *GnucCompileProvider) Compile() (result bool, errmsg string) {
-	result, errmsg = prov.shell(fmt.Sprintf(CompileCommandGNUC, prov.codeFilePath, prov.programFilePath))
+	result, errmsg = prov.shell(fmt.Sprintf(CompileCommands.GNUC, prov.codeFilePath, prov.programFilePath))
 	if result {
 		prov.isReady = true
 	}
@@ -65,7 +65,7 @@ func (prov *GnucppCompileProvider) Init(code string, workDir string) error {
 }
 
 func (prov *GnucppCompileProvider) Compile() (result bool, errmsg string) {
-	result, errmsg = prov.shell(fmt.Sprintf(CompileCommandGNUCPP, prov.codeFilePath, prov.programFilePath))
+	result, errmsg = prov.shell(fmt.Sprintf(CompileCommands.GNUCPP, prov.codeFilePath, prov.programFilePath))
 	if result {
 		prov.isReady = true
 	}

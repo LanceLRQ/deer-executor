@@ -62,7 +62,7 @@ func (prov *JavaCompileProvider) initFiles(codeExt string, programExt string) er
 
 
 func (prov *JavaCompileProvider) Compile() (result bool, errmsg string) {
-	result, errmsg = prov.shell(fmt.Sprintf(CompileCommandJava, prov.codeFilePath, path.Dir(prov.programFilePath)))
+	result, errmsg = prov.shell(fmt.Sprintf(CompileCommands.Java, prov.codeFilePath, path.Dir(prov.programFilePath)))
 	if result {
 		prov.isReady = true
 	}

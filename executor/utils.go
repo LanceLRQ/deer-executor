@@ -225,21 +225,6 @@ func readFileWithTry(filePath string, name string, tryOnFailed int) ([]byte, str
 	return nil, errText, err
 }
 
-// 文件读写(公共)
-func ReadFile(filePath string) ([]byte, error) {
-	fp, err := OpenFile(filePath, os.O_RDONLY|syscall.O_NONBLOCK, 0)
-	if err != nil {
-		return nil, err
-	}
-	data, err := ioutil.ReadAll(fp)
-	if err != nil {
-		_ = fp.Close()
-		return nil, fmt.Errorf("read file(%s) i/o error: %s", filePath, err.Error())
-	}
-	_ = fp.Close()
-	return data, nil
-}
-
 func ObjectToJSONStringFormatted(conf interface{}) string {
 	b, err := json.Marshal(conf)
 	if err != nil {

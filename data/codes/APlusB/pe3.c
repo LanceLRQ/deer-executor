@@ -2,5 +2,8 @@
 
 int main(int argc, char **argv)
 {
-	printf("2\n4\n6");
+	int a, b;
+	while (~scanf("%d%d", &a, &b)) {
+	    printf("%d\t", a+b);
+	}
 }

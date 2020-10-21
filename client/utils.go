@@ -7,7 +7,7 @@ import (
 )
 
 // create and get session directory
-func getSessionDir(workDir string, sessionId string) (string, error) {
+func GetSessionDir(workDir string, sessionId string) (string, error) {
 	_, err := os.Stat(workDir)
 	if os.IsNotExist(err) {
 		return "", fmt.Errorf("work dir (%s) not exists", workDir)

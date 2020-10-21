@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"github.com/LanceLRQ/deer-executor/client"
-	"github.com/LanceLRQ/deer-executor/persistence/judge_result"
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"
@@ -36,6 +35,7 @@ func main() {
 							&cli.StringFlag{
 								Name:    "output",
 								Aliases: []string{"out"},
+								Value: 	 "",
 								Usage:   "output config file",
 							},
 						},
@@ -51,6 +51,17 @@ func main() {
 								Usage:   "RSA bit",
 							},
 						},
+					},{
+						Name:   "compiler",
+						Action: client.MakeCompileConfigFile,
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:    "output",
+								Aliases: []string{"out"},
+								Value: 	 "",
+								Usage:   "output config file",
+							},
+						},
 					},
 				},
 			},
@@ -59,7 +70,7 @@ func main() {
 				Hidden: true,
 				Usage:  "",
 				Action: func(c *cli.Context) error {
-					//privateKey, err := persistence.ReadPemFile("./test/certs/test.key")
+					//privateKey, err := persistence.ReadPemFile("./data/certs/test.key")
 					//if err != nil {
 					//	return err
 					//}
@@ -69,7 +80,7 @@ func main() {
 					//}
 					//fmt.Println(hex.EncodeToString(sign))
 					//
-					//publicKey, err := persistence.ReadPemFile("./test/certs/test.pem")
+					//publicKey, err := persistence.ReadPemFile("./data/certs/test.pem")
 					//if err != nil {
 					//	return err
 					//}
@@ -86,10 +97,10 @@ func main() {
 					//	return err
 					//}
 					//fmt.Println(hex.EncodeToString(rel))
-					_, err := judge_result.ReadJudgeResult("./result")
-					if err != nil {
-						return err
-					}
+					//_, err := judge_result.ReadJudgeResult("./result")
+					//if err != nil {
+					//	return err
+					//}
 					//fmt.Println(executor.ObjectToJSONStringFormatted(rst))
 					return nil
 				},

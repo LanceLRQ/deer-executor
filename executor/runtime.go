@@ -2,6 +2,7 @@ package executor
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"syscall"
 )
@@ -14,6 +15,7 @@ func (session *JudgeSession)runProgramCommon(rst *TestCaseResult, judger bool, p
 	if err != nil {
 		if pid == 0 {
 			// 如果是子进程错误了，输出到程序的error去
+			log.Println(err.Error())
 			panic(err.Error())
 		}
 		return nil, err

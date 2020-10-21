@@ -89,7 +89,7 @@ func run(c *cli.Context,  counter int) (*executor.JudgeResult, error) {
 	if session.SessionRoot != "" {
 		session.SessionRoot = "/tmp"
 	}
-	sessionDir, err := getSessionDir(session.SessionRoot, session.SessionId)
+	sessionDir, err := GetSessionDir(session.SessionRoot, session.SessionId)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
@@ -97,7 +97,6 @@ func run(c *cli.Context,  counter int) (*executor.JudgeResult, error) {
 	session.SessionDir = sessionDir
 	// start judge
 	judgeResult := session.RunJudge()
-	// persistence
 	return &judgeResult, nil
 }
 
@@ -106,7 +105,7 @@ func Run(c *cli.Context) error {
 	benchmarkN := c.Int("benchmark")
 	if !isBenchmarkMode {
 		// 正常运行
-		// 解析持久化参数
+		// parse params
 		persistenceOn := c.String("persistence") != ""
 		digitalSign := c.Bool("digital-sign")
 		compressorType := uint8(1)
@@ -138,6 +137,7 @@ func Run(c *cli.Context) error {
 		if err != nil {
 			return err
 		}
+		// persistence
 		if !isBenchmarkMode && persistenceOn {
 			err = judge_result.PersistentJudgeResult(judgeResult, jOption)
 			if err != nil {
