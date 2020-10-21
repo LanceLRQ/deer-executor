@@ -43,7 +43,14 @@ func generateRSAKey(bits int){
 }
 
 func MakeConfigFile(c *cli.Context) error {
-	config := executor.JudgeSession{}
+	config := executor.NewSession()
+	config.TestCases = []executor.TestCase {
+		{
+			Id: "1",
+			TestCaseIn: "",
+			TestCaseOut: "",
+		},
+	}
 	output := c.String("output")
 	if output != "" {
 		_, err := os.Stat(output)

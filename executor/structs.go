@@ -101,10 +101,9 @@ type JudgeSession struct {
 	SessionId		string				`json:"session_id"`				// Judge Session Id
 	SessionRoot		string				`json:"session_root"`			// Session Root Directory
 	SessionDir		string				`json:"-"`						// Session Directory
-	WorkDir			string				`json:"work_dir"`				// Working Directory
 	CodeLangName 	string				`json:"code_lang_name"`			// Code file language name
-	CodeFile	 	string				`json:"code_file"`				// Code File Path
-	Commands 		[]string			`json:"commands"`				// Executable program commands
+	CodeFile	 	string				`json:"-"`						// Code File Path
+	Commands 		[]string			`json:"-"`						// Executable program commands
 	TestCases		[]TestCase			`json:"test_cases"`				// Test cases
 	TimeLimit 		int					`json:"time_limit"`				// Time limit (ms)
 	MemoryLimit 	int					`json:"memory_limit"`			// Memory limit (KB)
@@ -115,5 +114,20 @@ type JudgeSession struct {
 	SpecialJudge  	SpecialJudgeOptions `json:"special_judge"`			// Special Judge Options
 
 	compiler		provider.CodeCompileProviderInterface				// Compiler entity
+}
+
+func NewSession() *JudgeSession {
+	session := JudgeSession{}
+	session.SessionRoot = "/tmp"
+	session.CodeLangName = "auto"
+	session.Uid = -1
+	session.TimeLimit = 1000
+	session.MemoryLimit = 65535
+	session.FileSizeLimit = 50 * 1024 * 1024
+	session.SpecialJudge.Mode = 0
+	session.SpecialJudge.RedirectProgramOut = true
+	session.SpecialJudge.TimeLimit = 1000
+	session.SpecialJudge.MemoryLimit = 65535
+	return &session
 }
 
