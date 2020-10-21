@@ -1,4 +1,4 @@
-package persistence
+package judge_result
 
 import (
 	"bufio"
@@ -7,6 +7,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/LanceLRQ/deer-executor/executor"
+	"github.com/LanceLRQ/deer-executor/persistence"
 	uuid "github.com/satori/go.uuid"
 	"io"
 	"os"
@@ -22,7 +23,7 @@ func parseJudgeResultBinary(reader io.Reader ) (*JudgeResultPackage, error) {
 	if err := binary.Read(reader, binary.BigEndian, &magic); err != nil {
 		return nil, fmt.Errorf("read file error: %s", err.Error())
 	}
-	if magic != JudgeResultMagicCode {
+	if magic != persistence.JudgeResultMagicCode {
 		return nil, fmt.Errorf("not deer-executor judge result file")
 	}
 	// 开始解析package
@@ -87,7 +88,7 @@ func validateJudgeResultPackage (pack *JudgeResultPackage) (bool, error) {
 	}
 	defer tmpBodyFile.Close()
 
-	hash, err := SHA256Streams([]io.Reader{
+	hash, err := persistence.SHA256Streams([]io.Reader{
 		bytes.NewReader(pack.Result),
 		tmpBodyFile,
 	})
@@ -97,11 +98,11 @@ func validateJudgeResultPackage (pack *JudgeResultPackage) (bool, error) {
 
 	// 进行签名校验
 	if pack.CertSize > 0 {
-		publicKey, err := ReadAndParsePublicKey(pack.Certificate)
+		publicKey, err := persistence.ReadAndParsePublicKey(pack.Certificate)
 		if err != nil {
 			return false, err
 		}
-		err = RSA2048Verify(hash, pack.Signature, publicKey)
+		err = persistence.RSA2048Verify(hash, pack.Signature, publicKey)
 		if err != nil {
 			return false, err
 		}

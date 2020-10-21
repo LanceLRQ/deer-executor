@@ -1,4 +1,6 @@
-package persistence
+package judge_result
+
+import "github.com/LanceLRQ/deer-executor/persistence"
 
 /*********
 ------------------------
@@ -37,8 +39,8 @@ type JudgeResultPackageBody struct {
 }
 
 type JudgeResultPersisOptions struct {
-	DigitalSign		bool
-	DigitalPEM		DigitalSignPEM
-	CompressorType  uint8
-	OutFile			string
+	DigitalSign    bool
+	DigitalPEM     persistence.DigitalSignPEM
+	CompressorType uint8
+	OutFile        string
 }
