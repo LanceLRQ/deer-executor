@@ -13,5 +13,5 @@
 .idea
 
 !test/*.out
-test/test_cases/*
+data/test_cases/*
 report.log

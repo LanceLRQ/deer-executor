@@ -26,6 +26,8 @@ _match:
 		return &provider.Py3CompileProvider{}, nil
 	case "php":
 		return &provider.PHPCompileProvider{}, nil
+	case "go", "golang":
+		return &provider.GolangCompileProvider{}, nil
 	case "node", "nodejs":
 		return &provider.NodeJSCompileProvider{}, nil
 	case "rb", "ruby":
@@ -41,7 +43,7 @@ _match:
 // 如果不设置codeStr，默认会读取配置文件里的code_file字段并打开对应文件
 func (session *JudgeSession) getCompiler(codeStr string) (provider.CodeCompileProviderInterface, error) {
 	if codeStr == "" {
-		codeFileBytes, err := ReadFile(session.CodeFile)
+		codeFileBytes, err := ioutil.ReadFile(session.CodeFile)
 		if err != nil {
 			return nil, err
 		}
@@ -71,6 +73,7 @@ func (session *JudgeSession)compileTargetProgram(judgeResult *JudgeResult) error
 	if !success {
 		judgeResult.JudgeResult = JudgeFlagCE
 		judgeResult.CeInfo = ceinfo
+		fmt.Println(ceinfo)
 		return fmt.Errorf("compile error:\n%s", ceinfo)
 	}
 	// 获取执行指令

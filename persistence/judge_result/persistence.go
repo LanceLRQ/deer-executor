@@ -9,6 +9,7 @@ import (
 	"github.com/LanceLRQ/deer-executor/persistence"
 	uuid "github.com/satori/go.uuid"
 	"io"
+	"io/ioutil"
 	"os"
 	"path"
 )
@@ -16,7 +17,7 @@ import (
 func readAndWriteToTempFile(writer io.Writer, filePath string) error {
 	buf16 := make([]byte, 16)
 	buf32 := make([]byte, 4)
-	body, err := executor.ReadFile(filePath)
+	body, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		return err
 	}

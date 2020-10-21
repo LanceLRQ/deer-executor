@@ -1,4 +1,4 @@
-package test
+package data
 
 import (
 	"github.com/LanceLRQ/deer-executor/executor/obsolete"

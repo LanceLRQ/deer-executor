@@ -3,6 +3,7 @@ package executor
 import (
 	"encoding/json"
 	"github.com/LanceLRQ/deer-executor/provider"
+	"io/ioutil"
 	"syscall"
 )
 
@@ -130,7 +131,7 @@ func NewSession(configFile string) (*JudgeSession, error) {
 	session.SpecialJudge.TimeLimit = 1000
 	session.SpecialJudge.MemoryLimit = 65535
 	if configFile != "" {
-		cbody, err := ReadFile(configFile)
+		cbody, err := ioutil.ReadFile(configFile)
 		if err != nil {
 			return nil, err
 		}

@@ -7,23 +7,37 @@ package provider
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/satori/go.uuid"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
 	"strings"
 )
 
-const (
-	CompileCommandGNUC = "/usr/bin/gcc %s -o %s -ansi -fno-asm -Wall -std=c11 -lm"
-	CompileCommandGNUCPP = "/usr/bin/g++ %s -o %s -ansi -fno-asm -Wall -lm -std=c++11"
-	CompileCommandJava = "/usr/bin/javac -encoding utf-8 %s -d %s"
-	CompileCommandGo = "/usr/bin/go build -o %s %s"
-	CompileCommandNodeJS = "/usr/bin/node -c %s"
-	CompileCommandPHP = "/usr/bin/php -l -f %s"
-	CompileCommandRuby = "/usr/bin/ruby -c %s"
-)
+
+type CompileCommandsStruct struct {
+	GNUC 		string		`json:"gcc"`
+	GNUCPP 	string		`json:"gcc_cpp"`
+	Java 		string		`json:"java"`
+	Go 		string		`json:"go"`
+	NodeJS 	string		`json:"node"`
+	PHP 		string		`json:"php"`
+	Ruby 		string		`json:"ruby"`
+}
+
+var CompileCommands = CompileCommandsStruct {
+	GNUC: 	"/usr/bin/gcc %s -o %s -ansi -fno-asm -Wall -std=c11 -lm",
+	GNUCPP:  	"/usr/bin/g++ %s -o %s -ansi -fno-asm -Wall -lm -std=c++11",
+	Java:  	"/usr/bin/javac -encoding utf-8 %s -d %s",
+	Go: 		"/usr/bin/go build -o %s %s",
+	NodeJS: 	"/usr/bin/node -c %s",
+	PHP: 		"/usr/bin/php -l -f %s",
+	Ruby: 	"/usr/bin/ruby -c %s",
+}
+
 
 type CodeCompileProviderInterface interface {
 	// 初始化
@@ -61,6 +75,25 @@ type CodeCompileProvider struct {
 	codeFileName, codeFilePath 			string			// 目标程序源文件
 	programFileName, programFilePath 	string			// 目标程序文件
 	workDir 							string			// 工作目录
+}
+
+func PlaceCompilerCommands(configFile string) error {
+	if configFile != "" {
+		_, err := os.Stat(configFile)
+		// ignore
+		if os.IsNotExist(err) {
+			return nil
+		}
+		cbody, err := ioutil.ReadFile(configFile)
+		if err != nil {
+			return err
+		}
+		err = json.Unmarshal(cbody, &CompileCommands)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (prov *CodeCompileProvider) initFiles(codeExt string, programExt string) error {

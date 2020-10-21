@@ -31,7 +31,7 @@ func (prov *RubyCompileProvider) Init(code string, workDir string) error {
 }
 
 func (prov *RubyCompileProvider) Compile() (result bool, errmsg string) {
-	result, errmsg = prov.shell(fmt.Sprintf(CompileCommandRuby, prov.codeFilePath))
+	result, errmsg = prov.shell(fmt.Sprintf(CompileCommands.Ruby, prov.codeFilePath))
 	if result {
 		prov.isReady = true
 	}
