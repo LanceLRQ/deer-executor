@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/LanceLRQ/deer-executor/client"
-	"github.com/LanceLRQ/deer-executor/persistence"
+	"github.com/LanceLRQ/deer-executor/persistence/judge_result"
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"
@@ -86,7 +86,7 @@ func main() {
 					//	return err
 					//}
 					//fmt.Println(hex.EncodeToString(rel))
-					_, err := persistence.ReadJudgeResult("./result")
+					_, err := judge_result.ReadJudgeResult("./result")
 					if err != nil {
 						return err
 					}

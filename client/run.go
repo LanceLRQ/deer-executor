@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/LanceLRQ/deer-executor/executor"
 	"github.com/LanceLRQ/deer-executor/persistence"
+	"github.com/LanceLRQ/deer-executor/persistence/judge_result"
 	uuid "github.com/satori/go.uuid"
 	"github.com/urfave/cli/v2"
 	"log"
@@ -71,7 +72,7 @@ func run(c *cli.Context, counter int) (*executor.JudgeResult, error) {
 	if c.String("compressor") == "none" {
 		compressorType = uint8(0)
 	}
-	jOption := persistence.JudgeResultPersisOptions{
+	jOption := judge_result.JudgeResultPersisOptions{
 		OutFile: c.String("persistence"),
 		CompressorType: compressorType,
 		DigitalSign: digitalSign,
@@ -131,7 +132,7 @@ func run(c *cli.Context, counter int) (*executor.JudgeResult, error) {
 	judgeResult := session.RunJudge()
 	// persistence
 	if !isBenchmarkMode && persistenceOn {
-		err = persistence.PersistentJudgeResult(&judgeResult, jOption)
+		err = judge_result.PersistentJudgeResult(&judgeResult, jOption)
 		if err != nil {
 			log.Fatal(err)
 			return nil, err

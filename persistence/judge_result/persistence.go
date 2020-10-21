@@ -1,4 +1,4 @@
-package persistence
+package judge_result
 
 import (
 	"bytes"
@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/LanceLRQ/deer-executor/executor"
+	"github.com/LanceLRQ/deer-executor/persistence"
 	uuid "github.com/satori/go.uuid"
 	"io"
 	"os"
@@ -19,7 +20,7 @@ func readAndWriteToTempFile(writer io.Writer, filePath string) error {
 	if err != nil {
 		return err
 	}
-	binary.BigEndian.PutUint16(buf16, JudgeBodyPackageMagicCode)
+	binary.BigEndian.PutUint16(buf16, persistence.JudgeBodyPackageMagicCode)
 	binary.BigEndian.PutUint32(buf32, uint32(len(body)))
 	if _, err := writer.Write(buf16); err != nil {
 		return fmt.Errorf("write temp file error: %s", err.Error())
@@ -72,7 +73,7 @@ func writeFileHeaderAndResult (writer io.Writer, pack JudgeResultPackage) error 
 	buf32 := make([]byte, 4)
 
 	// magic
-	binary.BigEndian.PutUint16(buf16, JudgeResultMagicCode)
+	binary.BigEndian.PutUint16(buf16, persistence.JudgeResultMagicCode)
 	if _, err := writer.Write(buf16); err != nil {
 		return fmt.Errorf("write result file error: %s", err.Error())
 	}
@@ -167,14 +168,14 @@ func PersistentJudgeResult(
 	fBody, err := os.Open(bodyFile)
 	if err != nil { return err }
 
-	hash, err := SHA256Streams([]io.Reader{
+	hash, err := persistence.SHA256Streams([]io.Reader{
 		bytes.NewReader(resultBytes),
 		fBody,
 	})
 	if err != nil { return err }
 	_ = fBody.Close()
 	if options.DigitalSign {
-		hash, err = RSA2048Sign(hash, options.DigitalPEM.PrivateKey)
+		hash, err = persistence.RSA2048Sign(hash, options.DigitalPEM.PrivateKey)
 		if err != nil { return err }
 	}
 	fmt.Println(len(hash))
