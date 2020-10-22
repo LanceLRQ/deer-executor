@@ -29,12 +29,13 @@ func initWorkRoot() error {
 	return nil
 }
 
-func runAPlusB(codeFile string) (*executor.JudgeResult, error) {
+func runAPlusB(codeFile string, codeLang string) (*executor.JudgeResult, error) {
 	session, err := executor.NewSession("./data/problems/APlusB/problem.json")
 	if err != nil {
 		return nil, err
 	}
 	session.CodeFile = codeFile
+	session.CodeLangName = codeLang
 	session.SessionRoot = "/tmp"
 	session.SessionId = uuid.NewV1().String()
 	sessionDir, err := client.GetSessionDir(session.SessionRoot, session.SessionId)

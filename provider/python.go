@@ -5,7 +5,10 @@
  */
 package provider
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 type Py2CompileProvider struct {
 	CodeCompileProvider
@@ -39,7 +42,8 @@ func (prov *Py2CompileProvider) Compile() (result bool, errmsg string) {
 }
 
 func (prov *Py2CompileProvider) GetRunArgs() (args []string) {
-	args = []string{ "/usr/bin/python", "-u", prov.codeFilePath }
+	argsRaw := fmt.Sprintf(CompileCommands.Python2, prov.codeFilePath)
+	args = strings.Split(argsRaw, " ")
 	return
 }
 
@@ -75,7 +79,8 @@ func (prov *Py3CompileProvider) Compile() (result bool, errmsg string) {
 }
 
 func (prov *Py3CompileProvider) GetRunArgs() (args []string) {
-	args = []string{ "/usr/bin/python3", "-u", prov.codeFilePath }
+	argsRaw := fmt.Sprintf(CompileCommands.Python3, prov.codeFilePath)
+	args = strings.Split(argsRaw, " ")
 	return
 }
 

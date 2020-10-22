@@ -32,7 +32,7 @@ _match:
 		return &provider.NodeJSCompileProvider{}, nil
 	case "rb", "ruby":
 		return &provider.RubyCompileProvider{}, nil
-	case "auto":
+	case "auto", "":
 		keyword = strings.Replace(path.Ext(fileName), ".", "", -1)
 		goto _match
 	}
