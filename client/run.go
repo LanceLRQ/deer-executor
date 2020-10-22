@@ -144,7 +144,7 @@ func Run(c *cli.Context) error {
 				return err
 			}
 		}
-		judgeResult.TestCases = nil
+		//judgeResult.TestCases = nil
 		fmt.Println(executor.ObjectToJSONStringFormatted(judgeResult))
 	} else {
 		// 基准测试
