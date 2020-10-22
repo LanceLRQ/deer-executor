@@ -52,6 +52,11 @@ var RunFlags = []cli.Flag {
 		Value: false,
 		Usage: "Enable digital sign",
 	},
+	&cli.BoolFlag {
+		Name: "detail",
+		Value: false,
+		Usage: "Show test-cases details",
+	},
 	&cli.StringFlag {
 		Name: "public-key",
 		Value: "",
@@ -144,7 +149,9 @@ func Run(c *cli.Context) error {
 				return err
 			}
 		}
-		//judgeResult.TestCases = nil
+		if !c.Bool("detail") {
+			judgeResult.TestCases = nil
+		}
 		fmt.Println(executor.ObjectToJSONStringFormatted(judgeResult))
 	} else {
 		// 基准测试
