@@ -152,11 +152,11 @@ func setHardTimer(realTimeLimit int) error {
 // 设置资源限制 (setrlimit)
 func setLimit(timeLimit, memoryLimit , realTimeLimit int) error {
 
-	// Set stack limit
-	stack := uint64(memoryLimit * 1024)
-	if runtime.GOOS == "darwin" {  // WTF?! mem * 1.0 caused an operation not permitted!
-		stack = uint64(float64(stack) * 0.9)
-	}
+	//// Set stack limit
+	//stack := uint64(memoryLimit * 1024)
+	//if runtime.GOOS == "darwin" {  // WTF?! mem * 1.0 caused an operation not permitted!
+	//	stack = uint64(float64(stack) * 0.9)
+	//}
 
 	rlimits := []RLimit{
 		// Set time limit: RLIMIT_CPU
@@ -187,8 +187,8 @@ func setLimit(timeLimit, memoryLimit , realTimeLimit int) error {
 		{
 			Which: syscall.RLIMIT_STACK,
 			RLim: getRLimitEntity(
-				stack,
-				stack + 1024,
+				uint64(memoryLimit * 1024),
+				uint64(memoryLimit * 1024),
 			),
 		},
 		// Set file size limit: RLIMIT_FSIZE
