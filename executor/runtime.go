@@ -27,10 +27,12 @@ func (session *JudgeSession)runProgramCommon(rst *TestCaseResult, judger bool, p
 		return nil, err
 	}
 
-	// Close Files
-	for _, fd := range fds {
-		if fd > 0 {
-			_ = syscall.Close(fd)
+	if !pipeMode {
+		// Close Files
+		for _, fd := range fds {
+			if fd > 0 {
+				_ = syscall.Close(fd)
+			}
 		}
 	}
 
@@ -38,41 +40,38 @@ func (session *JudgeSession)runProgramCommon(rst *TestCaseResult, judger bool, p
 }
 
 // 运行交互评测进程
-func (session *JudgeSession)runProgramInteractive(rst *TestCaseResult, targetStd []int, judgerStd []int) (*ProcessInfo, *ProcessInfo, error) {
-	pinfo := ProcessInfo{}
-	jinfo := ProcessInfo{}
-	pid, _, err := runProgramProcess(session, rst, false, true, targetStd)
+func (session *JudgeSession)runProgramAsync(rst *TestCaseResult, judger bool, pipeMode bool, pipeStd []int, info chan *ProcessInfo) error {
+	tpid, fds, err := runProgramProcess(session, rst, judger, pipeMode, pipeStd)
 	if err != nil {
-		if pid == 0 {
+		if tpid == 0 {
 			// 如果是子进程错误了(没能正确执行到目标程序里)，输出到程序的error去
 			panic(err)
 		}
-		return nil, nil, err
+		return err
 	}
-	pinfo.Pid = pid
-	jpid, _, err := runProgramProcess(session, rst, true, true, judgerStd)
-	if err != nil {
-		if pid == 0 {
-			// 如果是子进程错误了(没能正确执行到目标程序里)，输出到程序的error去
-			panic(err)
+
+	go func(pid uintptr) {
+		pinfo := ProcessInfo{}
+		pinfo.Pid = pid
+		// Wait4
+		_, err = syscall.Wait4(int(pid), &pinfo.Status, syscall.WUNTRACED, &pinfo.Rusage)
+		if err != nil {
+			info <- &pinfo
+			return
 		}
-		return nil, nil, err
-	}
-	jinfo.Pid = jpid
 
-	//// Wait4:target
-	//_, err = syscall.Wait4(int(pid), &pinfo.Status, syscall.WUNTRACED, &pinfo.Rusage)
-	//if err != nil {
-	//	return nil, nil, err
-	//}
+		// Close Files
+		if !pipeMode {
+			for _, fd := range fds {
+				if fd > 0 {
+					_ = syscall.Close(fd)
+				}
+			}
+		}
+		info <- &pinfo
+	}(tpid)
 
-	// Wait4:judger
-	_, err = syscall.Wait4(int(jpid), &jinfo.Status, syscall.WUNTRACED, &jinfo.Rusage)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return &pinfo, &jinfo, err
+	return nil
 }
 
 // 运行目标程序
@@ -100,15 +99,23 @@ func (session *JudgeSession)runSpecialJudge(rst *TestCaseResult) (*ProcessInfo, 
 		if err != nil {
 			return nil, nil, fmt.Errorf("create pipe error: %s", err.Error())
 		}
-		targetInfo, judgerInfo, err := session.runProgramInteractive(
-			rst,
-			[]int{fdtarget[0], fdjudger[1]},
-			[]int{fdjudger[0], fdtarget[1]},
-		)
+
+		targetInfoChan, judgerInfoChan := make(chan *ProcessInfo), make(chan *ProcessInfo)
+		var targetInfo, judgerInfo *ProcessInfo
+
+
+		err = session.runProgramAsync(rst, false, true, fdtarget, targetInfoChan)
 		if err != nil {
 			return nil, nil, err
 		}
-
+		err = session.runProgramAsync(rst, true, true, fdjudger, judgerInfoChan)
+		if err != nil {
+			return nil, nil, err
+		}
+		targetInfo = <- targetInfoChan
+		judgerInfo = <- judgerInfoChan
+		fmt.Println(targetInfo.Status.Signal())
+		fmt.Println(judgerInfo.Status.Signal())
 		return targetInfo, judgerInfo, err
 	}
 	return nil, nil, fmt.Errorf("unkonw special judge mode")
