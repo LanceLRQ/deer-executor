@@ -29,8 +29,8 @@ func initWorkRoot() error {
 	return nil
 }
 
-func runAPlusB(codeFile string, codeLang string) (*executor.JudgeResult, error) {
-	session, err := executor.NewSession("./data/problems/APlusB/problem.json")
+func runJudge(conf, codeFile , codeLang string) (*executor.JudgeResult, error) {
+	session, err := executor.NewSession(conf)
 	if err != nil {
 		return nil, err
 	}
@@ -47,6 +47,14 @@ func runAPlusB(codeFile string, codeLang string) (*executor.JudgeResult, error) 
 	// start judge
 	judgeResult := session.RunJudge()
 	return &judgeResult, err
+}
+
+func runAPlusB(codeFile, codeLang string) (*executor.JudgeResult, error) {
+	return runJudge("./data/problems/APlusB/problem.json", codeFile, codeLang)
+}
+
+func runWJ2018(codeFile, codeLang string) (*executor.JudgeResult, error) {
+	return runJudge("./data/problems/WJ2018/problem.json", codeFile, codeLang)
 }
 
 func analysisResult (caseName string, result *executor.JudgeResult, expect int) error {
