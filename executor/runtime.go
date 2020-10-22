@@ -2,7 +2,6 @@ package executor
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"syscall"
 )
@@ -11,12 +10,11 @@ import (
 // 运行评测进程
 func (session *JudgeSession)runProgramCommon(rst *TestCaseResult, judger bool, pipeMode bool, pipeStd []int) (*ProcessInfo, error) {
 	pinfo := ProcessInfo{}
-	pid, fds, err := session.runProgramProcess(rst, judger, pipeMode, pipeStd)
+	pid, fds, err := runProgramProcess(session, rst, judger, pipeMode, pipeStd)
 	if err != nil {
 		if pid == 0 {
 			// 如果是子进程错误了，输出到程序的error去
-			log.Println(err.Error())
-			panic(err.Error())
+			panic(err)
 		}
 		return nil, err
 	}
@@ -71,9 +69,8 @@ func (session *JudgeSession)runSpecialJudge(rst *TestCaseResult) (*ProcessInfo, 
 
 
 // 目标程序子进程
-func (session *JudgeSession)runProgramProcess(rst *TestCaseResult, judger bool, pipeMode bool, pipeStd []int) (uintptr, []int, error) {
+func runProgramProcess(session *JudgeSession, rst *TestCaseResult, judger bool, pipeMode bool, pipeStd []int) (uintptr, []int, error) {
 	var (
-		logfile *os.File
 		err error
 		pid uintptr
 		fds []int
@@ -88,17 +85,6 @@ func (session *JudgeSession)runProgramProcess(rst *TestCaseResult, judger bool, 
 	}
 
 	if pid == 0 {
-		var logWriter *os.File
-		if judger {
-			logfile, err = os.OpenFile(rst.JudgerLog, os.O_WRONLY|os.O_CREATE, 0644)
-		} else {
-			logfile, err = os.OpenFile(rst.ProgramLog, os.O_WRONLY|os.O_CREATE, 0644)
-		}
-		if err != nil {
-			panic("cannot create program.log")
-			return 0, fds, err
-		}
-
 		if pipeMode {
 			// Direct Program's Pipe[Read] to Stdin
 			err = syscall.Dup2(pipeStd[0], syscall.Stdin)
@@ -122,7 +108,6 @@ func (session *JudgeSession)runProgramProcess(rst *TestCaseResult, judger bool, 
 				fds[0], err = redirectFileDescriptor(syscall.Stdin, rst.TestCaseIn, os.O_RDONLY, 0)
 			}
 			if err != nil {
-				_, _ = logWriter.WriteString(fmt.Sprintf("[system_error]direct stdin error: %s\n", err.Error()))
 				return 0, fds, err
 			}
 
@@ -133,7 +118,6 @@ func (session *JudgeSession)runProgramProcess(rst *TestCaseResult, judger bool, 
 				fds[1], err = redirectFileDescriptor(syscall.Stdout, rst.ProgramOut, os.O_WRONLY|os.O_CREATE, 0644)
 			}
 			if err != nil {
-				_, _ = logWriter.WriteString(fmt.Sprintf("[system_error]direct stdout error: %s\n", err.Error()))
 				return 0, fds, err
 			}
 		}
@@ -145,7 +129,6 @@ func (session *JudgeSession)runProgramProcess(rst *TestCaseResult, judger bool, 
 			fds[2], err = redirectFileDescriptor(syscall.Stderr, rst.ProgramError, os.O_WRONLY|os.O_CREATE, 0644)
 		}
 		if err != nil {
-			_, _ = logWriter.WriteString(fmt.Sprintf("[system_error]direct stderr error: %s\n", err.Error()))
 			return 0, fds, err
 		}
 
@@ -153,7 +136,6 @@ func (session *JudgeSession)runProgramProcess(rst *TestCaseResult, judger bool, 
 		if session.Uid > -1 {
 			err = syscall.Setuid(session.Uid)
 			if err != nil {
-				_, _ = logWriter.WriteString(fmt.Sprintf("[system_error]set resource limit error: %s\n", err.Error()))
 				return 0, fds, err
 			}
 		}
@@ -165,11 +147,8 @@ func (session *JudgeSession)runProgramProcess(rst *TestCaseResult, judger bool, 
 			err = setLimit(session.TimeLimit, session.MemoryLimit, session.RealTimeLimit)
 		}
 		if err != nil {
-			_, _ = logWriter.WriteString(fmt.Sprintf("[system_error]set resource limit error: %s", err.Error()))
 			return 0, fds, err
 		}
-
-		logfile.Close()
 
 		if judger {
 			// Run Judger (Testlib compatible)
