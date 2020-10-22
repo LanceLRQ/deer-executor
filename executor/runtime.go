@@ -37,6 +37,44 @@ func (session *JudgeSession)runProgramCommon(rst *TestCaseResult, judger bool, p
 	return &pinfo, err
 }
 
+// 运行交互评测进程
+func (session *JudgeSession)runProgramInteractive(rst *TestCaseResult, targetStd []int, judgerStd []int) (*ProcessInfo, *ProcessInfo, error) {
+	pinfo := ProcessInfo{}
+	jinfo := ProcessInfo{}
+	pid, _, err := runProgramProcess(session, rst, false, true, targetStd)
+	if err != nil {
+		if pid == 0 {
+			// 如果是子进程错误了(没能正确执行到目标程序里)，输出到程序的error去
+			panic(err)
+		}
+		return nil, nil, err
+	}
+	pinfo.Pid = pid
+	jpid, _, err := runProgramProcess(session, rst, true, true, judgerStd)
+	if err != nil {
+		if pid == 0 {
+			// 如果是子进程错误了(没能正确执行到目标程序里)，输出到程序的error去
+			panic(err)
+		}
+		return nil, nil, err
+	}
+	jinfo.Pid = jpid
+
+	//// Wait4:target
+	//_, err = syscall.Wait4(int(pid), &pinfo.Status, syscall.WUNTRACED, &pinfo.Rusage)
+	//if err != nil {
+	//	return nil, nil, err
+	//}
+
+	// Wait4:judger
+	_, err = syscall.Wait4(int(jpid), &jinfo.Status, syscall.WUNTRACED, &jinfo.Rusage)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return &pinfo, &jinfo, err
+}
+
 // 运行目标程序
 func (session *JudgeSession)runNormalJudge(rst *TestCaseResult) (*ProcessInfo, error) {
 	return session.runProgramCommon(rst, false, false, nil)
@@ -46,6 +84,9 @@ func (session *JudgeSession)runNormalJudge(rst *TestCaseResult) (*ProcessInfo, e
 func (session *JudgeSession)runSpecialJudge(rst *TestCaseResult) (*ProcessInfo, *ProcessInfo, error) {
 	if session.SpecialJudge.Mode == SpecialJudgeModeChecker {
 		targetInfo, err := session.runProgramCommon(rst, false, false, nil)
+		if err != nil {
+			return targetInfo, nil, err
+		}
 		judgerInfo, err := session.runProgramCommon(rst, true, false, nil)
 		return targetInfo, judgerInfo, err
 	} else if session.SpecialJudge.Mode == SpecialJudgeModeInteractive {
@@ -59,9 +100,15 @@ func (session *JudgeSession)runSpecialJudge(rst *TestCaseResult) (*ProcessInfo, 
 		if err != nil {
 			return nil, nil, fmt.Errorf("create pipe error: %s", err.Error())
 		}
+		targetInfo, judgerInfo, err := session.runProgramInteractive(
+			rst,
+			[]int{fdtarget[0], fdjudger[1]},
+			[]int{fdjudger[0], fdtarget[1]},
+		)
+		if err != nil {
+			return nil, nil, err
+		}
 
-		targetInfo, err := session.runProgramCommon(rst, false, true, []int{fdtarget[0], fdjudger[1]})
-		judgerInfo, err := session.runProgramCommon(rst, true, true, []int{fdjudger[0], fdtarget[1]})
 		return targetInfo, judgerInfo, err
 	}
 	return nil, nil, fmt.Errorf("unkonw special judge mode")
@@ -86,12 +133,12 @@ func runProgramProcess(session *JudgeSession, rst *TestCaseResult, judger bool, 
 
 	if pid == 0 {
 		if pipeMode {
-			// Direct Program's Pipe[Read] to Stdin
+			// Direct Pipe[Read] to Stdin
 			err = syscall.Dup2(pipeStd[0], syscall.Stdin)
 			if err != nil {
 				return 0, fds, err
 			}
-			// Direct Judger's Pipe[Write] to Stdout
+			// Direct Pipe[Write] to Stdout
 			err = syscall.Dup2(pipeStd[1], syscall.Stdout)
 			if err != nil {
 				return 0, fds, err
@@ -154,10 +201,9 @@ func runProgramProcess(session *JudgeSession, rst *TestCaseResult, judger bool, 
 			// Run Judger (Testlib compatible)
 			// ./checker <input-file> <output-file> <answer-file> <report-file>
 			args := []string{
-				session.SpecialJudge.Checker,
 				rst.TestCaseIn,
-				rst.TestCaseOut,
 				rst.ProgramOut,
+				rst.TestCaseOut,
 				rst.JudgerReport,
 			}
 			err = syscall.Exec(session.SpecialJudge.Checker, args, nil)

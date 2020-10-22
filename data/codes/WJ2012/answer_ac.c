@@ -27,4 +27,5 @@ int main() {
         ret |= 1 << (d-1);
     }
     printf("%d\n", ret);
+    fflush(stdout);
 }
