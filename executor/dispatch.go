@@ -124,13 +124,14 @@ func (session *JudgeSession)RunJudge() JudgeResult {
 		judgeResult.TestCases = append(judgeResult.TestCases, *tcResult)
 		judgeResult.MemoryUsed = Max32(tcResult.MemoryUsed, judgeResult.MemoryUsed)
 		judgeResult.TimeUsed = Max32(tcResult.TimeUsed, judgeResult.TimeUsed)
+		// 这里使用动态增加的方式是为了保证len(exitCodes)<=len(testCases)
+		// 方便计算最终结果的时候判定测试数据是否全部跑完
+		exitCodes = append(exitCodes, tcResult.JudgeResult)
+
 		// 如果发生灾难性错误，直接退出
 		if isFault {
 			break
 		}
-		// 这里使用动态增加的方式是为了保证len(exitCodes)<=len(testCases)
-		// 方便计算最终结果的时候判定测试数据是否全部跑完
-		exitCodes = append(exitCodes, tcResult.JudgeResult)
 
 		//判定是否继续判题
 		keep := false

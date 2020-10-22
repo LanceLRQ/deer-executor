@@ -20,22 +20,26 @@ import (
 
 type CompileCommandsStruct struct {
 	GNUC 		string		`json:"gcc"`
-	GNUCPP 	string		`json:"gcc_cpp"`
+	GNUCPP 		string		`json:"gcc_cpp"`
 	Java 		string		`json:"java"`
-	Go 		string		`json:"go"`
-	NodeJS 	string		`json:"node"`
+	Go 			string		`json:"go"`
+	NodeJS 		string		`json:"node"`
 	PHP 		string		`json:"php"`
 	Ruby 		string		`json:"ruby"`
+	Python2		string 		`json:"python2"`
+	Python3		string 		`json:"python3"`
 }
 
 var CompileCommands = CompileCommandsStruct {
-	GNUC: 	"/usr/bin/gcc %s -o %s -ansi -fno-asm -Wall -std=c11 -lm",
+	GNUC: 		"/usr/bin/gcc %s -o %s -ansi -fno-asm -Wall -std=c11 -lm",
 	GNUCPP:  	"/usr/bin/g++ %s -o %s -ansi -fno-asm -Wall -lm -std=c++11",
-	Java:  	"/usr/bin/javac -encoding utf-8 %s -d %s",
+	Java:  		"/usr/bin/javac -encoding utf-8 %s -d %s",
 	Go: 		"/usr/bin/go build -o %s %s",
 	NodeJS: 	"/usr/bin/node -c %s",
 	PHP: 		"/usr/bin/php -l -f %s",
-	Ruby: 	"/usr/bin/ruby -c %s",
+	Ruby: 		"/usr/bin/ruby -c %s",
+	Python2: 	"/usr/bin/python -u %s",
+	Python3: 	"/usr/bin/python3 -u %s",
 }
 
 

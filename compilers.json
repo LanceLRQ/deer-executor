@@ -5,5 +5,7 @@
     "go": "/usr/local/go/bin/go build -o %s %s",
     "node": "/usr/bin/node -c %s",
     "php": "/usr/bin/php -l -f %s",
-    "ruby": "/usr/bin/ruby -c %s"
+    "ruby": "/usr/bin/ruby -c %s",
+    "python2": "/usr/bin/python -u %s",
+    "python3": "/usr/local/bin/python3 -u %s"
 }

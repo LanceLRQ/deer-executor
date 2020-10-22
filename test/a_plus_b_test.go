@@ -13,7 +13,7 @@ func TestAPlusBProblemAc(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	result, err := runAPlusB("./data/codes/APlusB/ac.c")
+	result, err := runAPlusB("./data/codes/APlusB/ac.c", "")
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -33,7 +33,7 @@ func TestAPlusBProblemPE1(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	result, err := runAPlusB("./data/codes/APlusB/pe.c")
+	result, err := runAPlusB("./data/codes/APlusB/pe.c", "")
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -53,7 +53,7 @@ func TestAPlusBProblemPE2(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	result, err := runAPlusB("./data/codes/APlusB/pe2.c")
+	result, err := runAPlusB("./data/codes/APlusB/pe2.c", "")
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -73,7 +73,7 @@ func TestAPlusBProblemPE3(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	result, err := runAPlusB("./data/codes/APlusB/pe3.c")
+	result, err := runAPlusB("./data/codes/APlusB/pe3.c", "")
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -93,7 +93,7 @@ func TestAPlusBProblemCE(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	result, err := runAPlusB("./data/codes/APlusB/ce.c")
+	result, err := runAPlusB("./data/codes/APlusB/ce.c", "")
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -113,7 +113,7 @@ func TestAPlusBProblemMLE(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	result, err := runAPlusB("./data/codes/APlusB/mle.c")
+	result, err := runAPlusB("./data/codes/APlusB/mle.c", "")
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -133,7 +133,7 @@ func TestAPlusBProblemOLE(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	result, err := runAPlusB("./data/codes/APlusB/ole.c")
+	result, err := runAPlusB("./data/codes/APlusB/ole.c", "")
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -153,7 +153,7 @@ func TestAPlusBProblemOLE2(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	result, err := runAPlusB("./data/codes/APlusB/ole2.c")
+	result, err := runAPlusB("./data/codes/APlusB/ole2.c", "")
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -173,7 +173,7 @@ func TestAPlusBProblemRE(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	result, err := runAPlusB("./data/codes/APlusB/re.c")
+	result, err := runAPlusB("./data/codes/APlusB/re.c", "")
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -193,7 +193,7 @@ func TestAPlusBProblemRE2(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	result, err := runAPlusB("./data/codes/APlusB/re2.c")
+	result, err := runAPlusB("./data/codes/APlusB/re2.c", "")
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -212,7 +212,7 @@ func TestAPlusBProblemTLE(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	result, err := runAPlusB("./data/codes/APlusB/tle.c")
+	result, err := runAPlusB("./data/codes/APlusB/tle.c", "")
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -232,7 +232,7 @@ func TestAPlusBProblemTLE2(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	result, err := runAPlusB("./data/codes/APlusB/tle2.c")
+	result, err := runAPlusB("./data/codes/APlusB/tle2.c", "")
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -253,7 +253,7 @@ func TestAPlusBProblemWA(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	result, err := runAPlusB("./data/codes/APlusB/wa.c")
+	result, err := runAPlusB("./data/codes/APlusB/wa.c", "")
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -273,52 +273,12 @@ func TestAPlusBProblemWA2(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	result, err := runAPlusB("./data/codes/APlusB/wa2.c")
+	result, err := runAPlusB("./data/codes/APlusB/wa2.c", "")
 	if err != nil {
 		t.Fatal(err)
 		return
 	}
 	err = analysisResult("case 14", result, executor.JudgeFlagWA)
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	t.Log("OK")
-}
-
-// Test: use Java language
-func TestAPlusBProblemJava(t *testing.T) {
-	err := initWorkRoot()
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	result, err := runAPlusB("./data/codes/APlusB/ac.java")
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	err = analysisResult("java test", result, executor.JudgeFlagAC)
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	t.Log("OK")
-}
-
-// Test: use Go language
-func TestAPlusBProblemGo(t *testing.T) {
-	err := initWorkRoot()
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	result, err := runAPlusB("./data/codes/APlusB/ac.go")
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	err = analysisResult("golang test", result, executor.JudgeFlagAC)
 	if err != nil {
 		t.Fatal(err)
 		return

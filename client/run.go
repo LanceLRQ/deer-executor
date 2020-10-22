@@ -5,6 +5,7 @@ import (
 	"github.com/LanceLRQ/deer-executor/executor"
 	"github.com/LanceLRQ/deer-executor/persistence"
 	"github.com/LanceLRQ/deer-executor/persistence/judge_result"
+	"github.com/LanceLRQ/deer-executor/provider"
 	uuid "github.com/satori/go.uuid"
 	"github.com/urfave/cli/v2"
 	"log"
@@ -106,6 +107,10 @@ func run(c *cli.Context,  counter int) (*executor.JudgeResult, error) {
 }
 
 func Run(c *cli.Context) error {
+	err := provider.PlaceCompilerCommands("./compilers.json")
+	if err != nil {
+		return err
+	}
 	isBenchmarkMode := c.Int("benchmark") > 1
 	benchmarkN := c.Int("benchmark")
 	if !isBenchmarkMode {
