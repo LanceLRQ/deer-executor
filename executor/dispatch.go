@@ -22,12 +22,15 @@ func (session *JudgeSession) judgeOnce(judgeResult *TestCaseResult) error {
 		if err != nil {
 			return err
 		}
-		// 进行文本比较
-		err = session.DiffText(judgeResult)
-		if err != nil {
-			judgeResult.JudgeResult = JudgeFlagSE
-			judgeResult.SeInfo = err.Error()
-			return err
+		// 只有AC的时候才进行文本比较！
+		if judgeResult.JudgeResult == JudgeFlagAC {
+			// 进行文本比较
+			err = session.DiffText(judgeResult)
+			if err != nil {
+				judgeResult.JudgeResult = JudgeFlagSE
+				judgeResult.SeInfo = err.Error()
+				return err
+			}
 		}
 
 	case SpecialJudgeModeChecker, SpecialJudgeModeInteractive:
@@ -76,10 +79,8 @@ func (session *JudgeSession)runOneCase(tc TestCase, Id string) *TestCaseResult {
 	tcResult.TestCaseOut = tc.TestCaseOut
 	tcResult.ProgramOut = path.Join(session.SessionDir, Id + "_program.out")
 	tcResult.ProgramError = path.Join(session.SessionDir,  Id + "_program.err")
-	tcResult.ProgramLog = path.Join(session.SessionDir,  Id + "_program.log")
 	tcResult.JudgerOut = path.Join(session.SessionDir,  Id + "_judger.out")
 	tcResult.JudgerError = path.Join(session.SessionDir,  Id + "_judger.err")
-	tcResult.JudgerLog = path.Join(session.SessionDir,  Id + "_judger.log")
 	tcResult.JudgerReport = path.Join(session.SessionDir,  Id + "_judger.report")
 
 	// 运行judge程序

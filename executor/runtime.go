@@ -142,9 +142,9 @@ func runProgramProcess(session *JudgeSession, rst *TestCaseResult, judger bool, 
 
 		// Set Resource Limit
 		if judger {
-			err = setLimit(session.SpecialJudge.TimeLimit, session.SpecialJudge.MemoryLimit, session.RealTimeLimit)
+			err = setLimit(session.SpecialJudge.TimeLimit, session.SpecialJudge.MemoryLimit, session.RealTimeLimit, session.FileSizeLimit)
 		} else {
-			err = setLimit(session.TimeLimit, session.MemoryLimit, session.RealTimeLimit)
+			err = setLimit(session.TimeLimit, session.MemoryLimit, session.RealTimeLimit, session.FileSizeLimit)
 		}
 		if err != nil {
 			return 0, fds, err

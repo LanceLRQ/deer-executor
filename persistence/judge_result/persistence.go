@@ -58,10 +58,8 @@ func mergeResultBinary(judgeResult *executor.JudgeResult, compressType uint8) (s
 	for _, testCase := range judgeResult.TestCases {
 		err = readAndWriteToTempFile(testCaseWriter, testCase.ProgramOut)
 		_ = readAndWriteToTempFile(testCaseWriter, testCase.ProgramError)
-		_ = readAndWriteToTempFile(testCaseWriter, testCase.ProgramLog)
 		_ = readAndWriteToTempFile(testCaseWriter, testCase.JudgerOut)
 		_ = readAndWriteToTempFile(testCaseWriter, testCase.JudgerError)
-		_ = readAndWriteToTempFile(testCaseWriter, testCase.JudgerLog)
 		_ = readAndWriteToTempFile(testCaseWriter, testCase.JudgerReport)
 	}
 

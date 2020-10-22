@@ -24,8 +24,6 @@ const (
 )
 
 const (
-	JudgeFileSizeLimit 						= 10 * 1024 * 1024  	// 50MB
-
 	SpecialJudgeModeDisabled 				= 0
 	SpecialJudgeModeChecker 				= 1
 	SpecialJudgeModeInteractive 			= 2
@@ -62,11 +60,9 @@ type TestCaseResult struct {
 	TestCaseOut		string				`json:"-"`						// Testcase output file path (internal)
 	ProgramOut 		string				`json:"program_out"`			// Program-stdout file path
 	ProgramError 	string				`json:"program_error"`			// Program-stderr file path
-	ProgramLog 		string				`json:"program_log"`			// Program-log file path
 
 	JudgerOut 		string				`json:"judger_out"`				// Special judger checker's stdout
 	JudgerError 	string				`json:"judger_error"`			// Special judger checker's stderr
-	JudgerLog		string				`json:"judger_log"`				// Special judger checker's log file
 	JudgerReport	string				`json:"judger_report"`			// Special judger checker's report file
 
 	JudgeResult 	int 				`json:"judge_result"`			// Judge result flag number
@@ -125,6 +121,7 @@ func NewSession(configFile string) (*JudgeSession, error) {
 	session.Uid = -1
 	session.TimeLimit = 1000
 	session.MemoryLimit = 65535
+	session.StrictMode = true
 	session.FileSizeLimit = 50 * 1024 * 1024
 	session.SpecialJudge.Mode = 0
 	session.SpecialJudge.RedirectProgramOut = true
