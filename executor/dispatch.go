@@ -17,11 +17,9 @@ func (session *JudgeSession) judgeOnce(judgeResult *TestCaseResult) error {
 			judgeResult.SeInfo = err.Error()
 			return err
 		}
+		session.saveExitRusage(judgeResult, pinfo, false)
 		// 分析目标程序的状态
-		err = session.analysisExitStatus(judgeResult, pinfo, false)
-		if err != nil {
-			return err
-		}
+		session.analysisExitStatus(judgeResult, pinfo, false)
 		// 只有AC的时候才进行文本比较！
 		if judgeResult.JudgeResult == JudgeFlagAC {
 			// 进行文本比较
@@ -40,18 +38,13 @@ func (session *JudgeSession) judgeOnce(judgeResult *TestCaseResult) error {
 			judgeResult.SeInfo = err.Error()
 			return err
 		}
-		// 分析目标程序的状态
-		err = session.analysisExitStatus(judgeResult, tinfo, false)
-		if err != nil {
-			return err
-		}
-		// 如果目标程序正常退出，则去分析判题机
-		// 否则，优先输出目标程序的运行情况
+		session.saveExitRusage(judgeResult, tinfo, false)
+		session.saveExitRusage(judgeResult, jinfo, true)
+		// 分析判题程序的状态
+		session.analysisExitStatus(judgeResult, jinfo, true)
+		// 如果判题程序正常退出，则再去分析目标程序
 		if judgeResult.JudgeResult == 0 {
-			err = session.analysisExitStatus(judgeResult, jinfo, true)
-			if err != nil {
-				return err
-			}
+			session.analysisExitStatus(judgeResult, tinfo, false)
 		}
 		// 普通checker的时候支持按判题机的意愿进行文本比较
 		if session.SpecialJudge.Mode == SpecialJudgeModeChecker {

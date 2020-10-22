@@ -15,7 +15,7 @@ int main(int argc, char *argv[]){
 	int total = 0;
 	int p = 0;
 	string str;
-	freopen(argv[3],"r",stdin);
+	freopen(argv[2],"r",stdin);
 	while(cin >> str){
 		p++;
 		for(int i = 0;i < 8;i++){

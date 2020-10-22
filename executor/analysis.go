@@ -6,8 +6,9 @@ import (
 	"syscall"
 )
 
+
 // 分析进程退出状态
-func (session *JudgeSession) analysisExitStatus(rst *TestCaseResult, pinfo *ProcessInfo, judger bool) error {
+func (session *JudgeSession) saveExitRusage(rst *TestCaseResult, pinfo *ProcessInfo, judger bool) {
 	ru := pinfo.Rusage
 	status := pinfo.Status
 
@@ -18,9 +19,22 @@ func (session *JudgeSession) analysisExitStatus(rst *TestCaseResult, pinfo *Proc
 	if judger {
 		rst.SPJTimeUsed = tu
 		rst.SPJMemoryUsed = mu
+		rst.SPJReSignum = int(status.Signal())
+	} else {
+		rst.TimeUsed = tu
+		rst.MemoryUsed = mu
+		rst.ReSignum = int(status.Signal())
+	}
+}
+
+// 分析进程退出状态
+func (session *JudgeSession) analysisExitStatus(rst *TestCaseResult, pinfo *ProcessInfo, judger bool) {
+	status := pinfo.Status
+
+	// 特判
+	if judger {
 		if status.Signaled() {
 			sig := status.Signal()
-			rst.SPJReSignum = int(sig)
 			if session.SpecialJudge.Mode != SpecialJudgeModeInteractive {
 				// 检查判题程序是否超时
 				if sig == syscall.SIGXCPU || sig == syscall.SIGALRM {
@@ -50,12 +64,9 @@ func (session *JudgeSession) analysisExitStatus(rst *TestCaseResult, pinfo *Proc
 			}
 		}
 	} else {
-		rst.TimeUsed = tu
-		rst.MemoryUsed = mu
 		// If process stopped with a signal
 		if status.Signaled() {
 			sig := status.Signal()
-			rst.ReSignum = int(sig)
 			if sig == syscall.SIGSEGV {
 				// MLE or RE can also get SIGSEGV signal.
 				if rst.MemoryUsed > session.MemoryLimit {
@@ -98,7 +109,6 @@ func (session *JudgeSession) analysisExitStatus(rst *TestCaseResult, pinfo *Proc
 			}
 		}
 	}
-	return nil
 }
 
 // 判定是否是灾难性结果
