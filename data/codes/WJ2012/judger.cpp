@@ -13,7 +13,7 @@ bool rightflag[12];
 int main(int argc, char *argv[])
 {
     FILE* fin = fopen(argv[1], "r");
-	FILE* fp = fopen(argv[3], "w+");
+	FILE* fp = fopen(argv[4], "w+");
 	//FILE* fp = fopen("test_out.txt", "w+");
 	int n, pois;
 	fscanf(fin, "%d %d", &n, &pois);

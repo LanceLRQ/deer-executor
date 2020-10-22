@@ -57,6 +57,10 @@ func runWJ2018(codeFile, codeLang string) (*executor.JudgeResult, error) {
 	return runJudge("./data/problems/WJ2018/problem.json", codeFile, codeLang)
 }
 
+func runWJ2012(codeFile, codeLang string) (*executor.JudgeResult, error) {
+	return runJudge("./data/problems/WJ2012/problem.json", codeFile, codeLang)
+}
+
 func analysisResult (caseName string, result *executor.JudgeResult, expect int) error {
 	name, ok := executor.FlagMeansMap[result.JudgeResult]
 	if !ok { name = "Unknown" }
