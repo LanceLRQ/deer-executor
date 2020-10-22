@@ -3,6 +3,7 @@ package executor
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"syscall"
 )
 
@@ -74,6 +75,7 @@ func (session *JudgeSession)runProgramAsync(rst *TestCaseResult, judger bool, pi
 	return nil
 }
 
+
 // 运行目标程序
 func (session *JudgeSession)runNormalJudge(rst *TestCaseResult) (*ProcessInfo, error) {
 	return session.runProgramCommon(rst, false, false, nil)
@@ -103,12 +105,11 @@ func (session *JudgeSession)runSpecialJudge(rst *TestCaseResult) (*ProcessInfo, 
 		targetInfoChan, judgerInfoChan := make(chan *ProcessInfo), make(chan *ProcessInfo)
 		var targetInfo, judgerInfo *ProcessInfo
 
-
-		err = session.runProgramAsync(rst, false, true, fdtarget, targetInfoChan)
+		err = session.runProgramAsync(rst, false, true, []int {fdtarget[0], fdjudger[1]}, targetInfoChan)
 		if err != nil {
 			return nil, nil, err
 		}
-		err = session.runProgramAsync(rst, true, true, fdjudger, judgerInfoChan)
+		err = session.runProgramAsync(rst, true, true, []int {fdjudger[0], fdtarget[1]}, judgerInfoChan)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -121,6 +122,23 @@ func (session *JudgeSession)runSpecialJudge(rst *TestCaseResult) (*ProcessInfo, 
 	return nil, nil, fmt.Errorf("unkonw special judge mode")
 }
 
+func getSpecialJudgerPath(rst *TestCaseResult) []string {
+	tci, err := filepath.Abs(rst.TestCaseIn)
+	if err != nil {
+		tci = rst.TestCaseIn
+	}
+	tco, err := filepath.Abs(rst.TestCaseOut)
+	if err != nil {
+		tci = rst.TestCaseOut
+	}
+	args := []string{
+		tci,
+		tco,
+		rst.ProgramOut,
+		rst.JudgerReport,
+	}
+	return args
+}
 
 // 目标程序子进程
 func runProgramProcess(session *JudgeSession, rst *TestCaseResult, judger bool, pipeMode bool, pipeStd []int) (uintptr, []int, error) {
@@ -207,13 +225,8 @@ func runProgramProcess(session *JudgeSession, rst *TestCaseResult, judger bool, 
 		if judger {
 			// Run Judger (Testlib compatible)
 			// ./checker <input-file> <output-file> <answer-file> <report-file>
-			args := []string{
-				rst.TestCaseIn,
-				rst.ProgramOut,
-				rst.TestCaseOut,
-				rst.JudgerReport,
-			}
-			err = syscall.Exec(session.SpecialJudge.Checker, args, nil)
+			args := getSpecialJudgerPath(rst)
+			_ = syscall.Exec(session.SpecialJudge.Checker, args, nil)
 		} else {
 			// Run Program
 			commands := session.Commands

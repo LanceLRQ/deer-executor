@@ -2,7 +2,7 @@
 
 int main() {
     int m, n;
-    scanf("%d%*s", &m);
+    scanf("%d cans SCAU yogurt", &m);
     for (int i = 1; i <= m; i++) {
         int p = 0;
         for (int j = 0; j < 10; j++) {
@@ -19,7 +19,7 @@ int main() {
         printf("\n");
         fflush(stdout);
     }
-    scanf("%d%*s", &n);
+    scanf("%d mice died", &n);
     int ret = 0;
     for (int i = 0; i < n; i++) {
         int d = 0;
