@@ -18,7 +18,7 @@ func TestAPlusBProblemAc(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	err = analysisResult(result, executor.JudgeFlagAC)
+	err = analysisResult("case 1", result, executor.JudgeFlagAC)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -38,7 +38,7 @@ func TestAPlusBProblemPE1(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	err = analysisResult(result, executor.JudgeFlagPE)
+	err = analysisResult("case 2", result, executor.JudgeFlagPE)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -58,7 +58,7 @@ func TestAPlusBProblemPE2(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	err = analysisResult(result, executor.JudgeFlagPE)
+	err = analysisResult("case 3", result, executor.JudgeFlagPE)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -78,7 +78,7 @@ func TestAPlusBProblemPE3(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	err = analysisResult(result, executor.JudgeFlagPE)
+	err = analysisResult("case 4", result, executor.JudgeFlagPE)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -98,7 +98,7 @@ func TestAPlusBProblemCE(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	err = analysisResult(result, executor.JudgeFlagCE)
+	err = analysisResult("case 5", result, executor.JudgeFlagCE)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -118,7 +118,7 @@ func TestAPlusBProblemMLE(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	err = analysisResult(result, executor.JudgeFlagMLE)
+	err = analysisResult("case 6", result, executor.JudgeFlagMLE)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -138,7 +138,7 @@ func TestAPlusBProblemOLE(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	err = analysisResult(result, executor.JudgeFlagOLE)
+	err = analysisResult("case 7", result, executor.JudgeFlagOLE)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -158,7 +158,7 @@ func TestAPlusBProblemOLE2(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	err = analysisResult(result, executor.JudgeFlagOLE)
+	err = analysisResult("case 8", result, executor.JudgeFlagOLE)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -178,7 +178,7 @@ func TestAPlusBProblemRE(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	err = analysisResult(result, executor.JudgeFlagRE)
+	err = analysisResult("case 9", result, executor.JudgeFlagRE)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -198,7 +198,7 @@ func TestAPlusBProblemRE2(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	err = analysisResult(result, executor.JudgeFlagRE)
+	err = analysisResult("case 10", result, executor.JudgeFlagRE)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -217,7 +217,7 @@ func TestAPlusBProblemTLE(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	err = analysisResult(result, executor.JudgeFlagTLE)
+	err = analysisResult("case 11", result, executor.JudgeFlagTLE)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -237,7 +237,7 @@ func TestAPlusBProblemTLE2(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	err = analysisResult(result, executor.JudgeFlagTLE)
+	err = analysisResult("case 12", result, executor.JudgeFlagTLE)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -258,7 +258,7 @@ func TestAPlusBProblemWA(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	err = analysisResult(result, executor.JudgeFlagWA)
+	err = analysisResult("case 13", result, executor.JudgeFlagWA)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -278,7 +278,7 @@ func TestAPlusBProblemWA2(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	err = analysisResult(result, executor.JudgeFlagWA)
+	err = analysisResult("case 14", result, executor.JudgeFlagWA)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -298,7 +298,7 @@ func TestAPlusBProblemJava(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	err = analysisResult(result, executor.JudgeFlagAC)
+	err = analysisResult("java test", result, executor.JudgeFlagAC)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -318,7 +318,7 @@ func TestAPlusBProblemGo(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	err = analysisResult(result, executor.JudgeFlagAC)
+	err = analysisResult("golang test", result, executor.JudgeFlagAC)
 	if err != nil {
 		t.Fatal(err)
 		return

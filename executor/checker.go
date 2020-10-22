@@ -234,7 +234,7 @@ func (session *JudgeSession) DiffText(result *TestCaseResult) error {
 		result.TextDiffLog = sizeText + "; Accepted with zero size."
 		return nil
 	} else if useroutLen > 0 && answerLen > 0 {
-		if (useroutLen > int64(session.FileSizeLimit)) || (useroutLen > answerLen * 2) {
+		if (useroutLen > int64(session.FileSizeLimit)) || (useroutLen >= answerLen * 2) {
 			// OLE
 			result.JudgeResult = JudgeFlagOLE
 			if useroutLen > int64(session.FileSizeLimit) {

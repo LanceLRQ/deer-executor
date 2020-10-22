@@ -48,14 +48,15 @@ func runAPlusB(codeFile string) (*executor.JudgeResult, error) {
 	return &judgeResult, err
 }
 
-func analysisResult (result *executor.JudgeResult, expect int) error {
+func analysisResult (caseName string, result *executor.JudgeResult, expect int) error {
+	name, ok := executor.FlagMeansMap[result.JudgeResult]
+	if !ok { name = "Unknown" }
 	if result.JudgeResult != expect {
-		name, ok := executor.FlagMeansMap[result.JudgeResult]
-		if !ok { name = "Unknown" }
 		ename, ok := executor.FlagMeansMap[expect]
 		if !ok { ename = "Unknown" }
-		return fmt.Errorf("expect %s, but got %s\n%s", ename, name, executor.ObjectToJSONStringFormatted(result))
+		return fmt.Errorf("[%s] expect %s, but got %s\n%s", caseName, ename, name, executor.ObjectToJSONStringFormatted(result))
 	}
+	fmt.Printf("[%s] finish with: %s\n", caseName, name)
 	return nil
 }
 

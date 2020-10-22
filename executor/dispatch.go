@@ -145,7 +145,6 @@ func (session *JudgeSession)RunJudge() JudgeResult {
 	}
 	// 计算最终结果
 	session.generateFinallyResult(&judgeResult, exitCodes)
-
 	return judgeResult
 }
 

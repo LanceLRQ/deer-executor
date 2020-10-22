@@ -160,7 +160,7 @@ func (session *JudgeSession) generateFinallyResult(result *JudgeResult, exitcode
 			// 如果存在WA，报WA
 			result.JudgeResult = JudgeFlagWA
 		} else if pe > 0 {	// 如果PE > 0
-			if session.StrictMode {
+			if !session.StrictMode {
 				// 非严格模式，报AC
 				result.JudgeResult = JudgeFlagAC
 			} else {
