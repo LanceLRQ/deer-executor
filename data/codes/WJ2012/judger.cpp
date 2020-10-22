@@ -3,7 +3,7 @@
 @algorithm: check code
 */
 
-#include <bits/stdc++.h>
+#include <iostream>
 
 using namespace std;
 
@@ -36,13 +36,13 @@ int main(int argc, char *argv[])
         }
         if(num != 0 && che != ' ')
         {
-            fprintf(fp, "wrong formate: %d%c\n", num, che);
+            fprintf(fp, "wrong format1: %d%c\n", num, che);
             fclose(fp);
             return 4;
         }
         if(num == 0 && che != '\n')
         {
-            fprintf(fp, "wrong formate: %d%c\n", num, che);
+            fprintf(fp, "wrong format2: %d%c\n", num, che);
             fclose(fp);
             return 4;
         }
@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
             //printf(" t%d ", mice);
             if(che != ' ')
             {
-                fprintf(fp, "wrong formate: %d%c\n", mice, che);
+                fprintf(fp, "wrong format3: %d%d\n", mice, che);
                 fclose(fp);
                 return 4;
             }
@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
         scanf("%d%c", &mice, &che);
         if(che != '\n')
         {
-            fprintf(fp, "wrong formate: %d%c\n", mice, che);
+            fprintf(fp, "wrong format4: %d%c\n", mice, che);
             fclose(fp);
             return 4;
         }
