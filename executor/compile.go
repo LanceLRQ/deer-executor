@@ -73,7 +73,6 @@ func (session *JudgeSession)compileTargetProgram(judgeResult *JudgeResult) error
 	if !success {
 		judgeResult.JudgeResult = JudgeFlagCE
 		judgeResult.CeInfo = ceinfo
-		fmt.Println(ceinfo)
 		return fmt.Errorf("compile error:\n%s", ceinfo)
 	}
 	// 获取执行指令

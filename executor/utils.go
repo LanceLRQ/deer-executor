@@ -38,6 +38,11 @@ type TimeVal struct {
 	TvUsec uint64
 }
 
+type RLimit struct {
+	Which 	int
+	RLim	syscall.Rlimit
+}
+
 // 打开并获取文件的描述符
 func getFileDescriptor(path string, flag int, perm uint32) (fd int, err error) {
 	var filed = 0
@@ -126,16 +131,8 @@ func Max32(a, b int) int {
 	if a > b { return a } else { return b }
 }
 
-// setrlimit
-func setRLimit(which int, cur, max uint64) error {
-	var rlimit syscall.Rlimit
-	rlimit.Cur = cur
-	rlimit.Max = max
-	err := syscall.Setrlimit(which, &rlimit)
-	if err != nil {
-		return fmt.Errorf("setrlimit(%d) error: %s", which, err)
-	}
-	return nil
+func getRLimitEntity(cur, max uint64) syscall.Rlimit {
+	return syscall.Rlimit{Cur: cur, Max: max}
 }
 
 // 硬件计时器
@@ -154,48 +151,70 @@ func setHardTimer(realTimeLimit int) error {
 
 // 设置资源限制 (setrlimit)
 func setLimit(timeLimit, memoryLimit , realTimeLimit int) error {
-	// Set time limit: RLIMIT_CPU
-	cpu := uint64(math.Ceil(float64(timeLimit) / 1000.0))
-	err := setRLimit(syscall.RLIMIT_CPU, cpu,  cpu)
-	if err != nil {
-		return err
+
+	// Set stack limit
+	stack := uint64(memoryLimit * 1024)
+	if runtime.GOOS == "darwin" {  // WTF?! mem * 1.0 caused an operation not permitted!
+		stack = uint64(float64(stack) * 0.9)
+	}
+
+	rlimits := []RLimit{
+		// Set time limit: RLIMIT_CPU
+		{
+			Which: syscall.RLIMIT_CPU,
+			RLim: getRLimitEntity(
+				uint64(math.Ceil(float64(timeLimit) / 1000.0)),
+				uint64(math.Ceil(float64(timeLimit) / 1000.0)),
+			),
+		},
+		// Set memory limit: RLIMIT_DATA
+		{
+			Which: syscall.RLIMIT_DATA,
+			RLim: getRLimitEntity(
+				uint64(memoryLimit * 1024),
+				uint64(memoryLimit * 1024),
+			),
+		},
+		// Set memory limit: RLIMIT_AS
+		{
+			Which: syscall.RLIMIT_AS,
+			RLim: getRLimitEntity(
+				uint64(memoryLimit * 1024 * 2),
+				uint64(memoryLimit * 1024 * 2 + 1024),
+			),
+		},
+		// Set stack limit
+		{
+			Which: syscall.RLIMIT_STACK,
+			RLim: getRLimitEntity(
+				stack,
+				stack + 1024,
+			),
+		},
+		// Set file size limit: RLIMIT_FSIZE
+		{
+			Which: syscall.RLIMIT_FSIZE,
+			RLim: getRLimitEntity(
+				uint64(JudgeFileSizeLimit),
+				uint64(JudgeFileSizeLimit),
+			),
+		},
+
+	}
+
+	for _, rlimit := range rlimits {
+		err := syscall.Setrlimit(rlimit.Which, &rlimit.RLim)
+		if err != nil {
+			return fmt.Errorf("setrlimit(%d) error: %s", rlimit.Which, err)
+		}
 	}
 
 	// Set time limit: setITimer
 	if realTimeLimit > 0 {
-		err = setHardTimer(realTimeLimit)
+		err := setHardTimer(realTimeLimit)
 		if err != nil {
 			return err
 		}
-	}
-
-	// Set memory limit: RLIMIT_DATA
-	mem := uint64(memoryLimit * 1024)
-	err = setRLimit(syscall.RLIMIT_DATA, mem,  mem)
-	if err != nil {
-		return err
-	}
-
-	// Set memory limit: RLIMIT_AS
-	err = setRLimit(syscall.RLIMIT_AS, mem * 2,  mem * 2 + 1024)
-	if err != nil {
-		return err
-	}
-
-	// Set stack limit
-	stack := mem
-	if runtime.GOOS == "darwin" {  // WTF?! mem * 1.0 caused an operation not permitted!
-		stack = uint64(float64(mem) * 0.9)
-	}
-	err = setRLimit(syscall.RLIMIT_STACK, stack,  stack)
-	if err != nil {
-		return err
-	}
-
-	// Set file size limit: RLIMIT_FSIZE
-	err = setRLimit(syscall.RLIMIT_FSIZE, uint64(JudgeFileSizeLimit),  uint64(JudgeFileSizeLimit))
-	if err != nil {
-		return err
 	}
 
 	return nil

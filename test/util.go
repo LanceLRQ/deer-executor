@@ -42,6 +42,7 @@ func runAPlusB(codeFile string) (*executor.JudgeResult, error) {
 		return nil, err
 	}
 	session.SessionDir = sessionDir
+	defer session.Clean()
 	// start judge
 	judgeResult := session.RunJudge()
 	return &judgeResult, err
@@ -51,7 +52,9 @@ func analysisResult (result *executor.JudgeResult, expect int) error {
 	if result.JudgeResult != expect {
 		name, ok := executor.FlagMeansMap[result.JudgeResult]
 		if !ok { name = "Unknown" }
-		return fmt.Errorf("expect Accepted, but got %s\n%s", name, executor.ObjectToJSONStringFormatted(result))
+		ename, ok := executor.FlagMeansMap[expect]
+		if !ok { ename = "Unknown" }
+		return fmt.Errorf("expect %s, but got %s\n%s", ename, name, executor.ObjectToJSONStringFormatted(result))
 	}
 	return nil
 }
