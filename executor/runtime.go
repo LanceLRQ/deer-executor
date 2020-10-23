@@ -115,8 +115,6 @@ func (session *JudgeSession)runSpecialJudge(rst *TestCaseResult) (*ProcessInfo, 
 		}
 		targetInfo = <- targetInfoChan
 		judgerInfo = <- judgerInfoChan
-		fmt.Println(targetInfo.Status.Signal())
-		fmt.Println(judgerInfo.Status.Signal())
 		return targetInfo, judgerInfo, err
 	}
 	return nil, nil, fmt.Errorf("unkonw special judge mode")
