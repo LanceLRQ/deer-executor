@@ -3,6 +3,7 @@ package executor
 import (
 	"fmt"
 	"io/ioutil"
+	"path"
 	"syscall"
 )
 
@@ -121,7 +122,7 @@ func (session *JudgeSession) isDisastrousFault(judgeResult *JudgeResult, tcResul
 
 	// 如果是实时运行的语言
 	if session.compiler.IsRealTime() {
-		outfile, e := ioutil.ReadFile(tcResult.ProgramError)
+		outfile, e := ioutil.ReadFile(path.Join(session.SessionDir, tcResult.ProgramError))
 		if e == nil {
 			if len(outfile) > 0 {
 				remsg := string(outfile)

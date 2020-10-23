@@ -14,10 +14,10 @@ import (
 	"path"
 )
 
-func readAndWriteToTempFile(writer io.Writer, filePath string) error {
+func readAndWriteToTempFile(writer io.Writer, fileName string, workDir string) error {
 	buf16 := make([]byte, 16)
 	buf32 := make([]byte, 4)
-	body, err := ioutil.ReadFile(filePath)
+	body, err := ioutil.ReadFile(path.Join(workDir, fileName))
 	if err != nil {
 		return err
 	}
@@ -29,7 +29,7 @@ func readAndWriteToTempFile(writer io.Writer, filePath string) error {
 	if _, err := writer.Write(buf32); err != nil {
 		return fmt.Errorf("write temp file error: %s", err.Error())
 	}
-	if _, err := writer.Write([]byte(filePath + "\n")); err != nil {
+	if _, err := writer.Write([]byte(fileName + "\n")); err != nil {
 		return fmt.Errorf("write temp file error: %s", err.Error())
 	}
 	if _, err := writer.Write(body); err != nil {
@@ -38,7 +38,7 @@ func readAndWriteToTempFile(writer io.Writer, filePath string) error {
 	return nil
 }
 
-func mergeResultBinary(judgeResult *executor.JudgeResult, compressType uint8) (string, error) {
+func mergeResultBinary(session *executor.JudgeSession, judgeResult *executor.JudgeResult, compressType uint8) (string, error) {
 	tmpFileName := uuid.NewV1().String() + ".tmp"
 	tmpFilePath := path.Join("/tmp/", tmpFileName)
 	var testCaseWriter io.Writer
@@ -56,11 +56,11 @@ func mergeResultBinary(judgeResult *executor.JudgeResult, compressType uint8) (s
 	}
 
 	for _, testCase := range judgeResult.TestCases {
-		err = readAndWriteToTempFile(testCaseWriter, testCase.ProgramOut)
-		_ = readAndWriteToTempFile(testCaseWriter, testCase.ProgramError)
-		_ = readAndWriteToTempFile(testCaseWriter, testCase.JudgerOut)
-		_ = readAndWriteToTempFile(testCaseWriter, testCase.JudgerError)
-		_ = readAndWriteToTempFile(testCaseWriter, testCase.JudgerReport)
+		err = readAndWriteToTempFile(testCaseWriter, testCase.ProgramOut, session.SessionDir)
+		_ = readAndWriteToTempFile(testCaseWriter, testCase.ProgramError, session.SessionDir)
+		_ = readAndWriteToTempFile(testCaseWriter, testCase.JudgerOut, session.SessionDir)
+		_ = readAndWriteToTempFile(testCaseWriter, testCase.JudgerError, session.SessionDir)
+		_ = readAndWriteToTempFile(testCaseWriter, testCase.JudgerReport, session.SessionDir)
 	}
 
 	return tmpFilePath, nil
@@ -118,6 +118,7 @@ func writeFileHeaderAndResult (writer io.Writer, pack JudgeResultPackage) error 
 }
 
 func PersistentJudgeResult(
+	session *executor.JudgeSession,
 	judgeResult *executor.JudgeResult,
 	options JudgeResultPersisOptions,
 ) error {
@@ -135,7 +136,7 @@ func PersistentJudgeResult(
 
 	resultBytes := executor.ObjectToJSONByte(judgeResult)
 
-	bodyFile, err := mergeResultBinary(judgeResult, options.CompressorType)
+	bodyFile, err := mergeResultBinary(session, judgeResult, options.CompressorType)
 	if err != nil {
 		return err
 	}
@@ -177,7 +178,6 @@ func PersistentJudgeResult(
 		hash, err = persistence.RSA2048Sign(hash, options.DigitalPEM.PrivateKey)
 		if err != nil { return err }
 	}
-	fmt.Println(len(hash))
 	buf16 := make([]byte, 2)
 	signSize := uint16(len(hash))
 	// SignSize

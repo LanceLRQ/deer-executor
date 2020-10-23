@@ -83,14 +83,14 @@ func (session *JudgeSession)compileTargetProgram(judgeResult *JudgeResult) error
 
 // 编译裁判程序
 func (session *JudgeSession)compileJudgerProgram(judgeResult *JudgeResult) error {
-	_, err := os.Stat(session.SpecialJudge.Checker)
+	_, err := os.Stat(path.Join(session.ConfigDir, session.SpecialJudge.Checker))
 	if os.IsNotExist(err) {
 		judgeResult.JudgeResult = JudgeFlagSE
 		judgeResult.SeInfo = fmt.Sprintf("checker file not exists")
 		return fmt.Errorf(judgeResult.SeInfo)
 	}
 
-	execuable, err := IsExecutableFile(session.SpecialJudge.Checker)
+	execuable, err := IsExecutableFile(path.Join(session.ConfigDir, session.SpecialJudge.Checker))
 	if err != nil {
 		judgeResult.JudgeResult = JudgeFlagSE
 		judgeResult.SeInfo = fmt.Sprintf("checker file not exists")
@@ -107,7 +107,7 @@ func (session *JudgeSession)compileJudgerProgram(judgeResult *JudgeResult) error
 	switch compiler.(type) {
 	case *provider.GnucCompileProvider, *provider.GnucppCompileProvider, *provider.GolangCompileProvider:
 		// 初始化编译程序
-		codeFile, err := os.Open(session.SpecialJudge.Checker)
+		codeFile, err := os.Open(path.Join(session.ConfigDir, session.SpecialJudge.Checker))
 		if err != nil {
 			judgeResult.JudgeResult = JudgeFlagSE
 			judgeResult.SeInfo = fmt.Sprintf("special judge checker source file open error:\n%s", err.Error())
@@ -124,7 +124,11 @@ func (session *JudgeSession)compileJudgerProgram(judgeResult *JudgeResult) error
 		if err != nil {
 			return err
 		}
-		log.Println(fmt.Sprintf("compile (%s) with %s provider", session.SpecialJudge.Checker, compiler.GetName()))
+		log.Println(fmt.Sprintf(
+			"compile (%s) with %s provider",
+			path.Join(session.ConfigDir, session.SpecialJudge.Checker),
+			compiler.GetName(),
+		))
 	default:
 		judgeResult.JudgeResult = JudgeFlagSE
 		judgeResult.SeInfo = "special judge checker only support c/c++/go language"

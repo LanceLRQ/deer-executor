@@ -9,6 +9,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path"
 	"strings"
 	"syscall"
 )
@@ -43,13 +44,13 @@ func isSpaceChar (ch byte) bool {
 
 // 逐行比较，获取错误行数
 // Compare each line, to find out the number of wrong line
-func lineDiff(rst *TestCaseResult) (sameLines int, totalLines int) {
-	answer, err := os.OpenFile(rst.TestCaseOut, os.O_RDONLY | syscall.O_NONBLOCK, 0)
+func lineDiff(session *JudgeSession, rst *TestCaseResult) (sameLines int, totalLines int) {
+	answer, err := os.OpenFile(path.Join(session.ConfigDir, rst.TestCaseOut), os.O_RDONLY | syscall.O_NONBLOCK, 0)
 	if err != nil {
 		return 0, 0
 	}
 	defer answer.Close()
-	userout, err := os.Open(rst.ProgramOut)
+	userout, err := os.Open(path.Join(session.SessionDir, rst.ProgramOut))
 	if err != nil {
 		return 0, 0
 	}
@@ -193,13 +194,13 @@ func charDiffIoUtil (useroutBuffer, answerBuffer []byte, useroutLen, answerLen i
 // 进行结果文本比较（主要工具）
 // Compare the text
 func (session *JudgeSession) DiffText(result *TestCaseResult) error {
-	answerInfo, err := os.Stat(result.TestCaseOut)
+	answerInfo, err := os.Stat(path.Join(session.ConfigDir, result.TestCaseOut))
 	if err != nil {
 		result.JudgeResult = JudgeFlagSE
 		result.TextDiffLog = fmt.Sprintf("Get answer file info failed: %s", err.Error())
 		return err
 	}
-	useroutInfo, err := os.Stat(result.ProgramOut)
+	useroutInfo, err := os.Stat(path.Join(session.SessionDir ,result.ProgramOut))
 	if err != nil {
 		result.JudgeResult = JudgeFlagSE
 		result.TextDiffLog = fmt.Sprintf("Get userout file info failed: %s", err.Error())
@@ -214,14 +215,14 @@ func (session *JudgeSession) DiffText(result *TestCaseResult) error {
 	var useroutBuffer, answerBuffer []byte
 	errText := ""
 
-	answerBuffer, errText, err = readFileWithTry(result.TestCaseOut, "answer", 3)
+	answerBuffer, errText, err = readFileWithTry(path.Join(session.ConfigDir, result.TestCaseOut), "answer", 3)
 	if err != nil {
 		result.JudgeResult = JudgeFlagSE
 		result.TextDiffLog = errText
 		return err
 	}
 
-	useroutBuffer, errText, err = readFileWithTry(result.ProgramOut, "userout", 3)
+	useroutBuffer, errText, err = readFileWithTry(path.Join(session.SessionDir, result.ProgramOut), "userout", 3)
 	if err != nil {
 		result.JudgeResult = JudgeFlagSE
 		result.TextDiffLog = errText
@@ -269,7 +270,7 @@ func (session *JudgeSession) DiffText(result *TestCaseResult) error {
 		}
 	} else {
 		// WA
-		sameLines, totalLines := lineDiff(result)
+		sameLines, totalLines := lineDiff(session, result)
 		result.SameLines = sameLines
 		result.TotalLines = totalLines
 	}

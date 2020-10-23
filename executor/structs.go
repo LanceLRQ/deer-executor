@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"github.com/LanceLRQ/deer-executor/provider"
 	"io/ioutil"
+	"path"
+	"path/filepath"
 	"syscall"
 )
 
@@ -99,6 +101,7 @@ type JudgeSession struct {
 	SessionId		string				`json:"session_id"`				// Judge Session Id
 	SessionRoot		string				`json:"session_root"`			// Session Root Directory
 	SessionDir		string				`json:"-"`						// Session Directory
+	ConfigDir 		string				`json:"-"`						// Config file dir
 	CodeLangName 	string				`json:"code_lang_name"`			// Code file language name
 	CodeFile	 	string				`json:"-"`						// Code File Path
 	Commands 		[]string			`json:"-"`						// Executable program commands
@@ -128,7 +131,12 @@ func NewSession(configFile string) (*JudgeSession, error) {
 	session.SpecialJudge.TimeLimit = 1000
 	session.SpecialJudge.MemoryLimit = 65535
 	if configFile != "" {
-		cbody, err := ioutil.ReadFile(configFile)
+		configFileAbsPath, err := filepath.Abs(configFile)
+		if err != nil {
+			return nil, err
+		}
+		session.ConfigDir = path.Dir(configFileAbsPath)
+		cbody, err := ioutil.ReadFile(configFileAbsPath)
 		if err != nil {
 			return nil, err
 		}

@@ -43,7 +43,7 @@ var RunFlags = []cli.Flag {
 		Usage: "Persistent judge result to file (support: gzip, none)",
 	},
 	&cli.StringFlag {
-		Name: "compressor",
+		Name: "compress",
 		Value: "gzip",
 		Usage: "Persistent compressor type",
 	},
@@ -70,20 +70,16 @@ var RunFlags = []cli.Flag {
 	},
 }
 
-func run(c *cli.Context,  counter int) (*executor.JudgeResult, error) {
+func run(c *cli.Context,  counter int) (*executor.JudgeResult, *executor.JudgeSession, error) {
 	isBenchmarkMode := c.Int("benchmark") > 1
 	configFile := c.String("config")
 	// create session
 	session, err := executor.NewSession(configFile)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	// init files
 	session.CodeFile = c.Args().Get(0)
-	// Do clean (or benchmark on)
-	if c.Bool("clean") || isBenchmarkMode {
-		defer session.Clean()
-	}
 	// create session info
 	if isBenchmarkMode {
 		session.SessionId = uuid.NewV1().String() + strconv.Itoa(counter)
@@ -98,12 +94,12 @@ func run(c *cli.Context,  counter int) (*executor.JudgeResult, error) {
 	sessionDir, err := GetSessionDir(session.SessionRoot, session.SessionId)
 	if err != nil {
 		log.Fatal(err)
-		return nil, err
+		return nil, nil, err
 	}
 	session.SessionDir = sessionDir
 	// start judge
 	judgeResult := session.RunJudge()
-	return &judgeResult, nil
+	return &judgeResult, session, nil
 }
 
 func Run(c *cli.Context) error {
@@ -119,7 +115,7 @@ func Run(c *cli.Context) error {
 		persistenceOn := c.String("persistence") != ""
 		digitalSign := c.Bool("digital-sign")
 		compressorType := uint8(1)
-		if c.String("compressor") == "none" {
+		if c.String("compress") == "none" {
 			compressorType = uint8(0)
 		}
 		jOption := judge_result.JudgeResultPersisOptions{
@@ -143,13 +139,17 @@ func Run(c *cli.Context) error {
 			}
 		}
 		// Start Judge
-		judgeResult, err := run(c, 0)
+		judgeResult, judgeSession, err := run(c, 0)
 		if err != nil {
 			return err
 		}
+		// Do clean (or benchmark on)
+		if c.Bool("clean") || isBenchmarkMode {
+			defer judgeSession.Clean()
+		}
 		// persistence
 		if !isBenchmarkMode && persistenceOn {
-			err = judge_result.PersistentJudgeResult(judgeResult, jOption)
+			err = judge_result.PersistentJudgeResult(judgeSession, judgeResult, jOption)
 			if err != nil {
 				return err
 			}
@@ -172,7 +172,7 @@ func Run(c *cli.Context) error {
 			if i % 10 == 0 {
 				fmt.Printf("%d / %d\n", i, benchmarkN)
 			}
-			judgeResult, err := run(c, i)
+			judgeResult, _, err := run(c, i)
 			if err != nil {
 				fmt.Printf("break! %s\n", err.Error())
 				_, _ = rfp.WriteString(fmt.Sprintf("[%s]: %s\n", strconv.Itoa(i), err.Error()))

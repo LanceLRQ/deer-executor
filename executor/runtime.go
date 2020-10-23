@@ -3,6 +3,7 @@ package executor
 import (
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"syscall"
 )
@@ -120,20 +121,28 @@ func (session *JudgeSession)runSpecialJudge(rst *TestCaseResult) (*ProcessInfo, 
 	return nil, nil, fmt.Errorf("unkonw special judge mode")
 }
 
-func getSpecialJudgerPath(rst *TestCaseResult) []string {
-	tci, err := filepath.Abs(rst.TestCaseIn)
+func getSpecialJudgerPath(session *JudgeSession, rst *TestCaseResult) []string {
+	tci, err := filepath.Abs(path.Join(session.ConfigDir, rst.TestCaseIn))
 	if err != nil {
-		tci = rst.TestCaseIn
+		tci = path.Join(session.ConfigDir, rst.TestCaseIn)
 	}
-	tco, err := filepath.Abs(rst.TestCaseOut)
+	tco, err := filepath.Abs(path.Join(session.ConfigDir, rst.TestCaseOut))
 	if err != nil {
-		tci = rst.TestCaseOut
+		tco = path.Join(session.ConfigDir, rst.TestCaseOut)
+	}
+	po, err := filepath.Abs(path.Join(session.SessionDir, rst.ProgramOut))
+	if err != nil {
+		po = path.Join(session.SessionDir, rst.ProgramOut)
+	}
+	jr, err := filepath.Abs(path.Join(session.SessionDir, rst.JudgerReport))
+	if err != nil {
+		jr = path.Join(session.SessionDir, rst.JudgerReport)
 	}
 	args := []string{
 		tci,
 		tco,
-		rst.ProgramOut,
-		rst.JudgerReport,
+		po,
+		jr,
 	}
 	return args
 }
@@ -170,12 +179,27 @@ func runProgramProcess(session *JudgeSession, rst *TestCaseResult, judger bool, 
 			// Redirect testCaseIn to STDIN
 			if judger {
 				if session.SpecialJudge.RedirectProgramOut {
-					fds[0], err = redirectFileDescriptor(syscall.Stdout, rst.ProgramOut, os.O_RDONLY, 0)
+					fds[0], err = redirectFileDescriptor(
+						syscall.Stdout,
+						path.Join(session.SessionDir, rst.ProgramOut),
+						os.O_RDONLY,
+						0,
+					)
 				} else {
-					fds[0], err = redirectFileDescriptor(syscall.Stdin, rst.TestCaseIn, os.O_RDONLY, 0)
+					fds[0], err = redirectFileDescriptor(
+						syscall.Stdin,
+						path.Join(session.ConfigDir, rst.TestCaseIn),
+						os.O_RDONLY,
+						0,
+					)
 				}
 			} else {
-				fds[0], err = redirectFileDescriptor(syscall.Stdin, rst.TestCaseIn, os.O_RDONLY, 0)
+				fds[0], err = redirectFileDescriptor(
+					syscall.Stdin,
+					path.Join(session.ConfigDir, rst.TestCaseIn),
+					os.O_RDONLY,
+					0,
+				)
 			}
 			if err != nil {
 				return 0, fds, err
@@ -183,9 +207,18 @@ func runProgramProcess(session *JudgeSession, rst *TestCaseResult, judger bool, 
 
 			// Redirect userOut to STDOUT
 			if judger {
-				fds[1], err = redirectFileDescriptor(syscall.Stdout, rst.JudgerOut, os.O_WRONLY|os.O_CREATE, 0644)
+				fds[1], err = redirectFileDescriptor(
+					syscall.Stdout,
+					path.Join(session.SessionDir, rst.JudgerOut),
+					os.O_WRONLY|os.O_CREATE, 0644,
+				)
 			} else {
-				fds[1], err = redirectFileDescriptor(syscall.Stdout, rst.ProgramOut, os.O_WRONLY|os.O_CREATE, 0644)
+				fds[1], err = redirectFileDescriptor(
+					syscall.Stdout,
+					path.Join(session.SessionDir, rst.ProgramOut),
+					os.O_WRONLY|os.O_CREATE,
+					0644,
+				)
 			}
 			if err != nil {
 				return 0, fds, err
@@ -194,9 +227,19 @@ func runProgramProcess(session *JudgeSession, rst *TestCaseResult, judger bool, 
 
 		// Redirect programError to STDERR
 		if judger {
-			fds[2], err = redirectFileDescriptor(syscall.Stderr, rst.JudgerError, os.O_WRONLY|os.O_CREATE, 0644)
+			fds[2], err = redirectFileDescriptor(
+				syscall.Stderr,
+				path.Join(session.SessionDir, rst.JudgerError),
+				os.O_WRONLY|os.O_CREATE,
+				0644,
+			)
 		} else {
-			fds[2], err = redirectFileDescriptor(syscall.Stderr, rst.ProgramError, os.O_WRONLY|os.O_CREATE, 0644)
+			fds[2], err = redirectFileDescriptor(
+				syscall.Stderr,
+				path.Join(session.SessionDir, rst.ProgramError),
+				os.O_WRONLY|os.O_CREATE,
+				0644,
+			)
 		}
 		if err != nil {
 			return 0, fds, err
@@ -212,9 +255,19 @@ func runProgramProcess(session *JudgeSession, rst *TestCaseResult, judger bool, 
 
 		// Set Resource Limit
 		if judger {
-			err = setLimit(session.SpecialJudge.TimeLimit, session.SpecialJudge.MemoryLimit, session.RealTimeLimit, session.FileSizeLimit)
+			err = setLimit(
+				session.SpecialJudge.TimeLimit,
+				session.SpecialJudge.MemoryLimit,
+				session.RealTimeLimit,
+				session.FileSizeLimit,
+				)
 		} else {
-			err = setLimit(session.TimeLimit, session.MemoryLimit, session.RealTimeLimit, session.FileSizeLimit)
+			err = setLimit(
+				session.TimeLimit,
+				session.MemoryLimit,
+				session.RealTimeLimit,
+				session.FileSizeLimit,
+			)
 		}
 		if err != nil {
 			return 0, fds, err
@@ -223,7 +276,7 @@ func runProgramProcess(session *JudgeSession, rst *TestCaseResult, judger bool, 
 		if judger {
 			// Run Judger (Testlib compatible)
 			// ./checker <input-file> <output-file> <answer-file> <report-file>
-			args := getSpecialJudgerPath(rst)
+			args := getSpecialJudgerPath(session, rst)
 			_ = syscall.Exec(session.SpecialJudge.Checker, args, nil)
 		} else {
 			// Run Program
