@@ -5,13 +5,13 @@
     "test_cases": [
         {
             "id": "1",
-            "test_case_in": "./data/problems/APlusB/0.in",
-            "test_case_out": "./data/problems/APlusB/0.out"
+            "test_case_in": "0.in",
+            "test_case_out": "0.out"
         },
         {
             "id": "2",
-            "test_case_in": "./data/problems/APlusB/1.in",
-            "test_case_out": "./data/problems/APlusB/1.out"
+            "test_case_in": "1.in",
+            "test_case_out": "1.out"
         }
     ],
     "time_limit": 1000,

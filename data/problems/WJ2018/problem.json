@@ -5,8 +5,8 @@
     "test_cases": [
         {
             "id": "1",
-            "test_case_in": "./data/problems/WJ2018/0.in",
-            "test_case_out": "./data/problems/WJ2018/0.out"
+            "test_case_in": "0.in",
+            "test_case_out": "0.out"
         }
     ],
     "time_limit": 1000,
@@ -17,7 +17,7 @@
     "strict_mode": true,
     "special_judge": {
         "mode": 1,
-        "checker": "./data/codes/WJ2018/judger.cpp",
+        "checker": "judger.cpp",
         "redirect_program_out": true,
         "time_limit": 1000,
         "memory_limit": 65535

@@ -2,7 +2,6 @@ package executor
 
 import (
 	"os"
-	"path"
 	"strconv"
 )
 
@@ -70,11 +69,11 @@ func (session *JudgeSession)runOneCase(tc TestCase, Id string) *TestCaseResult {
 	// 创建相关的文件路径
 	tcResult.TestCaseIn = tc.TestCaseIn
 	tcResult.TestCaseOut = tc.TestCaseOut
-	tcResult.ProgramOut = path.Join(session.SessionDir, Id + "_program.out")
-	tcResult.ProgramError = path.Join(session.SessionDir,  Id + "_program.err")
-	tcResult.JudgerOut = path.Join(session.SessionDir,  Id + "_judger.out")
-	tcResult.JudgerError = path.Join(session.SessionDir,  Id + "_judger.err")
-	tcResult.JudgerReport = path.Join(session.SessionDir,  Id + "_judger.report")
+	tcResult.ProgramOut = Id + "_program.out"
+	tcResult.ProgramError = Id + "_program.err"
+	tcResult.JudgerOut = Id + "_judger.out"
+	tcResult.JudgerError = Id + "_judger.err"
+	tcResult.JudgerReport = Id + "_judger.report"
 
 	// 运行judge程序
 	err := session.judgeOnce(&tcResult)
