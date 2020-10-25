@@ -26,10 +26,16 @@ var RunFlags = []cli.Flag {
 		Value: false,
 		Usage: "Delete session directory after judge",
 	},
+	&cli.StringFlag {
+		Name: "language",
+		Aliases: []string{"l"},
+		Value: "auto",
+		Usage: "Code language name",
+	},
 	&cli.BoolFlag {
 		Name: "debug",
 		Value: false,
-		Usage: "print debug log",
+		Usage: "Print debug log",
 	},
 	&cli.IntFlag {
 		Name: "benchmark",
@@ -77,6 +83,9 @@ func run(c *cli.Context,  counter int) (*executor.JudgeResult, *executor.JudgeSe
 	session, err := executor.NewSession(configFile)
 	if err != nil {
 		return nil, nil, err
+	}
+	if c.String("language") != "" {
+		session.CodeLangName = c.String("language")
 	}
 	// init files
 	session.CodeFile = c.Args().Get(0)
