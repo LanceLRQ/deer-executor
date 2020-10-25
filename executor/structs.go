@@ -111,25 +111,33 @@ type ProblemContent struct {
 	Tips 			string				`json:"tips"`					// Solution tips
 }
 
-// Judge session
-type JudgeSession struct {
-	SessionId		string				`json:"session_id"`				// Judge Session Id
-	SessionRoot		string				`json:"session_root"`			// Session Root Directory
-	SessionDir		string				`json:"-"`						// Session Directory
-	ConfigDir 		string				`json:"-"`						// Config file dir
-	CodeLangName 	string				`json:"code_lang_name"`			// Code file language name
-	CodeFile	 	string				`json:"-"`						// Code File Path
-	Commands 		[]string			`json:"-"`						// Executable program commands
-	TestCases		[]TestCase			`json:"test_cases"`				// Test cases
+type JudgeLimit struct {
 	TimeLimit 		int					`json:"time_limit"`				// Time limit (ms)
 	MemoryLimit 	int					`json:"memory_limit"`			// Memory limit (KB)
 	RealTimeLimit 	int					`json:"real_time_limit"`		// Real Time Limit (ms) (optional)
 	FileSizeLimit 	int					`json:"file_size_limit"`		// File Size Limit (bytes) (optional)
-	Uid 			int					`json:"uid"`					// User id (optional)
-	StrictMode 		bool				`json:"strict_mode"`			// Strict Mode (if close, PE will be ignore)
-	SpecialJudge  	SpecialJudgeOptions `json:"special_judge"`			// Special Judge Options
+}
 
-	Problem			ProblemContent		`json:"problem"`				// Problem Info
+// Judge session
+type JudgeSession struct {
+	SessionId		string					`json:"session_id"`				// Judge Session Id
+	SessionRoot		string					`json:"session_root"`			// Session Root Directory
+	SessionDir		string					`json:"-"`						// Session Directory
+	ConfigDir 		string					`json:"-"`						// Config file dir
+	CodeLangName 	string					`json:"code_lang_name"`			// Code file language name
+	CodeFile	 	string					`json:"-"`						// Code File Path
+	Commands 		[]string				`json:"-"`						// Executable program commands
+	TestCases		[]TestCase				`json:"test_cases"`				// Test cases
+	TimeLimit 		int						`json:"time_limit"`				// Time limit (ms)
+	MemoryLimit 	int						`json:"memory_limit"`			// Memory limit (KB)
+	RealTimeLimit 	int						`json:"real_time_limit"`		// Real Time Limit (ms) (optional)
+	FileSizeLimit 	int						`json:"file_size_limit"`		// File Size Limit (bytes) (optional)
+	Uid 			int						`json:"uid"`					// User id (optional)
+	StrictMode 		bool					`json:"strict_mode"`			// Strict Mode (if close, PE will be ignore)
+	SpecialJudge  	SpecialJudgeOptions 	`json:"special_judge"`			// Special Judge Options
+
+	Limitation		map[string]JudgeLimit	`json:"limitation"`				// Limitation
+	Problem			ProblemContent			`json:"problem"`				// Problem Info
 
 	compiler		provider.CodeCompileProviderInterface				// Compiler entity
 }

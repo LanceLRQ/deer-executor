@@ -17,24 +17,8 @@ type ProblemPackage struct {
 	SignSize		uint16				// (SSZ) Signature Size
 	Certificate		[]byte				// Public Certificate
 	Signature     	[]byte		 		// Signature: SHA256(Result + Body)
-	Result 			[]byte				// Result JSON
+	Configs 		[]byte				// Configs JSON
 	BodyPackageFile	string				// Body package file
-}
-
-/***
-------------------------
-Magic | Size | FileName | Content
-------------------------
-  2   |  4  | (Sep: \n) |  ...
-------------------------
-***/
-type ProblemPackageBody struct {
-	BodyPackageFile		string
-	Files 				[]struct {
-		Size     		uint32
-		FileName 		string
-		Position 		uint32
-	}
 }
 
 type ProblemPersisOptions struct {
