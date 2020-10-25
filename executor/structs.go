@@ -96,6 +96,21 @@ type JudgeResult struct {
 	CeInfo 			string				`json:"ce_info"`				// CeInfo when Compile Error
 }
 
+type ProblemIOSample struct {
+	Input		string					`json:"input"`					// Input sample
+	Output 		string					`json:"output"`					// Output sample
+}
+
+type ProblemContent struct {
+	Author 			string				`json:"author"`					// Problem author
+	Source 			string				`json:"source"`					// Problem source
+	Description 	string				`json:"description"`			// Description
+	Input			string				`json:"input"`					// Input requirements
+	Output 			string				`json:"output"`					// Output requirements
+	Sample			[]ProblemIOSample	`json:"sample"`					// Sample cases
+	Tips 			string				`json:"tips"`					// Solution tips
+}
+
 // Judge session
 type JudgeSession struct {
 	SessionId		string				`json:"session_id"`				// Judge Session Id
@@ -113,6 +128,8 @@ type JudgeSession struct {
 	Uid 			int					`json:"uid"`					// User id (optional)
 	StrictMode 		bool				`json:"strict_mode"`			// Strict Mode (if close, PE will be ignore)
 	SpecialJudge  	SpecialJudgeOptions `json:"special_judge"`			// Special Judge Options
+
+	Problem			ProblemContent		`json:"problem"`				// Problem Info
 
 	compiler		provider.CodeCompileProviderInterface				// Compiler entity
 }

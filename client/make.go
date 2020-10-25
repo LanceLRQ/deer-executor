@@ -52,6 +52,12 @@ func MakeConfigFile(c *cli.Context) error {
 			TestCaseOut: "",
 		},
 	}
+	config.Problem.Sample = []executor.ProblemIOSample{
+		{
+			Input: "",
+			Output: "",
+		},
+	}
 	output := c.String("output")
 	if output != "" {
 		_, err := os.Stat(output)
