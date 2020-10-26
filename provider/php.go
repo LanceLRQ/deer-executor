@@ -19,7 +19,7 @@ func (prov *PHPCompileProvider) Init(code string, workDir string) error {
 	prov.realTime = true
 	prov.codeContent = code
 	prov.workDir = workDir
-	prov.Name = "PHP"
+	prov.Name = "php"
 
 	err := prov.checkWorkDir()
 	if err != nil {

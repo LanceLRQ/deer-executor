@@ -26,6 +26,10 @@ func initWorkRoot() error {
 	if err != nil {
 		return err
 	}
+	err = executor.PlaceMemorySizeForJIT("./jit_memory.json")
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

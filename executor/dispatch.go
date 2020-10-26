@@ -1,6 +1,8 @@
 package executor
 
 import (
+	"fmt"
+	"log"
 	"os"
 	"strconv"
 )
@@ -102,6 +104,15 @@ func (session *JudgeSession)RunJudge() JudgeResult {
 			return judgeResult
 		}
 	}
+	tl, ml, rtl, fsl, mlf := getLimitation(session)
+	mlfText := ""
+	if mlf > 0 {
+		mlfText = fmt.Sprintf(" (with %d KB for VM)", mlf)
+	}
+	log.Printf(
+		"Time limit: %d ms, Memory limit: %d KB%s, Real-time limit: %d ms, File size limit: %d KB\n",
+		tl, ml, mlfText, rtl, fsl/1024,
+	)
 
 	exitCodes := make([]int, 0, 1)
 	for i := 0; i < len(session.TestCases); i++ {

@@ -116,6 +116,10 @@ func Run(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
+	err = executor.PlaceMemorySizeForJIT("./jit_memory.json")
+	if err != nil {
+		return err
+	}
 	isBenchmarkMode := c.Int("benchmark") > 1
 	benchmarkN := c.Int("benchmark")
 	if !isBenchmarkMode {
@@ -167,6 +171,7 @@ func Run(c *cli.Context) error {
 			judgeResult.TestCases = nil
 		}
 		fmt.Println(executor.ObjectToJSONStringFormatted(judgeResult))
+		os.Exit(judgeResult.JudgeResult)
 	} else {
 		// 基准测试
 		rfp, err := os.OpenFile("./report.log", os.O_WRONLY | os.O_CREATE, 0644)

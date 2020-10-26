@@ -17,7 +17,7 @@ func (prov *GolangCompileProvider) Init(code string, workDir string) error {
 	prov.realTime = false
 	prov.codeContent = code
 	prov.workDir = workDir
-	prov.Name = "Golang"
+	prov.Name = "golang"
 
 	err := prov.checkWorkDir()
 	if err != nil {
