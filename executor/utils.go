@@ -13,6 +13,7 @@ import (
 	"io/ioutil"
 	"math"
 	"os"
+	"path"
 	"runtime"
 	"syscall"
 	"unsafe"
@@ -307,4 +308,30 @@ func IsExecutableFile (filePath string) (bool, error) {
 		isExec = magic == 0x7F454C46
 	}
 	return isExec, nil
+}
+
+// 检查配置文件里的所有文件是否存在
+func CheckRequireFilesExists(session *JudgeSession) error {
+	var err error
+	// 检查特判程序是否存在
+	if session.SpecialJudge.Mode != 0 {
+		_, err = os.Stat(path.Join(session.ConfigDir, session.SpecialJudge.Checker))
+		if os.IsNotExist(err) {
+			return fmt.Errorf("special judge checker file (%s) not exists", session.SpecialJudge.Checker)
+		}
+	}
+	// 检查每个test case里的文件是否存在
+	// 新版判题机要求无论有没有数据，都要有对应的输入输出文件。
+	for i := 0; i < len(session.TestCases); i++ {
+		tcase := session.TestCases[i]
+		_, err = os.Stat(path.Join(session.ConfigDir, tcase.TestCaseIn))
+		if os.IsNotExist(err) {
+			return fmt.Errorf("test case (%s) input file (%s) not exists", tcase.Id, tcase.TestCaseIn)
+		}
+		_, err = os.Stat(path.Join(session.ConfigDir, tcase.TestCaseOut))
+		if os.IsNotExist(err) {
+			return fmt.Errorf("test case (%s) output file (%s) not exists", tcase.Id, tcase.TestCaseOut)
+		}
+ 	}
+	return nil
 }

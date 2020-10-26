@@ -25,6 +25,7 @@ type SpecialJudgeOptions struct {
 
 type TestCase struct {
 	Id 				string				`json:"id"`						// Identifier
+	Name 			string				`json:"name"`					// Testcase name
 	TestCaseIn 		string				`json:"test_case_in"`			// Testcase input file path
 	TestCaseOut		string				`json:"test_case_out"`			// Testcase output file path
 }
@@ -97,6 +98,7 @@ type JudgeSession struct {
 	SessionId		string					`json:"session_id"`				// Judge Session Id
 	SessionRoot		string					`json:"session_root"`			// Session Root Directory
 	SessionDir		string					`json:"-"`						// Session Directory
+	ConfigFile 		string					`json:"-"`						// Config file
 	ConfigDir 		string					`json:"-"`						// Config file dir
 	CodeLangName 	string					`json:"code_lang_name"`			// Code file language name
 	CodeFile	 	string					`json:"-"`						// Code File Path
@@ -134,6 +136,7 @@ func NewSession(configFile string) (*JudgeSession, error) {
 		if err != nil {
 			return nil, err
 		}
+		session.ConfigFile = configFileAbsPath
 		session.ConfigDir = path.Dir(configFileAbsPath)
 		cbody, err := ioutil.ReadFile(configFileAbsPath)
 		if err != nil {

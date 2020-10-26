@@ -202,8 +202,8 @@ func PersistentJudgeResult(
 	if _, err := io.Copy(fout, fBody); err != nil {
 		return fmt.Errorf("write result file error: %s", err.Error())
 	}
-
+	// Clean
+	_ = os.Remove(bodyFile)
 
 	return nil
-
 }
