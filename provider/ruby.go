@@ -19,7 +19,7 @@ func (prov *RubyCompileProvider) Init(code string, workDir string) error {
 	prov.realTime = true
 	prov.codeContent = code
 	prov.workDir = workDir
-	prov.Name = "Ruby"
+	prov.Name = "ruby"
 
 	err := prov.checkWorkDir()
 	if err != nil {

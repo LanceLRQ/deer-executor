@@ -147,6 +147,21 @@ func getSpecialJudgerPath(session *JudgeSession, rst *TestCaseResult) []string {
 	return args
 }
 
+
+func getLimitation(session *JudgeSession) (int, int, int, int, int) {
+	langName := session.compiler.GetName()
+	memoryLimitExtend := 0
+	jitMem, ok := MemorySizeForJIT[langName]
+	if ok {
+		memoryLimitExtend = jitMem
+	}
+	limitation, ok := session.Limitation[langName]
+	if ok {
+		return limitation.TimeLimit, limitation.MemoryLimit + memoryLimitExtend, limitation.RealTimeLimit, limitation.FileSizeLimit, memoryLimitExtend
+	}
+	return session.TimeLimit, session.MemoryLimit + memoryLimitExtend, session.RealTimeLimit, session.FileSizeLimit, memoryLimitExtend
+}
+
 // 目标程序子进程
 func runProgramProcess(session *JudgeSession, rst *TestCaseResult, judger bool, pipeMode bool, pipeStd []int) (uintptr, []int, error) {
 	var (
@@ -262,12 +277,8 @@ func runProgramProcess(session *JudgeSession, rst *TestCaseResult, judger bool, 
 				session.FileSizeLimit,
 				)
 		} else {
-			err = setLimit(
-				session.TimeLimit,
-				session.MemoryLimit,
-				session.RealTimeLimit,
-				session.FileSizeLimit,
-			)
+			tl, ml, rtl, fsl, _ := getLimitation(session)
+			err = setLimit(tl, ml, rtl, fsl )
 		}
 		if err != nil {
 			return 0, fds, err

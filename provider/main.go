@@ -20,10 +20,10 @@ import (
 
 type CompileCommandsStruct struct {
 	GNUC 		string		`json:"gcc"`
-	GNUCPP 		string		`json:"gcc_cpp"`
+	GNUCPP 		string		`json:"g++"`
 	Java 		string		`json:"java"`
-	Go 			string		`json:"go"`
-	NodeJS 		string		`json:"node"`
+	Go 			string		`json:"golang"`
+	NodeJS 		string		`json:"nodejs"`
 	PHP 		string		`json:"php"`
 	Ruby 		string		`json:"ruby"`
 	Python2		string 		`json:"python2"`

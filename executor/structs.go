@@ -9,32 +9,6 @@ import (
 	"syscall"
 )
 
-const (
-	JudgeFlagAC 	 						= 0   					// 0 Accepted
-	JudgeFlagPE 	 						= 1	    				// 1 Presentation Error
-	JudgeFlagTLE 							= 2						// 2 Time Limit Exceeded
-	JudgeFlagMLE 	 						= 3						// 3 Memory Limit Exceeded
-	JudgeFlagWA 	 						= 4	    				// 4 Wrong Answer
-	JudgeFlagRE 	 						= 5	    				// 5 Runtime Error
-	JudgeFlagOLE 	 						= 6						// 6 Output Limit Exceeded
-	JudgeFlagCE 	 						= 7	    				// 7 Compile Error
-	JudgeFlagSE 						 	= 8     				// 8 System Error
-
-	JudgeFlagSpecialJudgeTimeout 		 	= 10    				// 10 Special Judger Time OUT
-	JudgeFlagSpecialJudgeError 			 	= 11    				// 11 Special Judger ERROR
-	JudgeFlagSpecialJudgeRequireChecker  	= 12 					// 12 Special Judger Finish, Need Standard Checkup
-)
-
-const (
-	SpecialJudgeModeDisabled 				= 0
-	SpecialJudgeModeChecker 				= 1
-	SpecialJudgeModeInteractive 			= 2
-
-	SpecialJudgeTimeLimit 					= 1 * 1000				// Unit: ms
-	SpecialJudgeMemoryLimit 				= 256 * 1024			// Unit: kb
-)
-
-
 type ProcessInfo struct {
 	Pid uintptr							`json:"pid"`
 	Status syscall.WaitStatus			`json:"status"`

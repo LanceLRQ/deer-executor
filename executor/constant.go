@@ -1,5 +1,36 @@
 package executor
 
+import (
+	"encoding/json"
+	"io/ioutil"
+	"os"
+)
+
+const (
+	JudgeFlagAC 	 						= 0   					// 0 Accepted
+	JudgeFlagPE 	 						= 1	    				// 1 Presentation Error
+	JudgeFlagTLE 							= 2						// 2 Time Limit Exceeded
+	JudgeFlagMLE 	 						= 3						// 3 Memory Limit Exceeded
+	JudgeFlagWA 	 						= 4	    				// 4 Wrong Answer
+	JudgeFlagRE 	 						= 5	    				// 5 Runtime Error
+	JudgeFlagOLE 	 						= 6						// 6 Output Limit Exceeded
+	JudgeFlagCE 	 						= 7	    				// 7 Compile Error
+	JudgeFlagSE 						 	= 8     				// 8 System Error
+
+	JudgeFlagSpecialJudgeTimeout 		 	= 10    				// 10 Special Judger Time OUT
+	JudgeFlagSpecialJudgeError 			 	= 11    				// 11 Special Judger ERROR
+	JudgeFlagSpecialJudgeRequireChecker  	= 12 					// 12 Special Judger Finish, Need Standard Checkup
+)
+
+const (
+	SpecialJudgeModeDisabled 				= 0
+	SpecialJudgeModeChecker 				= 1
+	SpecialJudgeModeInteractive 			= 2
+
+	SpecialJudgeTimeLimit 					= 1 * 1000				// Unit: ms
+	SpecialJudgeMemoryLimit 				= 256 * 1024			// Unit: kb
+)
+
 var SignalNumberMap = map[int][]string {
 	1: []string{"SIGHUP", "Hangup (POSIX)."},
 	2:  []string{"SIGINT", "Interrupt (ANSI)."},
@@ -50,4 +81,34 @@ var FlagMeansMap = map[int]string {
 	11: "Special Judger Finish, Need Standard Checkup",
 }
 
+// 给动态语言、带虚拟机的语言设定虚拟机自身的初始内存大小
+var MemorySizeForJIT = map[string]int {
+	"gcc": 			0,
+	"g++": 			0,
+	"java": 		393216,			// java
+	"python2": 		65536,			// py2
+	"python3": 		65536,			// py3
+	"nodejs": 		262144,			// js
+	"golang":		0,
+	"php": 			131072,			// php
+	"ruby": 		65536,			// ruby
+}
 
+func PlaceMemorySizeForJIT(configFile string) error {
+	if configFile != "" {
+		_, err := os.Stat(configFile)
+		// ignore
+		if os.IsNotExist(err) {
+			return nil
+		}
+		cbody, err := ioutil.ReadFile(configFile)
+		if err != nil {
+			return err
+		}
+		err = json.Unmarshal(cbody, &MemorySizeForJIT)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}

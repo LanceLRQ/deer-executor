@@ -58,6 +58,12 @@ func MakeConfigFile(c *cli.Context) error {
 			Output: "",
 		},
 	}
+	config.Limitation["C"] = executor.JudgeLimit{
+		TimeLimit:     0,
+		MemoryLimit:   0,
+		RealTimeLimit: 0,
+		FileSizeLimit: 0,
+	}
 	output := c.String("output")
 	if output != "" {
 		_, err := os.Stat(output)
@@ -86,6 +92,31 @@ func MakeCompileConfigFile(c *cli.Context) error {
 	output := c.String("output")
 	if output == "" {
 		output = "./compilers.json"
+	}
+	_, err := os.Stat(output)
+	if os.IsExist(err) {
+		log.Fatal("output file exists")
+		return nil
+	}
+	fmt.Println(output)
+	fp, err := os.OpenFile(output, os.O_WRONLY | os.O_CREATE, 0644)
+	if err != nil {
+		log.Fatalf("open output file error: %s\n", err.Error())
+		return nil
+	}
+	defer fp.Close()
+	_, err = fp.WriteString(executor.ObjectToJSONStringFormatted(config))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func MakeJITMemoryConfigFile(c *cli.Context) error {
+	config := executor.MemorySizeForJIT
+	output := c.String("output")
+	if output == "" {
+		output = "./jit_memory.json"
 	}
 	_, err := os.Stat(output)
 	if os.IsExist(err) {

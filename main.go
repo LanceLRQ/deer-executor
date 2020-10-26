@@ -62,6 +62,17 @@ func main() {
 								Usage:   "output config file",
 							},
 						},
+					},{
+						Name:   "jit_memory",
+						Action: client.MakeJITMemoryConfigFile,
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:    "output",
+								Aliases: []string{"out"},
+								Value: 	 "",
+								Usage:   "output config file",
+							},
+						},
 					},
 				},
 			},
