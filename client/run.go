@@ -66,11 +66,13 @@ var RunFlags = []cli.Flag {
 	},
 	&cli.StringFlag {
 		Name: "public-key",
+		Aliases: []string{"pub"},
 		Value: "",
 		Usage: "Digital sign public key",
 	},
 	&cli.StringFlag {
 		Name: "private-key",
+		Aliases:  	[]string{"pri"},
 		Value: "",
 		Usage: "Digital sign private key",
 	},
