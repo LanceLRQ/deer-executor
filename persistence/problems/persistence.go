@@ -1,20 +1,73 @@
-package judge_result
+package problems
 
 import (
+	"archive/zip"
 	"bytes"
-	"compress/gzip"
 	"encoding/binary"
 	"fmt"
 	"github.com/LanceLRQ/deer-executor/executor"
 	"github.com/LanceLRQ/deer-executor/persistence"
-	"github.com/LanceLRQ/deer-executor/persistence/judge_result"
 	uuid "github.com/satori/go.uuid"
 	"io"
 	"os"
 	"path"
+	"path/filepath"
+	"strings"
 )
 
 
+func mergeFilesBinary(session *executor.JudgeSession) (string, error) {
+	tmpFileName := uuid.NewV1().String() + ".zip"
+	tmpFilePath := path.Join("/tmp/", tmpFileName)
+	zipFile, err := os.Create(tmpFilePath)
+	if err != nil {
+		return "", err
+	}
+	defer zipFile.Close()
+	zipWriter := zip.NewWriter(zipFile)
+	defer zipWriter.Close()
+
+	err = filepath.Walk(session.ConfigDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if path == session.ConfigFile {
+			// 跳过配置文件
+			return nil
+		}
+		if path == session.ConfigDir {
+			// 跳过配置文件夹
+			return nil
+		}
+		header, err := zip.FileInfoHeader(info)
+		if err != nil {
+			return err
+		}
+		header.Name = strings.TrimPrefix(path, session.ConfigDir + "/")
+		if info.IsDir() {
+			header.Name += "/"
+		} else {
+			header.Method = zip.Deflate
+		}
+		writer, err := zipWriter.CreateHeader(header)
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			file, err := os.Open(path)
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+			_, err = io.Copy(writer, file)
+		}
+		return err
+	})
+	if err != nil {
+		return "", err
+	}
+	return tmpFilePath, nil
+}
 
 func writeFileHeaderAndResult (writer io.Writer, pack ProblemPackage) error {
 	buf16 := make([]byte, 2)
@@ -23,37 +76,43 @@ func writeFileHeaderAndResult (writer io.Writer, pack ProblemPackage) error {
 	// magic
 	binary.BigEndian.PutUint16(buf16, persistence.JudgeResultMagicCode)
 	if _, err := writer.Write(buf16); err != nil {
-		return fmt.Errorf("write result file error: %s", err.Error())
+		return fmt.Errorf("write problem file error: %s", err.Error())
 	}
 
 	// Version
 	binary.BigEndian.PutUint16(buf16, pack.Version)
 	if _, err := writer.Write(buf16); err != nil {
-		return fmt.Errorf("write result file error: %s", err.Error())
+		return fmt.Errorf("write problem file error: %s", err.Error())
 	}
 
-	// ResultSize
+	// Commit Version
+	binary.BigEndian.PutUint32(buf32, pack.CommitVersion)
+	if _, err := writer.Write(buf32); err != nil {
+		return fmt.Errorf("write problem file error: %s", err.Error())
+	}
+
+	// ConfigSize
 	binary.BigEndian.PutUint32(buf32, pack.ConfigSize)
 	if _, err := writer.Write(buf32); err != nil {
-		return fmt.Errorf("write result file error: %s", err.Error())
+		return fmt.Errorf("write problem file error: %s", err.Error())
 	}
 
 	// BodySize
 	binary.BigEndian.PutUint32(buf32, pack.BodySize)
 	if _, err := writer.Write(buf32); err != nil {
-		return fmt.Errorf("write result file error: %s", err.Error())
+		return fmt.Errorf("write problem file error: %s", err.Error())
 	}
 
 	// CertSize
 	binary.BigEndian.PutUint16(buf16, pack.CertSize)
 	if _, err := writer.Write(buf16); err != nil {
-		return fmt.Errorf("write result file error: %s", err.Error())
+		return fmt.Errorf("write problem file error: %s", err.Error())
 	}
 
 	// Certificate
 	if pack.CertSize > 0 {
 		if _, err := writer.Write(pack.Certificate); err != nil {
-			return fmt.Errorf("write result file error: %s", err.Error())
+			return fmt.Errorf("write problem file error: %s", err.Error())
 		}
 	}
 
@@ -64,9 +123,14 @@ func PackProblems(
 	session *executor.JudgeSession,
 	options ProblemPersisOptions,
 ) error {
+	err := executor.CheckRequireFilesExists(session)
+	if err != nil {
+		return err
+	}
+
 	fout, err := os.Create(options.OutFile)
 	if err != nil {
-		return fmt.Errorf("create result file error: %s", err.Error())
+		return fmt.Errorf("create problem file error: %s", err.Error())
 	}
 	defer fout.Close()
 
@@ -78,7 +142,7 @@ func PackProblems(
 
 	configBytes := executor.ObjectToJSONByte(session)
 
-	bodyFile, err := mergeResultBinary(session, judgeResult, options.CompressorType)
+	bodyFile, err := mergeFilesBinary(session)
 	if err != nil {
 		return err
 	}
@@ -124,26 +188,28 @@ func PackProblems(
 	// SignSize
 	binary.BigEndian.PutUint16(buf16, signSize)
 	if _, err := fout.Write(buf16); err != nil {
-		return fmt.Errorf("write result file error: %s", err.Error())
+		return fmt.Errorf("write problem file error: %s", err.Error())
 	}
 	// Signature
 	if _, err := fout.Write(hash); err != nil {
-		return fmt.Errorf("write result file error: %s", err.Error())
+		return fmt.Errorf("write problem file error: %s", err.Error())
 	}
 
-	// Write Result and Body
-	// 要注意先写入result，再写body，方便后续校验的时候直接顺序读取
+	// Write configs and Body
+	// 要注意先写入configs，再写body，方便后续校验的时候直接顺序读取
 	if _, err := fout.Write(pack.Configs); err != nil {
-		return fmt.Errorf("write result file error: %s", err.Error())
+		return fmt.Errorf("write problem file error: %s", err.Error())
 	}
 	fBody, err = os.Open(bodyFile)
 	if err != nil { return err }
 	defer fBody.Close()
 	// Copy Body to fout
 	if _, err := io.Copy(fout, fBody); err != nil {
-		return fmt.Errorf("write result file error: %s", err.Error())
+		return fmt.Errorf("write problem file error: %s", err.Error())
 	}
 
+	// Clean
+	_ = os.Remove(bodyFile)
 
 	return nil
 

@@ -3,6 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/LanceLRQ/deer-executor/client"
+	"github.com/LanceLRQ/deer-executor/executor"
+	"github.com/LanceLRQ/deer-executor/persistence"
+	"github.com/LanceLRQ/deer-executor/persistence/problems"
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"
@@ -113,6 +116,24 @@ func main() {
 					//	return err
 					//}
 					//fmt.Println(executor.ObjectToJSONStringFormatted(rst))
+
+					pem, err := persistence.GetDigitalPEMFromFile("./data/certs/test.pem", "./data/certs/test.key")
+					if err != nil {
+						return err
+					}
+					session, err := executor.NewSession("./data/problems/APlusB/problem.json")
+					if err != nil {
+						return err
+					}
+					options := problems.ProblemPersisOptions{
+						DigitalSign: true,
+						DigitalPEM: *pem,
+						OutFile: "./a+b.problem",
+					}
+					err = problems.PackProblems(session, options)
+					if err != nil {
+						return err
+					}
 					return nil
 				},
 			},
