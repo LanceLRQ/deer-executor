@@ -14,13 +14,6 @@ import (
 	"io/ioutil"
 )
 
-type DigitalSignPEM struct {
-	PublicKey 			*rsa.PublicKey
-	PrivateKey 			*rsa.PrivateKey
-	PublicKeyRaw 		[]byte
-	PrivateKeyRaw 		[]byte
-}
-
 /* SHA256 */
 
 func SHA256String(body string) ([]byte, error) {
