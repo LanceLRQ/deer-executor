@@ -49,10 +49,10 @@ var RunFlags = []cli.Flag {
 		Usage: "Persistent compressor type",
 	},
 	&cli.BoolFlag {
-		Name: "digital-sign",
-		Aliases: []string{"sign"},
+		Name: "sign",
+		Aliases: []string{"s"},
 		Value: false,
-		Usage: "Enable digital sign",
+		Usage: "Enable digital sign (GPG)",
 	},
 	&cli.BoolFlag {
 		Name: "detail",
@@ -60,16 +60,16 @@ var RunFlags = []cli.Flag {
 		Usage: "Show test-cases details",
 	},
 	&cli.StringFlag {
-		Name: "public-key",
-		Aliases: []string{"pub"},
-		Value: "",
-		Usage: "Digital sign public key",
+		Name: 		"gpg-key",
+		Aliases:  	[]string{"key"},
+		Value: 		"",
+		Usage: 		"GPG private key file",
 	},
 	&cli.StringFlag {
-		Name: "private-key",
-		Aliases: []string{"pri"},
-		Value: "",
-		Usage: "Digital sign private key",
+		Name: 		"passphrase",
+		Aliases:  	[]string{"password", "pwd"},
+		Value: 		"",
+		Usage: 		"GPG private key passphrase",
 	},
 	&cli.StringFlag {
 		Name: "work-dir",
@@ -162,30 +162,33 @@ func Run(c *cli.Context) error {
 		// 正常运行
 		// parse params
 		persistenceOn := c.String("persistence") != ""
-		digitalSign := c.Bool("digital-sign")
+		digitalSign := c.Bool("sign")
 		compressorType := uint8(1)
 		if c.String("compress") == "none" {
 			compressorType = uint8(0)
 		}
-		jOption := judge_result.JudgeResultPersisOptions{
-			OutFile: c.String("persistence"),
+		//jOption := persistence.JudgeResultPersisOptions {
+		//	OutFile: c.String("persistence"),
+		//	CompressorType: compressorType,
+		//	DigitalSign: digitalSign,
+		//}
+		jOption := persistence.JudgeResultPersisOptions {
 			CompressorType: compressorType,
-			DigitalSign: digitalSign,
 		}
+		jOption.OutFile = c.String("persistence")
 		// 是否要持久化结果
 		if persistenceOn {
 			if digitalSign {
-				if c.String("public-key") == "" || c.String("private-key") == "" {
-					return fmt.Errorf("digital sign need public key and private key")
+				if c.String("passphrase") != "" {
+					log.Println("[warn] Using a password on the command line interface can be insecure.")
 				}
-				digPEM, err := persistence.GetDigitalPEMFromFile(c.String("public-key"), c.String("private-key"))
+				passphrase := []byte(c.String("passphrase"))
+				pem, err := persistence.GetArmorPublicKey(c.String("gpg-key"), passphrase)
 				if err != nil {
 					return err
 				}
-				if digPEM.PrivateKey == nil || digPEM.PublicKey == nil {
-					return fmt.Errorf("parse public key or private key error")
-				}
-				jOption.DigitalPEM = *digPEM
+				jOption.DigitalSign = true
+				jOption.DigitalPEM = pem
 			}
 		}
 		// Start Judge

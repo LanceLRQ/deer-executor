@@ -50,7 +50,7 @@ import (
 //if err != nil {
 //	return err
 //}
-//options := problems.ProblemPersisOptions{
+//options := problems.CommonPersisOptions{
 //	DigitalSign: true,
 //	DigitalPEM: *pem,
 //	OutFile: "./a+b.problem",
