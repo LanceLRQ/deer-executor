@@ -120,7 +120,7 @@ func writeFileHeaderAndResult (writer io.Writer, pack JudgeResultPackage) error 
 func PersistentJudgeResult(
 	session *executor.JudgeSession,
 	judgeResult *executor.JudgeResult,
-	options JudgeResultPersisOptions,
+	options persistence.JudgeResultPersisOptions,
 ) error {
 	fout, err := os.Create(options.OutFile)
 	if err != nil {
@@ -145,8 +145,10 @@ func PersistentJudgeResult(
 	if err != nil { return err }
 
 	certSize := 0			// 0 means disable cert
+	var publicKeyRaw []byte
 	if options.DigitalSign {
 		certSize = len(options.DigitalPEM.PublicKeyRaw)
+		publicKeyRaw = options.DigitalPEM.PublicKeyRaw
 	}
 
 	pack := JudgeResultPackage{
@@ -155,7 +157,7 @@ func PersistentJudgeResult(
 		ResultSize: uint32(len(resultBytes)),
 		BodySize: uint32(bodyInfo.Size()),
 		CertSize: uint16(certSize),
-		Certificate: options.DigitalPEM.PublicKeyRaw,
+		Certificate: publicKeyRaw,
 		CompressorType: options.CompressorType,
 	}
 	// Write Header

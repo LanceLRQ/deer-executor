@@ -1,7 +1,5 @@
 package problems
 
-import "github.com/LanceLRQ/deer-executor/persistence"
-
 /*********
 ------------------------
 |MAG|VER|CMT|CSZ|BSZ|PCSZ| Certificate |SSZ| Signature | Result | Body
@@ -20,10 +18,4 @@ type ProblemPackage struct {
 	Signature     	[]byte		 		// Signature: SHA256(Result + Body)
 	Configs 		[]byte				// Configs JSON
 	BodyPackageFile	string				// Body package file
-}
-
-type ProblemPersisOptions struct {
-	DigitalSign    bool
-	DigitalPEM     *persistence.DigitalSignPEM
-	OutFile        string
 }
