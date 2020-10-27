@@ -22,15 +22,9 @@ var PackProblemFlags = []cli.Flag{
 	},
 	&cli.StringFlag {
 		Name: 		"private-key",
-		Aliases:  	[]string{"pri"},
+		Aliases:  	[]string{"key"},
 		Value: 		"",
-		Usage: 		"Digital sign private key",
-	},
-	&cli.StringFlag {
-		Name: 		"public-key",
-		Aliases:  	[]string{"pub"},
-		Value: 		"",
-		Usage: 		"Digital sign public key",
+		Usage: 		"Digital sign private key (GPG)",
 	},
 	&cli.StringFlag {
 		Name: 		"passphrase",
@@ -49,30 +43,54 @@ func PackProblem(c *cli.Context) error {
 	configFile := c.Args().Get(0)
 	outputFile := c.Args().Get(1)
 
-	// Open key
-	keyRingReader, err := os.Open(c.String("private-key"))
-	if err != nil {
-		return err
-	}
-	// Read GPG Keys
-	elist, err := openpgp.ReadArmoredKeyRing(keyRingReader)
-	if err != nil {
-		return err
-	}
-	if len(elist) < 1 {
-		return fmt.Errorf("file has no GPG key")
-	}
-	gpgKey := elist[0].PrivateKey
-	if gpgKey.Encrypted {
-		if len(passphrase) == 0 {
-			passphrase, err = gopass.GetPasswdPrompt("please input passphrase of key> ", true, os.Stdin, os.Stdout)
+	var options problems.ProblemPersisOptions
+
+	if c.Bool("sign") {
+		// Open key
+		keyRingReader, err := os.Open(c.String("private-key"))
+		if err != nil {
+			return err
+		}
+		// Read GPG Keys
+		elist, err := openpgp.ReadArmoredKeyRing(keyRingReader)
+		if err != nil {
+			return err
+		}
+		if len(elist) < 1 {
+			return fmt.Errorf("file has no GPG key")
+		}
+		gpgKey := elist[0].PrivateKey
+		if gpgKey.Encrypted {
+			if len(passphrase) == 0 {
+				passphrase, err = gopass.GetPasswdPrompt("please input passphrase of key> ", true, os.Stdin, os.Stdout)
+				if err != nil {
+					return err
+				}
+			}
+			err = gpgKey.Decrypt(passphrase)
 			if err != nil {
 				return err
 			}
 		}
-		err = gpgKey.Decrypt(passphrase)
+		publicKeyArmor, err := persistence.GetPublicKeyArmorBytes(elist[0].PrimaryKey)
 		if err != nil {
 			return err
+		}
+		pem := persistence.DigitalSignPEM{
+			PrivateKey:   gpgKey.PrivateKey.(*rsa.PrivateKey),
+			PublicKeyRaw: publicKeyArmor,
+			PublicKey:    elist[0].PrimaryKey.PublicKey.(*rsa.PublicKey),
+		}
+		options = problems.ProblemPersisOptions{
+			DigitalSign: true,
+			DigitalPEM:  &pem,
+			OutFile:     outputFile,
+		}
+	} else {
+		options = problems.ProblemPersisOptions{
+			DigitalSign: false,
+			DigitalPEM:  nil,
+			OutFile:     outputFile,
 		}
 	}
 
@@ -80,16 +98,6 @@ func PackProblem(c *cli.Context) error {
 	session, err := executor.NewSession(configFile)
 	if err != nil {
 		return err
-	}
-	pem := persistence.DigitalSignPEM {
-		PrivateKey: gpgKey.PrivateKey.(*rsa.PrivateKey),
-		PublicKeyRaw: []byte{},
-		PublicKey: elist[0].PrimaryKey.PublicKey.(*rsa.PublicKey),
-	}
-	options := problems.ProblemPersisOptions{
-		DigitalSign: true,
-		DigitalPEM: pem,
-		OutFile: outputFile,
 	}
 	err = problems.PackProblems(session, options)
 	if err != nil {
