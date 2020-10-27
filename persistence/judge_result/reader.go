@@ -156,6 +156,13 @@ func ReadJudgeResult(resultFile string) (*executor.JudgeResult, error) {
 			return nil, err
 		}
 		pack.BodyPackageFile = fn
+	} else {
+		newPath := strings.Replace(pack.BodyPackageFile, ".tmp.gz", ".tmp", -1)
+		err := os.Rename(pack.BodyPackageFile, newPath)
+		if err != nil {
+			return nil, err
+		}
+		pack.BodyPackageFile = newPath
 	}
 
 	return &judgeResult, nil

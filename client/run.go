@@ -5,6 +5,7 @@ import (
 	"github.com/LanceLRQ/deer-executor/executor"
 	"github.com/LanceLRQ/deer-executor/persistence"
 	"github.com/LanceLRQ/deer-executor/persistence/judge_result"
+	"github.com/LanceLRQ/deer-executor/persistence/problems"
 	"github.com/LanceLRQ/deer-executor/provider"
 	uuid "github.com/satori/go.uuid"
 	"github.com/urfave/cli/v2"
@@ -15,12 +16,6 @@ import (
 )
 
 var RunFlags = []cli.Flag {
-	&cli.StringFlag {
-		Name: "config",
-		Aliases: []string{"c"},
-		Required: true,
-		Usage: "Load configuration file",
-	},
 	&cli.BoolFlag {
 		Name: "clean",
 		Value: false,
@@ -72,15 +67,20 @@ var RunFlags = []cli.Flag {
 	},
 	&cli.StringFlag {
 		Name: "private-key",
-		Aliases:  	[]string{"pri"},
+		Aliases: []string{"pri"},
 		Value: "",
 		Usage: "Digital sign private key",
 	},
+	&cli.StringFlag {
+		Name: "work-dir",
+		Aliases:  []string{"w"},
+		Value: "",
+		Usage: "Working dir, using to unpack problem package",
+	},
 }
 
-func run(c *cli.Context,  counter int) (*executor.JudgeResult, *executor.JudgeSession, error) {
+func run(c *cli.Context, configFile string, counter int) (*executor.JudgeResult, *executor.JudgeSession, error) {
 	isBenchmarkMode := c.Int("benchmark") > 1
-	configFile := c.String("config")
 	// create session
 	session, err := executor.NewSession(configFile)
 	if err != nil {
@@ -90,7 +90,7 @@ func run(c *cli.Context,  counter int) (*executor.JudgeResult, *executor.JudgeSe
 		session.CodeLangName = c.String("language")
 	}
 	// init files
-	session.CodeFile = c.Args().Get(0)
+	session.CodeFile = c.Args().Get(1)
 	// create session info
 	if isBenchmarkMode {
 		session.SessionId = uuid.NewV1().String() + strconv.Itoa(counter)
@@ -114,6 +114,7 @@ func run(c *cli.Context,  counter int) (*executor.JudgeResult, *executor.JudgeSe
 }
 
 func Run(c *cli.Context) error {
+	// 载入默认配置
 	err := provider.PlaceCompilerCommands("./compilers.json")
 	if err != nil {
 		return err
@@ -121,6 +122,39 @@ func Run(c *cli.Context) error {
 	err = executor.PlaceMemorySizeForJIT("./jit_memory.json")
 	if err != nil {
 		return err
+	}
+
+	configFile := c.Args().Get(0)
+	yes, err := problems.IsProblemPackage(configFile)
+	if err != nil {
+		return err
+	}
+	// 如果是题目包文件，进行解包
+	if yes {
+		workDir := c.String("work-dir")
+		autoRemoveWorkDir := false;
+		if workDir == "" {
+			workDir = "/tmp/" + uuid.NewV4().String()
+			autoRemoveWorkDir = true
+		}
+		if info, err := os.Stat(workDir); os.IsNotExist(err) {
+			err = os.MkdirAll(workDir, 0755)
+			if err != nil {
+				return err
+			}
+		} else if !info.IsDir() {
+			return fmt.Errorf("work dir path cannot be a file path")
+		}
+		s, err := problems.ReadProblemInfo(configFile, true, workDir)
+		if err != nil {
+			return err
+		}
+		configFile = s.ConfigFile
+		if autoRemoveWorkDir {
+			defer (func() {
+				_ = os.RemoveAll(workDir)
+			})()
+		}
 	}
 	isBenchmarkMode := c.Int("benchmark") > 1
 	benchmarkN := c.Int("benchmark")
@@ -138,6 +172,7 @@ func Run(c *cli.Context) error {
 			CompressorType: compressorType,
 			DigitalSign: digitalSign,
 		}
+		// 是否要持久化结果
 		if persistenceOn {
 			if digitalSign {
 				if c.String("public-key") == "" || c.String("private-key") == "" {
@@ -154,7 +189,7 @@ func Run(c *cli.Context) error {
 			}
 		}
 		// Start Judge
-		judgeResult, judgeSession, err := run(c, 0)
+		judgeResult, judgeSession, err := run(c, configFile, 0)
 		if err != nil {
 			return err
 		}
@@ -188,7 +223,7 @@ func Run(c *cli.Context) error {
 			if i % 10 == 0 {
 				fmt.Printf("%d / %d\n", i, benchmarkN)
 			}
-			judgeResult, _, err := run(c, i)
+			judgeResult, _, err := run(c, configFile, i)
 			if err != nil {
 				fmt.Printf("break! %s\n", err.Error())
 				_, _ = rfp.WriteString(fmt.Sprintf("[%s]: %s\n", strconv.Itoa(i), err.Error()))
