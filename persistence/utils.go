@@ -174,7 +174,7 @@ func GetPublicKeyArmorBytes(entity *openpgp.Entity) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = entity.PrimaryKey.Serialize(w)
+	err = entity.Serialize(w)
 	if err != nil {
 		return nil, err
 	}
