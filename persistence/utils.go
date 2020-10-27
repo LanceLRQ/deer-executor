@@ -10,8 +10,14 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
+	uuid "github.com/satori/go.uuid"
+	"golang.org/x/crypto/openpgp"
+	"golang.org/x/crypto/openpgp/armor"
+	"golang.org/x/crypto/openpgp/packet"
 	"io"
 	"io/ioutil"
+	"os"
+	"path"
 )
 
 /* SHA256 */
@@ -155,4 +161,30 @@ func Gets(reader io.Reader) string {
 		}
 	}
 	return string(buf)
+}
+
+func GetPublicKeyArmorBytes(publicKey *packet.PublicKey) ([]byte, error) {
+	pathname := path.Join("/tmp/" + uuid.NewV4().String() + ".key")
+	fp, err := os.Create(pathname)
+	if err != nil {
+		return nil, err
+	}
+	defer os.Remove(pathname)
+
+	w, err := armor.Encode(fp, openpgp.PublicKeyType, nil)
+	if err != nil {
+		return nil, err
+	}
+	err = publicKey.Serialize(w)
+	if err != nil {
+		return nil, err
+	}
+	_ = w.Close()
+	_ = fp.Close()
+
+	data, err := ioutil.ReadFile(pathname)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
 }

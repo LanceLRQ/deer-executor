@@ -151,8 +151,10 @@ func PackProblems(
 	if err != nil { return err }
 
 	certSize := 0			// 0 means disable cert
+	var publicKeyRaw []byte
 	if options.DigitalSign {
 		certSize = len(options.DigitalPEM.PublicKeyRaw)
+		publicKeyRaw = options.DigitalPEM.PublicKeyRaw
 	}
 
 	pack := ProblemPackage{
@@ -161,7 +163,7 @@ func PackProblems(
 		ConfigSize: uint32(len(configBytes)),
 		BodySize: uint32(bodyInfo.Size()),
 		CertSize: uint16(certSize),
-		Certificate: options.DigitalPEM.PublicKeyRaw,
+		Certificate: publicKeyRaw,
 	}
 	// Write Header
 	err = writeFileHeaderAndResult(fout, pack)
