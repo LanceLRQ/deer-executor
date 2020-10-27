@@ -121,7 +121,7 @@ func writeFileHeader (writer io.Writer, pack ProblemPackage) error {
 
 func PackProblems(
 	session *executor.JudgeSession,
-	options ProblemPersisOptions,
+	options persistence.CommonPersisOptions,
 ) error {
 	err := executor.CheckRequireFilesExists(session)
 	if err != nil {

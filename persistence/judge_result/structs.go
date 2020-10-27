@@ -1,7 +1,5 @@
 package judge_result
 
-import "github.com/LanceLRQ/deer-executor/persistence"
-
 /*********
 ------------------------
 |MAG|VER|CMP|RSZ|BSZ|CSZ| Certificate |SSZ| Signature | Result | Body
@@ -36,11 +34,4 @@ type JudgeResultPackageBody struct {
 		FileName 		string
 		Position 		uint32
 	}
-}
-
-type JudgeResultPersisOptions struct {
-	DigitalSign    bool
-	DigitalPEM     persistence.DigitalSignPEM
-	CompressorType uint8
-	OutFile        string
 }
