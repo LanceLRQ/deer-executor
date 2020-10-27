@@ -1,7 +1,12 @@
 package client
 
 import (
+	"fmt"
 	"github.com/urfave/cli/v2"
+	"golang.org/x/crypto/openpgp"
+	"golang.org/x/crypto/openpgp/armor"
+	"io/ioutil"
+	"os"
 )
 
 ////privateKey, err := persistence.ReadPemFile("./data/certs/test.key")
@@ -57,15 +62,40 @@ import (
 //return nil
 
 func Test(c *cli.Context) error {
-	//keyRingReader, err := os.Open("public-key.txt")
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//elist, err := openpgp.ReadArmoredKeyRing(keyRingReader)
-	//if err != nil {
-	//	return err
-	//}
+	keyRingReader, err := os.Open("private-key.txt")
+	if err != nil {
+		return err
+	}
+
+	elist, err := openpgp.ReadArmoredKeyRing(keyRingReader)
+	if err != nil {
+		return err
+	}
+	pkey := elist[0].PrimaryKey
+
+	fp, err := os.Create("/tmp/pub.key")
+	if err != nil {
+		return err
+	}
+	w, err := armor.Encode(fp, openpgp.PublicKeyType, nil)
+	if err != nil {
+		return err
+	}
+	err = pkey.Serialize(w)
+	if err != nil {
+		return err
+	}
+	w.Close()
+	fp.Close()
+
+	defer os.Remove("/tmp/pub.key")
+
+	data, err := ioutil.ReadFile("/tmp/pub.key")
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(string(data))
 	//
 	////fmt.Println(elist[0].PrimaryKey.PublicKey)
 	//for _, v := range elist[0].Identities {

@@ -24,6 +24,6 @@ type ProblemPackage struct {
 
 type ProblemPersisOptions struct {
 	DigitalSign    bool
-	DigitalPEM     persistence.DigitalSignPEM
+	DigitalPEM     *persistence.DigitalSignPEM
 	OutFile        string
 }
