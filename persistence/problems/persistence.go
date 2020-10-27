@@ -69,12 +69,12 @@ func mergeFilesBinary(session *executor.JudgeSession) (string, error) {
 	return tmpFilePath, nil
 }
 
-func writeFileHeaderAndResult (writer io.Writer, pack ProblemPackage) error {
+func writeFileHeader (writer io.Writer, pack ProblemPackage) error {
 	buf16 := make([]byte, 2)
 	buf32 := make([]byte, 4)
 
 	// magic
-	binary.BigEndian.PutUint16(buf16, persistence.JudgeResultMagicCode)
+	binary.BigEndian.PutUint16(buf16, persistence.ProblemPackageMagicCode)
 	if _, err := writer.Write(buf16); err != nil {
 		return fmt.Errorf("write problem file error: %s", err.Error())
 	}
@@ -159,6 +159,7 @@ func PackProblems(
 
 	pack := ProblemPackage{
 		Version: 1,
+		CommitVersion: 1,
 		Configs: configBytes,
 		ConfigSize: uint32(len(configBytes)),
 		BodySize: uint32(bodyInfo.Size()),
@@ -166,7 +167,7 @@ func PackProblems(
 		Certificate: publicKeyRaw,
 	}
 	// Write Header
-	err = writeFileHeaderAndResult(fout, pack)
+	err = writeFileHeader(fout, pack)
 	if err != nil {
 		return err
 	}

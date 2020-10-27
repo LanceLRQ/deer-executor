@@ -20,7 +20,7 @@ func main() {
 			{
 				Name:      "run",
 				Usage:     "run code judging",
-				ArgsUsage: "code_file",
+				ArgsUsage: "<config_file/problem_package> <code_file>",
 				Action:    client.Run,
 				Flags:     client.RunFlags,
 			},

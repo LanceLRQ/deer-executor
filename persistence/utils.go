@@ -13,7 +13,6 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
-	"golang.org/x/crypto/openpgp/packet"
 	"io"
 	"io/ioutil"
 	"os"
@@ -163,7 +162,7 @@ func Gets(reader io.Reader) string {
 	return string(buf)
 }
 
-func GetPublicKeyArmorBytes(publicKey *packet.PublicKey) ([]byte, error) {
+func GetPublicKeyArmorBytes(entity *openpgp.Entity) ([]byte, error) {
 	pathname := path.Join("/tmp/" + uuid.NewV4().String() + ".key")
 	fp, err := os.Create(pathname)
 	if err != nil {
@@ -175,7 +174,7 @@ func GetPublicKeyArmorBytes(publicKey *packet.PublicKey) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = publicKey.Serialize(w)
+	err = entity.PrimaryKey.Serialize(w)
 	if err != nil {
 		return nil, err
 	}

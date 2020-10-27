@@ -44,8 +44,12 @@ func PackProblem(c *cli.Context) error {
 	outputFile := c.Args().Get(1)
 
 	var options problems.ProblemPersisOptions
+	var pem *persistence.DigitalSignPEM
 
 	if c.Bool("sign") {
+		if c.String("private-key") == "" {
+			return fmt.Errorf("please set private key file path")
+		}
 		// Open key
 		keyRingReader, err := os.Open(c.String("private-key"))
 		if err != nil {
@@ -72,26 +76,21 @@ func PackProblem(c *cli.Context) error {
 				return err
 			}
 		}
-		publicKeyArmor, err := persistence.GetPublicKeyArmorBytes(elist[0].PrimaryKey)
+		publicKeyArmor, err := persistence.GetPublicKeyArmorBytes(elist[0])
 		if err != nil {
 			return err
 		}
-		pem := persistence.DigitalSignPEM{
+		pem = &persistence.DigitalSignPEM{
 			PrivateKey:   gpgKey.PrivateKey.(*rsa.PrivateKey),
 			PublicKeyRaw: publicKeyArmor,
 			PublicKey:    elist[0].PrimaryKey.PublicKey.(*rsa.PublicKey),
 		}
-		options = problems.ProblemPersisOptions{
-			DigitalSign: true,
-			DigitalPEM:  &pem,
-			OutFile:     outputFile,
-		}
-	} else {
-		options = problems.ProblemPersisOptions{
-			DigitalSign: false,
-			DigitalPEM:  nil,
-			OutFile:     outputFile,
-		}
+	}
+
+	options = problems.ProblemPersisOptions{
+		DigitalSign: c.Bool("sign"),
+		DigitalPEM:  pem,
+		OutFile:     outputFile,
 	}
 
 	// problem
