@@ -1,6 +1,7 @@
 package executor
 
 import (
+	"github.com/LanceLRQ/deer-common/constants"
 	commonStructs "github.com/LanceLRQ/deer-common/structs"
 	"os"
 	"strconv"
@@ -10,10 +11,10 @@ import (
 // 基于JudgeOptions进行评测调度
 func (session *JudgeSession) judgeOnce(judgeResult *commonStructs.TestCaseResult) error {
 	switch session.JudgeConfig.SpecialJudge.Mode {
-	case SpecialJudgeModeDisabled:
+	case constants.SpecialJudgeModeDisabled:
 		pinfo, err := session.runNormalJudge(judgeResult)
 		if err != nil {
-			judgeResult.JudgeResult = JudgeFlagSE
+			judgeResult.JudgeResult = constants.JudgeFlagSE
 			judgeResult.SeInfo = err.Error()
 			return err
 		}
@@ -21,20 +22,20 @@ func (session *JudgeSession) judgeOnce(judgeResult *commonStructs.TestCaseResult
 		// 分析目标程序的状态
 		session.analysisExitStatus(judgeResult, pinfo, false)
 		// 只有AC的时候才进行文本比较！
-		if judgeResult.JudgeResult == JudgeFlagAC {
+		if judgeResult.JudgeResult == constants.JudgeFlagAC {
 			// 进行文本比较
 			err = session.DiffText(judgeResult)
 			if err != nil {
-				judgeResult.JudgeResult = JudgeFlagSE
+				judgeResult.JudgeResult = constants.JudgeFlagSE
 				judgeResult.SeInfo = err.Error()
 				return err
 			}
 		}
 
-	case SpecialJudgeModeChecker, SpecialJudgeModeInteractive:
+	case constants.SpecialJudgeModeChecker, constants.SpecialJudgeModeInteractive:
 		tinfo, jinfo, err := session.runSpecialJudge(judgeResult)
 		if err != nil {
-			judgeResult.JudgeResult = JudgeFlagSE
+			judgeResult.JudgeResult = constants.JudgeFlagSE
 			judgeResult.SeInfo = err.Error()
 			return err
 		}
@@ -47,12 +48,12 @@ func (session *JudgeSession) judgeOnce(judgeResult *commonStructs.TestCaseResult
 			session.analysisExitStatus(judgeResult, tinfo, false)
 		}
 		// 普通checker的时候支持按判题机的意愿进行文本比较
-		if session.JudgeConfig.SpecialJudge.Mode == SpecialJudgeModeChecker {
-			if judgeResult.JudgeResult == JudgeFlagSpecialJudgeRequireChecker {
+		if session.JudgeConfig.SpecialJudge.Mode == constants.SpecialJudgeModeChecker {
+			if judgeResult.JudgeResult == constants.JudgeFlagSpecialJudgeRequireChecker {
 				// 进行文本比较
 				err = session.DiffText(judgeResult)
 				if err != nil {
-					judgeResult.JudgeResult = JudgeFlagSE
+					judgeResult.JudgeResult = constants.JudgeFlagSE
 					judgeResult.SeInfo = err.Error()
 					return err
 				}
@@ -79,7 +80,7 @@ func (session *JudgeSession)runOneCase(tc commonStructs.TestCase, Id string) *co
 	// 运行judge程序
 	err := session.judgeOnce(&tcResult)
 	if err != nil {
-		tcResult.JudgeResult = JudgeFlagSE
+		tcResult.JudgeResult = constants.JudgeFlagSE
 		tcResult.SeInfo = err.Error()
 	}
 
@@ -137,9 +138,9 @@ func (session *JudgeSession)RunJudge() commonStructs.JudgeResult {
 
 		//判定是否继续判题
 		keep := false
-		if tcResult.JudgeResult == JudgeFlagAC || tcResult.JudgeResult == JudgeFlagPE {
+		if tcResult.JudgeResult == constants.JudgeFlagAC || tcResult.JudgeResult == constants.JudgeFlagPE {
 			keep = true
-		} else if !session.JudgeConfig.StrictMode && tcResult.JudgeResult == JudgeFlagWA {
+		} else if !session.JudgeConfig.StrictMode && tcResult.JudgeResult == constants.JudgeFlagWA {
 			keep = true
 		}
 		if !keep {

@@ -1,7 +1,7 @@
 package test
 
 import (
-	"github.com/LanceLRQ/deer-executor/executor"
+	"github.com/LanceLRQ/deer-common/constants"
 	"testing"
 )
 
@@ -17,7 +17,7 @@ func TestWJ2012AC(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	err = analysisResult("wj2012", result, executor.JudgeFlagAC)
+	err = analysisResult("wj2012", result, constants.JudgeFlagAC)
 	if err != nil {
 		t.Fatal(err)
 		return

@@ -2,12 +2,14 @@ package client
 
 import (
 	"fmt"
+	"github.com/LanceLRQ/deer-common/constants"
+	"github.com/LanceLRQ/deer-common/persistence"
+	"github.com/LanceLRQ/deer-common/persistence/judge_result"
+	"github.com/LanceLRQ/deer-common/persistence/problems"
 	"github.com/LanceLRQ/deer-common/provider"
 	commonStructs "github.com/LanceLRQ/deer-common/structs"
+	"github.com/LanceLRQ/deer-common/utils"
 	"github.com/LanceLRQ/deer-executor/executor"
-	"github.com/LanceLRQ/deer-executor/persistence"
-	"github.com/LanceLRQ/deer-executor/persistence/judge_result"
-	"github.com/LanceLRQ/deer-executor/persistence/problems"
 	uuid "github.com/satori/go.uuid"
 	"github.com/urfave/cli/v2"
 	"log"
@@ -132,7 +134,7 @@ func Run(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	err = executor.PlaceMemorySizeForJIT("./jit_memory.json")
+	err = constants.PlaceMemorySizeForJIT("./jit_memory.json")
 	if err != nil {
 		return err
 	}
@@ -158,11 +160,12 @@ func Run(c *cli.Context) error {
 		} else if !info.IsDir() {
 			return fmt.Errorf("work dir path cannot be a file path")
 		}
-		s, err := problems.ReadProblemInfo(configFile, true, workDir)
+		_, newConfigFile, err := problems.ReadProblemInfo(configFile, true, workDir)
 		if err != nil {
 			return err
 		}
-		configFile = s.ConfigFile
+		configFile = newConfigFile
+
 		if autoRemoveWorkDir {
 			defer (func() {
 				_ = os.RemoveAll(workDir)
@@ -213,9 +216,11 @@ func Run(c *cli.Context) error {
 		if !c.Bool("no-clean") || isBenchmarkMode {
 			defer judgeSession.Clean()
 		}
+
 		// persistence
+		jOption.SessionDir = judgeSession.SessionDir
 		if !isBenchmarkMode && persistenceOn {
-			err = judge_result.PersistentJudgeResult(judgeSession, judgeResult, jOption)
+			err = judge_result.PersistentJudgeResult(judgeResult, &jOption)
 			if err != nil {
 				return err
 			}
@@ -223,7 +228,7 @@ func Run(c *cli.Context) error {
 		if !c.Bool("detail") {
 			judgeResult.TestCases = nil
 		}
-		fmt.Println(executor.ObjectToJSONStringFormatted(judgeResult))
+		fmt.Println(utils.ObjectToJSONStringFormatted(judgeResult))
 		os.Exit(judgeResult.JudgeResult)
 	} else {
 		// 基准测试
@@ -245,17 +250,17 @@ func Run(c *cli.Context) error {
 				_, _ = rfp.WriteString(fmt.Sprintf("[%s]: %s\n", strconv.Itoa(i), err.Error()))
 				break
 			}
-			name, ok := executor.FlagMeansMap[judgeResult.JudgeResult]
+			name, ok := constants.FlagMeansMap[judgeResult.JudgeResult]
 			if !ok { name = "Unknown" }
 			_, _ = rfp.WriteString(fmt.Sprintf("[%s]: %s\n", judgeResult.SessionId, name))
-			if judgeResult.JudgeResult != executor.JudgeFlagAC {
-				_, _ = rfp.WriteString(executor.ObjectToJSONStringFormatted(judgeResult) + "\n")
+			if judgeResult.JudgeResult != constants.JudgeFlagAC {
+				_, _ = rfp.WriteString(utils.ObjectToJSONStringFormatted(judgeResult) + "\n")
 			}
 			exitCounter[judgeResult.JudgeResult]++
 		}
 		endTime := time.Now().UnixNano()
 		for key, value := range exitCounter {
-			name, ok := executor.FlagMeansMap[key]
+			name, ok := constants.FlagMeansMap[key]
 			if !ok { name = "Unknown" }
 			fmt.Printf("%s: %d\n", name, value)
 		}

@@ -6,8 +6,10 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"github.com/LanceLRQ/deer-common/constants"
 	"github.com/LanceLRQ/deer-common/provider"
 	commonStructs "github.com/LanceLRQ/deer-common/structs"
+	"github.com/LanceLRQ/deer-common/utils"
 	"github.com/LanceLRQ/deer-executor/executor"
 	"github.com/urfave/cli/v2"
 	"log"
@@ -78,12 +80,12 @@ func MakeConfigFile(c *cli.Context) error {
 			return nil
 		}
 		defer fp.Close()
-		_, err = fp.WriteString(executor.ObjectToJSONStringFormatted(config.JudgeConfig))
+		_, err = fp.WriteString(utils.ObjectToJSONStringFormatted(config.JudgeConfig))
 		if err != nil {
 			return err
 		}
 	} else {
-		fmt.Println(executor.ObjectToJSONStringFormatted(config.JudgeConfig))
+		fmt.Println(utils.ObjectToJSONStringFormatted(config.JudgeConfig))
 	}
 	return nil
 }
@@ -106,7 +108,7 @@ func MakeCompileConfigFile(c *cli.Context) error {
 		return nil
 	}
 	defer fp.Close()
-	_, err = fp.WriteString(executor.ObjectToJSONStringFormatted(config))
+	_, err = fp.WriteString(utils.ObjectToJSONStringFormatted(config))
 	if err != nil {
 		return err
 	}
@@ -114,7 +116,7 @@ func MakeCompileConfigFile(c *cli.Context) error {
 }
 
 func MakeJITMemoryConfigFile(c *cli.Context) error {
-	config := executor.MemorySizeForJIT
+	config := constants.MemorySizeForJIT
 	output := c.String("output")
 	if output == "" {
 		output = "./jit_memory.json"
@@ -131,7 +133,7 @@ func MakeJITMemoryConfigFile(c *cli.Context) error {
 		return nil
 	}
 	defer fp.Close()
-	_, err = fp.WriteString(executor.ObjectToJSONStringFormatted(config))
+	_, err = fp.WriteString(utils.ObjectToJSONStringFormatted(config))
 	if err != nil {
 		return err
 	}
