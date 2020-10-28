@@ -67,8 +67,6 @@
 
 🖥️ WeJudge程序设计课程在线判题辅助教学平台：
 
-[https://www.wejudge.net](https://www.wejudge.net) 
-
 [https://oj.bnuz.edu.cn](https://oj.bnuz.edu.cn)
 
 [WeJudge 1.0开源代码](https://github.com/LanceLRQ/wejudge)
