@@ -72,6 +72,3 @@
 [WeJudge 1.0开源代码](https://github.com/LanceLRQ/wejudge)
 
 **本项目基于GPLv3协议开源，欢迎各位开发者以非商业目的使用和开发本程序，使用过程中如果遇到什么问题，请发Issue一起讨论哦！**
-
-## License
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FLanceLRQ%2Fdeer-executor.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FLanceLRQ%2Fdeer-executor?ref=badge_large)
