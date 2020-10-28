@@ -2,8 +2,8 @@ package executor
 
 import (
 	"encoding/json"
+	"github.com/LanceLRQ/deer-common/provider"
 	commonStructs "github.com/LanceLRQ/deer-common/structs"
-	"github.com/LanceLRQ/deer-executor/provider"
 	"io/ioutil"
 	"path"
 	"path/filepath"
@@ -29,7 +29,7 @@ type JudgeSession struct {
 
 	JudgeConfig		commonStructs.JudgeConfiguration 				// Judge Configurations
 
-	Compiler		provider.CodeCompileProviderInterface			// Compiler entity
+	Compiler provider.CodeCompileProviderInterface // Compiler entity
 }
 
 func NewSession(configFile string) (*JudgeSession, error) {
