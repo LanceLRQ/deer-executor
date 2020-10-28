@@ -2,7 +2,7 @@ package test
 
 import (
 	"flag"
-	"github.com/LanceLRQ/deer-executor/executor"
+	"github.com/LanceLRQ/deer-common/constants"
 	"testing"
 )
 
@@ -22,7 +22,7 @@ func TestAPlusBProblemCpp(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	err = analysisResult("test cpp", result, executor.JudgeFlagAC)
+	err = analysisResult("test cpp", result, constants.JudgeFlagAC)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -46,7 +46,7 @@ func TestAPlusBProblemJava(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	err = analysisResult("test java", result, executor.JudgeFlagAC)
+	err = analysisResult("test java", result, constants.JudgeFlagAC)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -95,7 +95,7 @@ func TestAPlusBProblemPython3(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	err = analysisResult("test python 3", result, executor.JudgeFlagAC)
+	err = analysisResult("test python 3", result, constants.JudgeFlagAC)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -119,7 +119,7 @@ func TestAPlusBProblemPython3CE(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	err = analysisResult("test python 3 ce 1", result, executor.JudgeFlagCE)
+	err = analysisResult("test python 3 ce 1", result, constants.JudgeFlagCE)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -143,7 +143,7 @@ func TestAPlusBProblemPython3CE2(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	err = analysisResult("test python 3 ce 2", result, executor.JudgeFlagCE)
+	err = analysisResult("test python 3 ce 2", result, constants.JudgeFlagCE)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -168,7 +168,7 @@ func TestAPlusBProblemGo(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	err = analysisResult("test golang", result, executor.JudgeFlagAC)
+	err = analysisResult("test golang", result, constants.JudgeFlagAC)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -218,7 +218,7 @@ func TestAPlusBProblemPHP(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	err = analysisResult("test php", result, executor.JudgeFlagAC)
+	err = analysisResult("test php", result, constants.JudgeFlagAC)
 	if err != nil {
 		t.Fatal(err)
 		return

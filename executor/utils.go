@@ -6,9 +6,6 @@
 package executor
 
 import (
-	"bytes"
-	"encoding/binary"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -243,71 +240,6 @@ func readFileWithTry(filePath string, name string, tryOnFailed int) ([]byte, str
 		return data, errText, nil
 	}
 	return nil, errText, err
-}
-
-func ObjectToJSONStringFormatted(conf interface{}) string {
-	b, err := json.Marshal(conf)
-	if err != nil {
-		return fmt.Sprintf("%+v", conf)
-	}
-	var out bytes.Buffer
-	err = json.Indent(&out, b, "", "    ")
-	if err != nil {
-		return fmt.Sprintf("%+v", conf)
-	}
-	return out.String()
-}
-
-func ObjectToJSONByte(obj interface{}) []byte {
-	b, err := json.Marshal(obj)
-	if err != nil {
-		return []byte("{}")
-	}
-	return b
-}
-
-func ObjectToJSONString(obj interface{}) string {
-	b, err := json.Marshal(obj)
-	if err != nil {
-		return "{}"
-	} else {
-		return string(b)
-	}
-}
-
-func JSONStringObject(jsonStr string, obj interface{}) bool {
-	return JSONBytesObject([]byte(jsonStr), obj)
-}
-
-func JSONBytesObject(jsonBytes []byte, obj interface{}) bool {
-	err := json.Unmarshal(jsonBytes, &obj)
-	if err != nil {
-		return false
-	} else {
-		return true
-	}
-}
-
-func IsExecutableFile (filePath string) (bool, error) {
-	fp, err := os.OpenFile(filePath, os.O_RDONLY | syscall.O_NONBLOCK, 0)
-	if err != nil {
-		return false, fmt.Errorf("open file error")
-	}
-	defer fp.Close()
-
-	var magic uint32 = 0
-	err = binary.Read(fp, binary.BigEndian, &magic)
-	if err != nil {
-		return false, err
-	}
-
-	isExec := false
-	if runtime.GOOS == "darwin" {
-		isExec = magic == 0xCFFAEDFE || magic == 0xCEFAEDFE || magic == 0xFEEDFACF || magic == 0xFEEDFACE
-	} else if runtime.GOOS == "linux" {
-		isExec = magic == 0x7F454C46
-	}
-	return isExec, nil
 }
 
 // 检查配置文件里的所有文件是否存在

@@ -2,9 +2,10 @@ package client
 
 import (
 	"fmt"
+	"github.com/LanceLRQ/deer-common/persistence"
+	"github.com/LanceLRQ/deer-common/persistence/problems"
+	"github.com/LanceLRQ/deer-common/utils"
 	"github.com/LanceLRQ/deer-executor/executor"
-	"github.com/LanceLRQ/deer-executor/persistence"
-	"github.com/LanceLRQ/deer-executor/persistence/problems"
 	"github.com/urfave/cli/v2"
 	"log"
 )
@@ -39,7 +40,6 @@ func PackProblem(c *cli.Context) error {
 	configFile := c.Args().Get(0)
 	outputFile := c.Args().Get(1)
 
-	var options persistence.CommonPersisOptions
 	var err error
 	var pem *persistence.DigitalSignPEM
 
@@ -49,19 +49,20 @@ func PackProblem(c *cli.Context) error {
 			return err
 		}
 	}
-
-	options = persistence.CommonPersisOptions{
-		DigitalSign: c.Bool("sign"),
-		DigitalPEM:  pem,
-		OutFile:     outputFile,
-	}
+	options := persistence.ProblemPackageOptions{}
+	options.ConfigFile = configFile
+	options.DigitalSign = c.Bool("sign")
+	options.DigitalPEM = pem
+	options.OutFile = outputFile
 
 	// problem
 	session, err := executor.NewSession(configFile)
 	if err != nil {
 		return err
 	}
-	err = problems.PackProblems(session, options)
+	options.ConfigDir = session.ConfigDir
+
+	err = problems.PackProblems(&session.JudgeConfig, &options)
 	if err != nil {
 		return err
 	}
@@ -85,12 +86,11 @@ func ReadProblemInfo(c *cli.Context) error {
 			}
 			fmt.Println(g)
 		} else {
-			s, err := problems.ReadProblemInfo(configFile, false, "")
+			s, _, err := problems.ReadProblemInfo(configFile, false, "")
 			if err != nil {
 				return err
 			}
-			s.ConfigFile = ""
-			fmt.Println(executor.ObjectToJSONStringFormatted(s))
+			fmt.Println(utils.ObjectToJSONStringFormatted(s))
 		}
 	} else {
 		return fmt.Errorf("not deer-executor problem package file")
