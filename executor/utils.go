@@ -314,16 +314,16 @@ func IsExecutableFile (filePath string) (bool, error) {
 func CheckRequireFilesExists(session *JudgeSession) error {
 	var err error
 	// 检查特判程序是否存在
-	if session.SpecialJudge.Mode != 0 {
-		_, err = os.Stat(path.Join(session.ConfigDir, session.SpecialJudge.Checker))
+	if session.JudgeConfig.SpecialJudge.Mode != 0 {
+		_, err = os.Stat(path.Join(session.ConfigDir, session.JudgeConfig.SpecialJudge.Checker))
 		if os.IsNotExist(err) {
-			return fmt.Errorf("special judge checker file (%s) not exists", session.SpecialJudge.Checker)
+			return fmt.Errorf("special judge checker file (%s) not exists", session.JudgeConfig.SpecialJudge.Checker)
 		}
 	}
 	// 检查每个test case里的文件是否存在
 	// 新版判题机要求无论有没有数据，都要有对应的输入输出文件。
-	for i := 0; i < len(session.TestCases); i++ {
-		tcase := session.TestCases[i]
+	for i := 0; i < len(session.JudgeConfig.TestCases); i++ {
+		tcase := session.JudgeConfig.TestCases[i]
 		_, err = os.Stat(path.Join(session.ConfigDir, tcase.TestCaseIn))
 		if os.IsNotExist(err) {
 			return fmt.Errorf("test case (%s) input file (%s) not exists", tcase.Id, tcase.TestCaseIn)

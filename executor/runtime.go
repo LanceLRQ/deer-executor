@@ -84,14 +84,14 @@ func (session *JudgeSession)runNormalJudge(rst *TestCaseResult) (*ProcessInfo, e
 
 // 运行特殊评测
 func (session *JudgeSession)runSpecialJudge(rst *TestCaseResult) (*ProcessInfo, *ProcessInfo, error) {
-	if session.SpecialJudge.Mode == SpecialJudgeModeChecker {
+	if session.JudgeConfig.SpecialJudge.Mode == SpecialJudgeModeChecker {
 		targetInfo, err := session.runProgramCommon(rst, false, false, nil)
 		if err != nil {
 			return targetInfo, nil, err
 		}
 		judgerInfo, err := session.runProgramCommon(rst, true, false, nil)
 		return targetInfo, judgerInfo, err
-	} else if session.SpecialJudge.Mode == SpecialJudgeModeInteractive {
+	} else if session.JudgeConfig.SpecialJudge.Mode == SpecialJudgeModeInteractive {
 
 		fdjudger, err := getPipe()
 		if err != nil {
@@ -149,17 +149,25 @@ func getSpecialJudgerPath(session *JudgeSession, rst *TestCaseResult) []string {
 
 
 func getLimitation(session *JudgeSession) (int, int, int, int, int) {
-	langName := session.compiler.GetName()
+	langName := session.Compiler.GetName()
 	memoryLimitExtend := 0
 	jitMem, ok := MemorySizeForJIT[langName]
 	if ok {
 		memoryLimitExtend = jitMem
 	}
-	limitation, ok := session.Limitation[langName]
+	limitation, ok := session.JudgeConfig.Limitation[langName]
 	if ok {
-		return limitation.TimeLimit, limitation.MemoryLimit + memoryLimitExtend, limitation.RealTimeLimit, limitation.FileSizeLimit, memoryLimitExtend
+		return limitation.TimeLimit,
+			limitation.MemoryLimit + memoryLimitExtend,
+			limitation.RealTimeLimit,
+			limitation.FileSizeLimit,
+			memoryLimitExtend
 	}
-	return session.TimeLimit, session.MemoryLimit + memoryLimitExtend, session.RealTimeLimit, session.FileSizeLimit, memoryLimitExtend
+	return session.JudgeConfig.TimeLimit,
+		session.JudgeConfig.MemoryLimit + memoryLimitExtend,
+		session.JudgeConfig.RealTimeLimit,
+		session.JudgeConfig.FileSizeLimit,
+		memoryLimitExtend
 }
 
 // 目标程序子进程
@@ -193,7 +201,7 @@ func runProgramProcess(session *JudgeSession, rst *TestCaseResult, judger bool, 
 		} else {
 			// Redirect testCaseIn to STDIN
 			if judger {
-				if session.SpecialJudge.RedirectProgramOut {
+				if session.JudgeConfig.SpecialJudge.RedirectProgramOut {
 					fds[0], err = redirectFileDescriptor(
 						syscall.Stdout,
 						path.Join(session.SessionDir, rst.ProgramOut),
@@ -261,8 +269,8 @@ func runProgramProcess(session *JudgeSession, rst *TestCaseResult, judger bool, 
 		}
 
 		// Set UID
-		if session.Uid > -1 {
-			err = syscall.Setuid(session.Uid)
+		if session.JudgeConfig.Uid > -1 {
+			err = syscall.Setuid(session.JudgeConfig.Uid)
 			if err != nil {
 				return 0, fds, err
 			}
@@ -271,10 +279,10 @@ func runProgramProcess(session *JudgeSession, rst *TestCaseResult, judger bool, 
 		// Set Resource Limit
 		if judger {
 			err = setLimit(
-				session.SpecialJudge.TimeLimit,
-				session.SpecialJudge.MemoryLimit,
-				session.RealTimeLimit,
-				session.FileSizeLimit,
+				session.JudgeConfig.SpecialJudge.TimeLimit,
+				session.JudgeConfig.SpecialJudge.MemoryLimit,
+				session.JudgeConfig.RealTimeLimit,
+				session.JudgeConfig.FileSizeLimit,
 				)
 		} else {
 			tl, ml, rtl, fsl, _ := getLimitation(session)
@@ -288,7 +296,7 @@ func runProgramProcess(session *JudgeSession, rst *TestCaseResult, judger bool, 
 			// Run Judger (Testlib compatible)
 			// ./checker <input-file> <output-file> <answer-file> <report-file>
 			args := getSpecialJudgerPath(session, rst)
-			_ = syscall.Exec(session.SpecialJudge.Checker, args, nil)
+			_ = syscall.Exec(session.JudgeConfig.SpecialJudge.Checker, args, nil)
 		} else {
 			// Run Program
 			commands := session.Commands

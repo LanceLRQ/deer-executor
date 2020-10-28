@@ -1,7 +1,4 @@
 {
-    "session_id": "",
-    "session_root": "/tmp",
-    "code_lang_name": "auto",
     "test_cases": [
         {
             "id": "1",

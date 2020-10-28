@@ -191,7 +191,7 @@ func ReadProblemInfo(problemFile string, unpackBody bool, workDir string) (*exec
 		return nil, err
 	}
 	session := executor.JudgeSession{}
-	executor.JSONBytesObject(pack.Configs, &session)
+	executor.JSONBytesObject(pack.Configs, &session.JudgeConfig)
 
 	if unpackBody {
 		err = unzip(pack.BodyPackageFile, workDir)
