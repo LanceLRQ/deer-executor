@@ -2,9 +2,9 @@ package test
 
 import (
 	"fmt"
+	"github.com/LanceLRQ/deer-common/provider"
 	"github.com/LanceLRQ/deer-executor/client"
 	"github.com/LanceLRQ/deer-executor/executor"
-	"github.com/LanceLRQ/deer-executor/provider"
 	uuid "github.com/satori/go.uuid"
 	"os"
 	"path"
