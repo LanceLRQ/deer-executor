@@ -28,17 +28,25 @@
 
 ## 🤝 鸣谢
 
-感谢 [Loco's runner](https://github.com/dojiong/Lo-runner) 的作者，为本程序提供了黑盒评测的实现思路。
+感谢开源项目[Loco's runner](https://github.com/dojiong/Lo-runner) 为本程序提供了黑盒评测的实现思路。
 
 感谢我的同学Wolf Zheng和Tosh Qiu提出的交互式评测的需求和基本工作流程的描述。
 
-感谢[北京师范大学(珠海校区)](http://www.bnuz.edu.cn)[信息技术学院](http://itc.bnuz.edu.cn)对WeJudge项目的支持，感谢[北师珠ACM协会](http://acm.bnuz.edu.cn)，感谢WeJudge团队每一位成员的付出。
+感谢以下组织对WeJudge项目的支持：
+
+* [北京师范大学(珠海校区)](http://www.bnuz.edu.cn)
+
+* [信息技术学院](http://itc.bnuz.edu.cn)
+
+* [北师珠ACM协会](http://acm.bnuz.edu.cn)
+
+感谢WeJudge团队每一位成员对项目的支持和付出！
 
 感谢以下博客、开源项目等为本项目提供参考学习的资料。（不分顺序）
 
-1. [JanBox的小站](https://boxjan.com/)
-2. [VOJ](https://github.com/hzxie/voj)
-3. [QDUOJ-Judger](https://github.com/QingdaoU/Judger)
+* [JanBox的小站](https://boxjan.com/)
+* [VOJ](https://github.com/hzxie/voj)
+* [QDUOJ-Judger](https://github.com/QingdaoU/Judger)
 
 ...
 
