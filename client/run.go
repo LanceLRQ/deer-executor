@@ -111,7 +111,7 @@ func run(c *cli.Context, configFile string, counter int) (*executor.JudgeResult,
 			session.SessionId = uuid.NewV1().String()
 		}
 	}
-	if session.SessionRoot != "" {
+	if session.SessionRoot == "" {
 		session.SessionRoot = "/tmp"
 	}
 	sessionDir, err := GetSessionDir(session.SessionRoot, session.SessionId)
