@@ -1,8 +1,6 @@
 package executor
 
 import (
-	"fmt"
-	"log"
 	"os"
 	"strconv"
 )
@@ -10,7 +8,7 @@ import (
 
 // 基于JudgeOptions进行评测调度
 func (session *JudgeSession) judgeOnce(judgeResult *TestCaseResult) error {
-	switch session.SpecialJudge.Mode {
+	switch session.JudgeConfig.SpecialJudge.Mode {
 	case SpecialJudgeModeDisabled:
 		pinfo, err := session.runNormalJudge(judgeResult)
 		if err != nil {
@@ -48,7 +46,7 @@ func (session *JudgeSession) judgeOnce(judgeResult *TestCaseResult) error {
 			session.analysisExitStatus(judgeResult, tinfo, false)
 		}
 		// 普通checker的时候支持按判题机的意愿进行文本比较
-		if session.SpecialJudge.Mode == SpecialJudgeModeChecker {
+		if session.JudgeConfig.SpecialJudge.Mode == SpecialJudgeModeChecker {
 			if judgeResult.JudgeResult == JudgeFlagSpecialJudgeRequireChecker {
 				// 进行文本比较
 				err = session.DiffText(judgeResult)
@@ -97,31 +95,31 @@ func (session *JudgeSession)RunJudge() JudgeResult {
 		return judgeResult
 	}
 
-	if session.SpecialJudge.Mode > 0 {
+	if session.JudgeConfig.SpecialJudge.Mode > 0 {
 		// 如果需要特殊评测，则编译相关代码
 		err := session.compileJudgerProgram(&judgeResult)
 		if err != nil {
 			return judgeResult
 		}
 	}
-	tl, ml, rtl, fsl, mlf := getLimitation(session)
-	mlfText := ""
-	if mlf > 0 {
-		mlfText = fmt.Sprintf(" (with %d KB for VM)", mlf)
-	}
-	log.Printf(
-		"Time limit: %d ms, Memory limit: %d KB%s, Real-time limit: %d ms, File size limit: %d KB\n",
-		tl, ml, mlfText, rtl, fsl/1024,
-	)
+	//tl, ml, rtl, fsl, mlf := getLimitation(session)
+	//mlfText := ""
+	//if mlf > 0 {
+	//	mlfText = fmt.Sprintf(" (with %d KB for VM)", mlf)
+	//}
+	//log.Printf(
+	//	"Time limit: %d ms, Memory limit: %d KB%s, Real-time limit: %d ms, File size limit: %d KB\n",
+	//	tl, ml, mlfText, rtl, fsl/1024,
+	//)
 
 	exitCodes := make([]int, 0, 1)
-	for i := 0; i < len(session.TestCases); i++ {
-		if session.TestCases[i].Id == "" {
-			session.TestCases[i].Id = strconv.Itoa(i)
+	for i := 0; i < len(session.JudgeConfig.TestCases); i++ {
+		if session.JudgeConfig.TestCases[i].Id == "" {
+			session.JudgeConfig.TestCases[i].Id = strconv.Itoa(i)
 		}
-		id := session.TestCases[i].Id
+		id := session.JudgeConfig.TestCases[i].Id
 
-		tcResult := session.runOneCase(session.TestCases[i], id)
+		tcResult := session.runOneCase(session.JudgeConfig.TestCases[i], id)
 
 		isFault := session.isDisastrousFault(&judgeResult, tcResult)
 		judgeResult.TestCases = append(judgeResult.TestCases, *tcResult)
@@ -140,7 +138,7 @@ func (session *JudgeSession)RunJudge() JudgeResult {
 		keep := false
 		if tcResult.JudgeResult == JudgeFlagAC || tcResult.JudgeResult == JudgeFlagPE {
 			keep = true
-		} else if !session.StrictMode && tcResult.JudgeResult == JudgeFlagWA {
+		} else if !session.JudgeConfig.StrictMode && tcResult.JudgeResult == JudgeFlagWA {
 			keep = true
 		}
 		if !keep {

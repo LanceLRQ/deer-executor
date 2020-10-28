@@ -45,20 +45,20 @@ func generateRSAKey(bits int){
 
 func MakeConfigFile(c *cli.Context) error {
 	config, _ := executor.NewSession("")
-	config.TestCases = []executor.TestCase {
+	config.JudgeConfig.TestCases = []executor.TestCase {
 		{
 			Id: "1",
 			TestCaseIn: "",
 			TestCaseOut: "",
 		},
 	}
-	config.Problem.Sample = []executor.ProblemIOSample{
+	config.JudgeConfig.Problem.Sample = []executor.ProblemIOSample{
 		{
 			Input: "",
 			Output: "",
 		},
 	}
-	config.Limitation["C"] = executor.JudgeLimit{
+	config.JudgeConfig.Limitation["C"] = executor.JudgeLimit{
 		TimeLimit:     0,
 		MemoryLimit:   0,
 		RealTimeLimit: 0,
@@ -77,12 +77,12 @@ func MakeConfigFile(c *cli.Context) error {
 			return nil
 		}
 		defer fp.Close()
-		_, err = fp.WriteString(executor.ObjectToJSONStringFormatted(config))
+		_, err = fp.WriteString(executor.ObjectToJSONStringFormatted(config.JudgeConfig))
 		if err != nil {
 			return err
 		}
 	} else {
-		fmt.Println(executor.ObjectToJSONStringFormatted(config))
+		fmt.Println(executor.ObjectToJSONStringFormatted(config.JudgeConfig))
 	}
 	return nil
 }

@@ -140,7 +140,7 @@ func PackProblems(
 		}
 	}
 
-	configBytes := executor.ObjectToJSONByte(session)
+	configBytes := executor.ObjectToJSONByte(session.JudgeConfig)
 
 	bodyFile, err := mergeFilesBinary(session)
 	if err != nil {

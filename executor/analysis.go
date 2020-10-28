@@ -36,7 +36,7 @@ func (session *JudgeSession) analysisExitStatus(rst *TestCaseResult, pinfo *Proc
 	if judger {
 		if status.Signaled() {
 			sig := status.Signal()
-			if session.SpecialJudge.Mode != SpecialJudgeModeInteractive {
+			if session.JudgeConfig.SpecialJudge.Mode != SpecialJudgeModeInteractive {
 				// 检查判题程序是否超时
 				if sig == syscall.SIGXCPU || sig == syscall.SIGALRM {
 					rst.JudgeResult = JudgeFlagSpecialJudgeTimeout
@@ -70,7 +70,7 @@ func (session *JudgeSession) analysisExitStatus(rst *TestCaseResult, pinfo *Proc
 			sig := status.Signal()
 			if sig == syscall.SIGSEGV {
 				// MLE or RE can also get SIGSEGV signal.
-				if rst.MemoryUsed > session.MemoryLimit {
+				if rst.MemoryUsed > session.JudgeConfig.MemoryLimit {
 					rst.JudgeResult = JudgeFlagMLE
 				} else {
 					rst.JudgeResult = JudgeFlagRE
@@ -87,7 +87,7 @@ func (session *JudgeSession) analysisExitStatus(rst *TestCaseResult, pinfo *Proc
 			} else if sig == syscall.SIGKILL {
 				// Sometimes MLE might get SIGKILL signal.
 				// So if real time used lower than TIME_LIMIT - 100, it might be a TLE error.
-				if rst.TimeUsed > (session.TimeLimit - 100) {
+				if rst.TimeUsed > (session.JudgeConfig.TimeLimit - 100) {
 					rst.JudgeResult = JudgeFlagTLE
 				} else {
 					rst.JudgeResult = JudgeFlagMLE
@@ -101,9 +101,9 @@ func (session *JudgeSession) analysisExitStatus(rst *TestCaseResult, pinfo *Proc
 			}
 		} else {
 			// Sometimes setrlimit doesn't work accurately.
-			if rst.TimeUsed > session.TimeLimit {
+			if rst.TimeUsed > session.JudgeConfig.TimeLimit {
 				rst.JudgeResult = JudgeFlagMLE
-			} else if rst.MemoryUsed > session.MemoryLimit {
+			} else if rst.MemoryUsed > session.JudgeConfig.MemoryLimit {
 				rst.JudgeResult = JudgeFlagMLE
 			} else {
 				rst.JudgeResult = JudgeFlagAC
@@ -121,13 +121,13 @@ func (session *JudgeSession) isDisastrousFault(judgeResult *JudgeResult, tcResul
 	}
 
 	// 如果是实时运行的语言
-	if session.compiler.IsRealTime() {
+	if session.Compiler.IsRealTime() {
 		outfile, e := ioutil.ReadFile(path.Join(session.SessionDir, tcResult.ProgramError))
 		if e == nil {
 			if len(outfile) > 0 {
 				remsg := string(outfile)
 
-				if session.compiler.IsCompileError(remsg) {
+				if session.Compiler.IsCompileError(remsg) {
 					tcResult.JudgeResult = JudgeFlagCE
 					tcResult.CeInfo = remsg
 					judgeResult.JudgeResult = JudgeFlagCE
@@ -162,7 +162,7 @@ func (session *JudgeSession) generateFinallyResult(result *JudgeResult, exitcode
 		if exitcode == JudgeFlagAC { ac++ }
 	}
 	// 在严格判题模式下，由于第一组数据不是AC\PE就会直接报错，因此要判定测试数据是否全部跑完。
-	if len(exitcodes) != len(session.TestCases) {
+	if len(exitcodes) != len(session.JudgeConfig.TestCases) {
 		// 如果测试数据未全部跑完
 		result.JudgeResult = JudgeFlagWA
 	} else {
@@ -171,7 +171,7 @@ func (session *JudgeSession) generateFinallyResult(result *JudgeResult, exitcode
 			// 如果存在WA，报WA
 			result.JudgeResult = JudgeFlagWA
 		} else if pe > 0 {	// 如果PE > 0
-			if !session.StrictMode {
+			if !session.JudgeConfig.StrictMode {
 				// 非严格模式，报AC
 				result.JudgeResult = JudgeFlagAC
 			} else {
