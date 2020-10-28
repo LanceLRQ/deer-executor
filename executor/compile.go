@@ -2,6 +2,7 @@ package executor
 
 import (
 	"fmt"
+	commonStructs "github.com/LanceLRQ/deer-common/structs"
 	"github.com/LanceLRQ/deer-executor/provider"
 	"io/ioutil"
 	"os"
@@ -59,7 +60,7 @@ func (session *JudgeSession) getCompiler(codeStr string) (provider.CodeCompilePr
 }
 
 // 编译目标程序
-func (session *JudgeSession)compileTargetProgram(judgeResult *JudgeResult) error {
+func (session *JudgeSession)compileTargetProgram(judgeResult *commonStructs.JudgeResult) error {
 	// 获取对应的编译器提供程序
 	compiler, err := session.getCompiler("")
 	if err != nil {
@@ -81,7 +82,7 @@ func (session *JudgeSession)compileTargetProgram(judgeResult *JudgeResult) error
 }
 
 // 编译裁判程序
-func (session *JudgeSession)compileJudgerProgram(judgeResult *JudgeResult) error {
+func (session *JudgeSession)compileJudgerProgram(judgeResult *commonStructs.JudgeResult) error {
 	_, err := os.Stat(path.Join(session.ConfigDir, session.JudgeConfig.SpecialJudge.Checker))
 	if os.IsNotExist(err) {
 		judgeResult.JudgeResult = JudgeFlagSE

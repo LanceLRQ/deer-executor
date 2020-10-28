@@ -1,13 +1,14 @@
 package executor
 
 import (
+	commonStructs "github.com/LanceLRQ/deer-common/structs"
 	"os"
 	"strconv"
 )
 
 
 // 基于JudgeOptions进行评测调度
-func (session *JudgeSession) judgeOnce(judgeResult *TestCaseResult) error {
+func (session *JudgeSession) judgeOnce(judgeResult *commonStructs.TestCaseResult) error {
 	switch session.JudgeConfig.SpecialJudge.Mode {
 	case SpecialJudgeModeDisabled:
 		pinfo, err := session.runNormalJudge(judgeResult)
@@ -62,10 +63,10 @@ func (session *JudgeSession) judgeOnce(judgeResult *TestCaseResult) error {
 }
 
 // 对一组测试数据运行一次评测
-func (session *JudgeSession)runOneCase(tc TestCase, Id string) *TestCaseResult {
+func (session *JudgeSession)runOneCase(tc commonStructs.TestCase, Id string) *commonStructs.TestCaseResult {
 
-	tcResult := TestCaseResult{}
-	tcResult.Id = Id
+	tcResult := commonStructs.TestCaseResult{}
+	tcResult.Handle = Id
 	// 创建相关的文件路径
 	tcResult.TestCaseIn = tc.TestCaseIn
 	tcResult.TestCaseOut = tc.TestCaseOut
@@ -86,8 +87,8 @@ func (session *JudgeSession)runOneCase(tc TestCase, Id string) *TestCaseResult {
 }
 
 // 执行评测
-func (session *JudgeSession)RunJudge() JudgeResult {
-	judgeResult := JudgeResult{}
+func (session *JudgeSession)RunJudge() commonStructs.JudgeResult {
+	judgeResult := commonStructs.JudgeResult{}
 	judgeResult.SessionId = session.SessionId
 
 	err := session.compileTargetProgram(&judgeResult)
@@ -114,10 +115,10 @@ func (session *JudgeSession)RunJudge() JudgeResult {
 
 	exitCodes := make([]int, 0, 1)
 	for i := 0; i < len(session.JudgeConfig.TestCases); i++ {
-		if session.JudgeConfig.TestCases[i].Id == "" {
-			session.JudgeConfig.TestCases[i].Id = strconv.Itoa(i)
+		if session.JudgeConfig.TestCases[i].Handle == "" {
+			session.JudgeConfig.TestCases[i].Handle = strconv.Itoa(i)
 		}
-		id := session.JudgeConfig.TestCases[i].Id
+		id := session.JudgeConfig.TestCases[i].Handle
 
 		tcResult := session.runOneCase(session.JudgeConfig.TestCases[i], id)
 

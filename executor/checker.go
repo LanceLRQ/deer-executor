@@ -8,6 +8,7 @@ package executor
 import (
 	"bufio"
 	"fmt"
+	commonStructs "github.com/LanceLRQ/deer-common/structs"
 	"os"
 	"path"
 	"strings"
@@ -44,7 +45,7 @@ func isSpaceChar (ch byte) bool {
 
 // 逐行比较，获取错误行数
 // Compare each line, to find out the number of wrong line
-func lineDiff(session *JudgeSession, rst *TestCaseResult) (sameLines int, totalLines int) {
+func lineDiff(session *JudgeSession, rst *commonStructs.TestCaseResult) (sameLines int, totalLines int) {
 	answer, err := os.OpenFile(path.Join(session.ConfigDir, rst.TestCaseOut), os.O_RDONLY | syscall.O_NONBLOCK, 0)
 	if err != nil {
 		return 0, 0
@@ -193,7 +194,7 @@ func charDiffIoUtil (useroutBuffer, answerBuffer []byte, useroutLen, answerLen i
 
 // 进行结果文本比较（主要工具）
 // Compare the text
-func (session *JudgeSession) DiffText(result *TestCaseResult) error {
+func (session *JudgeSession) DiffText(result *commonStructs.TestCaseResult) error {
 	answerInfo, err := os.Stat(path.Join(session.ConfigDir, result.TestCaseOut))
 	if err != nil {
 		result.JudgeResult = JudgeFlagSE

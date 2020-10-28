@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	commonStructs "github.com/LanceLRQ/deer-common/structs"
 	"github.com/LanceLRQ/deer-executor/executor"
 	"github.com/LanceLRQ/deer-executor/persistence"
 	"github.com/LanceLRQ/deer-executor/persistence/judge_result"
@@ -89,7 +90,7 @@ var RunFlags = []cli.Flag {
 	},
 }
 
-func run(c *cli.Context, configFile string, counter int) (*executor.JudgeResult, *executor.JudgeSession, error) {
+func run(c *cli.Context, configFile string, counter int) (*commonStructs.JudgeResult, *executor.JudgeSession, error) {
 	isBenchmarkMode := c.Int("benchmark") > 1
 	// create session
 	session, err := executor.NewSession(configFile)

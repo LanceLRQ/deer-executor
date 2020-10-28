@@ -2,6 +2,7 @@ package executor
 
 import (
 	"fmt"
+	commonStructs "github.com/LanceLRQ/deer-common/structs"
 	"os"
 	"path"
 	"path/filepath"
@@ -10,7 +11,7 @@ import (
 
 
 // 运行评测进程
-func (session *JudgeSession)runProgramCommon(rst *TestCaseResult, judger bool, pipeMode bool, pipeStd []int) (*ProcessInfo, error) {
+func (session *JudgeSession)runProgramCommon(rst *commonStructs.TestCaseResult, judger bool, pipeMode bool, pipeStd []int) (*ProcessInfo, error) {
 	pinfo := ProcessInfo{}
 	pid, fds, err := runProgramProcess(session, rst, judger, pipeMode, pipeStd)
 	if err != nil {
@@ -42,7 +43,7 @@ func (session *JudgeSession)runProgramCommon(rst *TestCaseResult, judger bool, p
 }
 
 // 运行交互评测进程
-func (session *JudgeSession)runProgramAsync(rst *TestCaseResult, judger bool, pipeMode bool, pipeStd []int, info chan *ProcessInfo) error {
+func (session *JudgeSession)runProgramAsync(rst *commonStructs.TestCaseResult, judger bool, pipeMode bool, pipeStd []int, info chan *ProcessInfo) error {
 	tpid, fds, err := runProgramProcess(session, rst, judger, pipeMode, pipeStd)
 	if err != nil {
 		if tpid == 0 {
@@ -78,12 +79,12 @@ func (session *JudgeSession)runProgramAsync(rst *TestCaseResult, judger bool, pi
 
 
 // 运行目标程序
-func (session *JudgeSession)runNormalJudge(rst *TestCaseResult) (*ProcessInfo, error) {
+func (session *JudgeSession)runNormalJudge(rst *commonStructs.TestCaseResult) (*ProcessInfo, error) {
 	return session.runProgramCommon(rst, false, false, nil)
 }
 
 // 运行特殊评测
-func (session *JudgeSession)runSpecialJudge(rst *TestCaseResult) (*ProcessInfo, *ProcessInfo, error) {
+func (session *JudgeSession)runSpecialJudge(rst *commonStructs.TestCaseResult) (*ProcessInfo, *ProcessInfo, error) {
 	if session.JudgeConfig.SpecialJudge.Mode == SpecialJudgeModeChecker {
 		targetInfo, err := session.runProgramCommon(rst, false, false, nil)
 		if err != nil {
@@ -121,7 +122,7 @@ func (session *JudgeSession)runSpecialJudge(rst *TestCaseResult) (*ProcessInfo, 
 	return nil, nil, fmt.Errorf("unkonw special judge mode")
 }
 
-func getSpecialJudgerPath(session *JudgeSession, rst *TestCaseResult) []string {
+func getSpecialJudgerPath(session *JudgeSession, rst *commonStructs.TestCaseResult) []string {
 	tci, err := filepath.Abs(path.Join(session.ConfigDir, rst.TestCaseIn))
 	if err != nil {
 		tci = path.Join(session.ConfigDir, rst.TestCaseIn)
@@ -171,7 +172,7 @@ func getLimitation(session *JudgeSession) (int, int, int, int, int) {
 }
 
 // 目标程序子进程
-func runProgramProcess(session *JudgeSession, rst *TestCaseResult, judger bool, pipeMode bool, pipeStd []int) (uintptr, []int, error) {
+func runProgramProcess(session *JudgeSession, rst *commonStructs.TestCaseResult, judger bool, pipeMode bool, pipeStd []int) (uintptr, []int, error) {
 	var (
 		err error
 		pid uintptr

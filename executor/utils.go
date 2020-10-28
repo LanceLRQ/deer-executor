@@ -326,11 +326,11 @@ func CheckRequireFilesExists(session *JudgeSession) error {
 		tcase := session.JudgeConfig.TestCases[i]
 		_, err = os.Stat(path.Join(session.ConfigDir, tcase.TestCaseIn))
 		if os.IsNotExist(err) {
-			return fmt.Errorf("test case (%s) input file (%s) not exists", tcase.Id, tcase.TestCaseIn)
+			return fmt.Errorf("test case (%s) input file (%s) not exists", tcase.Handle, tcase.TestCaseIn)
 		}
 		_, err = os.Stat(path.Join(session.ConfigDir, tcase.TestCaseOut))
 		if os.IsNotExist(err) {
-			return fmt.Errorf("test case (%s) output file (%s) not exists", tcase.Id, tcase.TestCaseOut)
+			return fmt.Errorf("test case (%s) output file (%s) not exists", tcase.Handle, tcase.TestCaseOut)
 		}
  	}
 	return nil
