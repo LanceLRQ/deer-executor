@@ -2,8 +2,10 @@ package executor
 
 import (
 	"fmt"
+	"github.com/LanceLRQ/deer-common/constants"
 	"github.com/LanceLRQ/deer-common/provider"
 	commonStructs "github.com/LanceLRQ/deer-common/structs"
+	"github.com/LanceLRQ/deer-common/utils"
 	"io/ioutil"
 	"os"
 	"path"
@@ -64,14 +66,14 @@ func (session *JudgeSession)compileTargetProgram(judgeResult *commonStructs.Judg
 	// 获取对应的编译器提供程序
 	compiler, err := session.getCompiler("")
 	if err != nil {
-		judgeResult.JudgeResult = JudgeFlagSE
+		judgeResult.JudgeResult = constants.JudgeFlagSE
 		judgeResult.SeInfo = err.Error()
 		return err
 	}
 	// 编译程序
 	success, ceinfo := compiler.Compile()
 	if !success {
-		judgeResult.JudgeResult = JudgeFlagCE
+		judgeResult.JudgeResult = constants.JudgeFlagCE
 		judgeResult.CeInfo = ceinfo
 		return fmt.Errorf("compile error:\n%s", ceinfo)
 	}
@@ -85,14 +87,14 @@ func (session *JudgeSession)compileTargetProgram(judgeResult *commonStructs.Judg
 func (session *JudgeSession)compileJudgerProgram(judgeResult *commonStructs.JudgeResult) error {
 	_, err := os.Stat(path.Join(session.ConfigDir, session.JudgeConfig.SpecialJudge.Checker))
 	if os.IsNotExist(err) {
-		judgeResult.JudgeResult = JudgeFlagSE
+		judgeResult.JudgeResult = constants.JudgeFlagSE
 		judgeResult.SeInfo = fmt.Sprintf("checker file not exists")
 		return fmt.Errorf(judgeResult.SeInfo)
 	}
 
-	execuable, err := IsExecutableFile(path.Join(session.ConfigDir, session.JudgeConfig.SpecialJudge.Checker))
+	execuable, err := utils.IsExecutableFile(path.Join(session.ConfigDir, session.JudgeConfig.SpecialJudge.Checker))
 	if err != nil {
-		judgeResult.JudgeResult = JudgeFlagSE
+		judgeResult.JudgeResult = constants.JudgeFlagSE
 		judgeResult.SeInfo = fmt.Sprintf("checker file not exists")
 		return fmt.Errorf("compile checker error: %s", err)
 	}
@@ -109,14 +111,14 @@ func (session *JudgeSession)compileJudgerProgram(judgeResult *commonStructs.Judg
 		// 初始化编译程序
 		codeFile, err := os.Open(path.Join(session.ConfigDir, session.JudgeConfig.SpecialJudge.Checker))
 		if err != nil {
-			judgeResult.JudgeResult = JudgeFlagSE
+			judgeResult.JudgeResult = constants.JudgeFlagSE
 			judgeResult.SeInfo = fmt.Sprintf("special judge checker source file open error:\n%s", err.Error())
 			return fmt.Errorf(judgeResult.SeInfo)
 		}
 		defer codeFile.Close()
 		code, err := ioutil.ReadAll(codeFile)
 		if err != nil {
-			judgeResult.JudgeResult = JudgeFlagSE
+			judgeResult.JudgeResult = constants.JudgeFlagSE
 			judgeResult.SeInfo = fmt.Sprintf("special judge checker source file read error:\n%s", err.Error())
 			return fmt.Errorf(judgeResult.SeInfo)
 		}
@@ -130,7 +132,7 @@ func (session *JudgeSession)compileJudgerProgram(judgeResult *commonStructs.Judg
 		//	compiler.GetName(),
 		//))
 	default:
-		judgeResult.JudgeResult = JudgeFlagSE
+		judgeResult.JudgeResult = constants.JudgeFlagSE
 		judgeResult.SeInfo = "special judge checker only support c/c++/go language"
 		return fmt.Errorf(judgeResult.SeInfo)
 	}
@@ -138,7 +140,7 @@ func (session *JudgeSession)compileJudgerProgram(judgeResult *commonStructs.Judg
 	// 编译程序
 	success, ceinfo := compiler.Compile()
 	if !success {
-		judgeResult.JudgeResult = JudgeFlagSE
+		judgeResult.JudgeResult = constants.JudgeFlagSE
 		judgeResult.SeInfo = fmt.Sprintf("special judge checker compile error:\n%s", ceinfo)
 		return fmt.Errorf("special judge checker compile error:\n%s", ceinfo)
 	}

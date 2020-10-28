@@ -8,6 +8,7 @@ package executor
 import (
 	"bufio"
 	"fmt"
+	"github.com/LanceLRQ/deer-common/constants"
 	commonStructs "github.com/LanceLRQ/deer-common/structs"
 	"os"
 	"path"
@@ -137,7 +138,7 @@ func charDiffIoUtil (useroutBuffer, answerBuffer []byte, useroutLen, answerLen i
 		}
 
 		if leftByte != rightByte {
-			return JudgeFlagWA, fmt.Sprintf(
+			return constants.JudgeFlagWA, fmt.Sprintf(
 				"WA: at leftPos=%d, rightPos=%d, leftByte=%d, rightByte=%d",
 				leftPos,
 				rightPos,
@@ -153,7 +154,7 @@ func charDiffIoUtil (useroutBuffer, answerBuffer []byte, useroutLen, answerLen i
 	for leftPos < useroutLen {
 		leftByte = useroutBuffer[leftPos]
 		if !isSpaceChar(leftByte) {
-			return JudgeFlagWA, fmt.Sprintf(
+			return constants.JudgeFlagWA, fmt.Sprintf(
 				"WA: leftPos=%d, rightPos=%d, leftLen=%d, rightLen=%d",
 				leftPos,
 				rightPos,
@@ -167,7 +168,7 @@ func charDiffIoUtil (useroutBuffer, answerBuffer []byte, useroutLen, answerLen i
 	for rightPos < answerLen {
 		rightByte = answerBuffer[rightPos]
 		if !isSpaceChar(rightByte) {
-			return JudgeFlagWA, fmt.Sprintf(
+			return constants.JudgeFlagWA, fmt.Sprintf(
 				"WA: leftPos=%d, rightPos=%d, leftLen=%d, rightLen=%d",
 				leftPos,
 				rightPos,
@@ -180,9 +181,9 @@ func charDiffIoUtil (useroutBuffer, answerBuffer []byte, useroutLen, answerLen i
 	// 左右匹配，说明AC
 	// if left cursor's position equals right cursor's, means Accepted.
 	if leftPos == rightPos {
-		return JudgeFlagAC, "AC!"
+		return constants.JudgeFlagAC, "AC!"
 	} else {
-		return JudgeFlagPE, fmt.Sprintf(
+		return constants.JudgeFlagPE, fmt.Sprintf(
 			"PE: leftPos=%d, rightPos=%d, leftLen=%d, rightLen=%d",
 			leftPos,
 			rightPos,
@@ -197,13 +198,13 @@ func charDiffIoUtil (useroutBuffer, answerBuffer []byte, useroutLen, answerLen i
 func (session *JudgeSession) DiffText(result *commonStructs.TestCaseResult) error {
 	answerInfo, err := os.Stat(path.Join(session.ConfigDir, result.TestCaseOut))
 	if err != nil {
-		result.JudgeResult = JudgeFlagSE
+		result.JudgeResult = constants.JudgeFlagSE
 		result.TextDiffLog = fmt.Sprintf("Get answer file info failed: %s", err.Error())
 		return err
 	}
 	useroutInfo, err := os.Stat(path.Join(session.SessionDir ,result.ProgramOut))
 	if err != nil {
-		result.JudgeResult = JudgeFlagSE
+		result.JudgeResult = constants.JudgeFlagSE
 		result.TextDiffLog = fmt.Sprintf("Get userout file info failed: %s", err.Error())
 		return err
 	}
@@ -218,27 +219,27 @@ func (session *JudgeSession) DiffText(result *commonStructs.TestCaseResult) erro
 
 	answerBuffer, errText, err = readFileWithTry(path.Join(session.ConfigDir, result.TestCaseOut), "answer", 3)
 	if err != nil {
-		result.JudgeResult = JudgeFlagSE
+		result.JudgeResult = constants.JudgeFlagSE
 		result.TextDiffLog = errText
 		return err
 	}
 
 	useroutBuffer, errText, err = readFileWithTry(path.Join(session.SessionDir, result.ProgramOut), "userout", 3)
 	if err != nil {
-		result.JudgeResult = JudgeFlagSE
+		result.JudgeResult = constants.JudgeFlagSE
 		result.TextDiffLog = errText
 		return err
 	}
 
 	if useroutLen == 0 && answerLen == 0 {
 		// Empty File AC
-		result.JudgeResult = JudgeFlagAC
+		result.JudgeResult = constants.JudgeFlagAC
 		result.TextDiffLog = sizeText + "; Accepted with zero size."
 		return nil
 	} else if useroutLen > 0 && answerLen > 0 {
 		if (useroutLen > int64(session.JudgeConfig.FileSizeLimit)) || (useroutLen >= answerLen * 2) {
 			// OLE
-			result.JudgeResult = JudgeFlagOLE
+			result.JudgeResult = constants.JudgeFlagOLE
 			if useroutLen > int64(session.JudgeConfig.FileSizeLimit) {
 				result.TextDiffLog = sizeText + "; WA: larger then limitation."
 				return nil
@@ -249,7 +250,7 @@ func (session *JudgeSession) DiffText(result *commonStructs.TestCaseResult) erro
 		}
 	} else {
 		// WTF?
-		result.JudgeResult = JudgeFlagWA
+		result.JudgeResult = constants.JudgeFlagWA
 		result.TextDiffLog = sizeText + "; WA: less then zero size."
 		return nil
 	}
@@ -257,13 +258,13 @@ func (session *JudgeSession) DiffText(result *commonStructs.TestCaseResult) erro
 	rel, logText := charDiffIoUtil(useroutBuffer, answerBuffer, useroutLen ,answerLen)
 	result.JudgeResult = rel
 
-	if rel != JudgeFlagWA {
+	if rel != constants.JudgeFlagWA {
 		// PE or AC or SE
-		if rel == JudgeFlagAC {
+		if rel == constants.JudgeFlagAC {
 			// AC 时执行强制检查，可以排除空白字符的顺序不一致也是AC的情况
 			sret := strictDiff(useroutBuffer, answerBuffer, useroutLen ,answerLen)
 			if !sret {
-				result.JudgeResult = JudgeFlagPE
+				result.JudgeResult = constants.JudgeFlagPE
 				logText = "Strict check: Presentation Error."
 			} else {
 				logText = "Accepted."

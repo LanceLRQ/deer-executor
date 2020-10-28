@@ -2,6 +2,7 @@ package executor
 
 import (
 	"fmt"
+	"github.com/LanceLRQ/deer-common/constants"
 	commonStructs "github.com/LanceLRQ/deer-common/structs"
 	"os"
 	"path"
@@ -85,14 +86,14 @@ func (session *JudgeSession)runNormalJudge(rst *commonStructs.TestCaseResult) (*
 
 // 运行特殊评测
 func (session *JudgeSession)runSpecialJudge(rst *commonStructs.TestCaseResult) (*ProcessInfo, *ProcessInfo, error) {
-	if session.JudgeConfig.SpecialJudge.Mode == SpecialJudgeModeChecker {
+	if session.JudgeConfig.SpecialJudge.Mode == constants.SpecialJudgeModeChecker {
 		targetInfo, err := session.runProgramCommon(rst, false, false, nil)
 		if err != nil {
 			return targetInfo, nil, err
 		}
 		judgerInfo, err := session.runProgramCommon(rst, true, false, nil)
 		return targetInfo, judgerInfo, err
-	} else if session.JudgeConfig.SpecialJudge.Mode == SpecialJudgeModeInteractive {
+	} else if session.JudgeConfig.SpecialJudge.Mode == constants.SpecialJudgeModeInteractive {
 
 		fdjudger, err := getPipe()
 		if err != nil {
@@ -152,7 +153,7 @@ func getSpecialJudgerPath(session *JudgeSession, rst *commonStructs.TestCaseResu
 func getLimitation(session *JudgeSession) (int, int, int, int, int) {
 	langName := session.Compiler.GetName()
 	memoryLimitExtend := 0
-	jitMem, ok := MemorySizeForJIT[langName]
+	jitMem, ok := constants.MemorySizeForJIT[langName]
 	if ok {
 		memoryLimitExtend = jitMem
 	}
