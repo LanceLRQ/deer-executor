@@ -17,7 +17,7 @@ type ProcessInfo struct {
 
 type SpecialJudgeOptions struct {
 	Mode 				int				`json:"mode"`					// Mode；0-Disabled；1-Normal；2-Interactor
-	Checker 			string			`json:"checker"`				// Checker file path
+	Checker 			string			`json:"checker"`				// Checker file path (Use code file is better then compiled binary!)
 	RedirectProgramOut 	bool 			`json:"redirect_program_out"`	// Redirect target program's STDOUT to checker's STDIN (checker mode). if not, redirect testcase-in file to checker's STDIN
 	TimeLimit 			int				`json:"time_limit"`				// Time limit (ms)
 	MemoryLimit 		int				`json:"memory_limit"`			// Memory limit (kb)
@@ -47,8 +47,8 @@ type TestCaseResult struct {
 	TimeUsed 		int					`json:"time_used"`				// Maximum time used
 	MemoryUsed 		int					`json:"memory_used"`			// Maximum memory used
 	ReSignum 		int					`json:"re_signal_num"`			// Runtime error signal number
-	SameLines 		int					`json:"same_lines"`				// sameLines when WA
-	TotalLines 		int					`json:"total_lines"`			// totalLines when WA
+	SameLines 		int					`json:"same_lines"`				// Same lines when WA
+	TotalLines 		int					`json:"total_lines"`			// Total lines when WA
 	ReInfo 			string				`json:"re_info"`				// ReInfo when Runtime Error or special judge Runtime Error
 	SeInfo 			string				`json:"se_info"`				// SeInfo when System Error
 	CeInfo 			string				`json:"ce_info"`				// CeInfo when Compile Error
