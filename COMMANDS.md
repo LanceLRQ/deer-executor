@@ -2,15 +2,15 @@
 
 1、运行简单评测
 
-```go run main.go run --config ./data/problems/APlusB/problem.json --clean ./data/codes/APlusB/ac.c```
+```go run main.go run --config ./data/problems/APlusB/problem.json ./data/codes/APlusB/ac.c```
 
 2、运行评测并持久化到文件
 
-```go run main.go run --config ./data/problems/APlusB/problem.json --clean --persistence ./result ./data/codes/APlusB/ac.c```
+```go run main.go run --config ./data/problems/APlusB/problem.json --persistence ./result ./data/codes/APlusB/ac.c```
 
 3、运行评测并持久化到文件（带签名和数字校验），需要输入GPG密钥文件密码
 
-```go run main.go run --config ./data/problems/APlusB/problem.json --clean --persistence ./result --sign --key YOUR_GPG_KEY ./data/codes/APlusB/ac.c```
+```go run main.go run --config ./data/problems/APlusB/problem.json --persistence ./result --sign --key YOUR_GPG_KEY ./data/codes/APlusB/ac.c```
 
 ## GPG 密钥生成
 
@@ -48,5 +48,5 @@ gpg --armor --output private-key.txt --export-secret-keys F896F5F1F6AFF7FA
 
 运行评测时，config参数支持识别是否为题目包文件，是则自动解包校验并释放到/tmp目录下，可以通过--work-dir参数设定
 
-```go run main.go run --config ./a+b.problem --clean ./data/codes/APlusB/ac.c```
+```go run main.go run --config ./a+b.problem ./data/codes/APlusB/ac.c```
 
