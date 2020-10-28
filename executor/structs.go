@@ -93,16 +93,8 @@ type JudgeLimit struct {
 	FileSizeLimit 	int					`json:"file_size_limit"`		// File Size Limit (bytes) (optional)
 }
 
-// Judge session
-type JudgeSession struct {
-	SessionId		string					`json:"-"`						// Judge Session Id
-	SessionRoot		string					`json:"-"`						// Session Root Directory
-	SessionDir		string					`json:"-"`						// Session Directory
-	ConfigFile 		string					`json:"-"`						// Config file
-	ConfigDir 		string					`json:"-"`						// Config file dir
-	CodeLangName 	string					`json:"code_lang_name"`			// Code file language name
-	CodeFile	 	string					`json:"-"`						// Code File Path
-	Commands 		[]string				`json:"-"`						// Executable program commands
+// 评测配置信息
+type JudgeConfiguration struct {
 	TestCases		[]TestCase				`json:"test_cases"`				// Test cases
 	TimeLimit 		int						`json:"time_limit"`				// Time limit (ms)
 	MemoryLimit 	int						`json:"memory_limit"`			// Memory limit (KB)
@@ -111,26 +103,39 @@ type JudgeSession struct {
 	Uid 			int						`json:"uid"`					// User id (optional)
 	StrictMode 		bool					`json:"strict_mode"`			// Strict Mode (if close, PE will be ignore)
 	SpecialJudge  	SpecialJudgeOptions 	`json:"special_judge"`			// Special Judge Options
-
 	Limitation		map[string]JudgeLimit	`json:"limitation"`				// Limitation
 	Problem			ProblemContent			`json:"problem"`				// Problem Info
+}
 
-	compiler		provider.CodeCompileProviderInterface				// Compiler entity
+// Judge session
+type JudgeSession struct {
+	SessionId		string											// Judge Session Id
+	SessionRoot		string											// Session Root Directory
+	SessionDir		string											// Session Directory
+	ConfigFile 		string											// Config file
+	ConfigDir 		string											// Config file dir
+	CodeLangName 	string											// Code file language name
+	CodeFile	 	string											// Code File Path
+	Commands 		[]string										// Executable program commands
+
+	JudgeConfig		JudgeConfiguration 								// Judge Configurations
+
+	Compiler		provider.CodeCompileProviderInterface			// Compiler entity
 }
 
 func NewSession(configFile string) (*JudgeSession, error) {
 	session := JudgeSession{}
 	session.SessionRoot = "/tmp"
 	session.CodeLangName = "auto"
-	session.Uid = -1
-	session.TimeLimit = 1000
-	session.MemoryLimit = 65535
-	session.StrictMode = true
-	session.FileSizeLimit = 50 * 1024 * 1024
-	session.SpecialJudge.Mode = 0
-	session.SpecialJudge.RedirectProgramOut = true
-	session.SpecialJudge.TimeLimit = 1000
-	session.SpecialJudge.MemoryLimit = 65535
+	session.JudgeConfig.Uid = -1
+	session.JudgeConfig.TimeLimit = 1000
+	session.JudgeConfig.MemoryLimit = 65535
+	session.JudgeConfig.StrictMode = true
+	session.JudgeConfig.FileSizeLimit = 50 * 1024 * 1024
+	session.JudgeConfig.SpecialJudge.Mode = 0
+	session.JudgeConfig.SpecialJudge.RedirectProgramOut = true
+	session.JudgeConfig.SpecialJudge.TimeLimit = 1000
+	session.JudgeConfig.SpecialJudge.MemoryLimit = 65535
 	if configFile != "" {
 		configFileAbsPath, err := filepath.Abs(configFile)
 		if err != nil {
@@ -142,7 +147,7 @@ func NewSession(configFile string) (*JudgeSession, error) {
 		if err != nil {
 			return nil, err
 		}
-		err = json.Unmarshal(cbody, &session)
+		err = json.Unmarshal(cbody, &session.JudgeConfig)
 		if err != nil {
 			return nil, err
 		}
