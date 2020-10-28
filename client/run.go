@@ -17,9 +17,9 @@ import (
 
 var RunFlags = []cli.Flag {
 	&cli.BoolFlag {
-		Name: "clean",
+		Name: "no-clean",
 		Value: false,
-		Usage: "Delete session directory after judge",
+		Usage: "Don't delete session directory after judge",
 	},
 	&cli.StringFlag {
 		Name: "language",
@@ -197,7 +197,7 @@ func Run(c *cli.Context) error {
 			return err
 		}
 		// Do clean (or benchmark on)
-		if c.Bool("clean") || isBenchmarkMode {
+		if !c.Bool("no-clean") || isBenchmarkMode {
 			defer judgeSession.Clean()
 		}
 		// persistence
