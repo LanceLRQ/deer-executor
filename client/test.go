@@ -1,12 +1,12 @@
 package client
 
 import (
-	"fmt"
-	"github.com/urfave/cli/v2"
-	"golang.org/x/crypto/openpgp"
-	"golang.org/x/crypto/openpgp/armor"
-	"io/ioutil"
-	"os"
+    "fmt"
+    "github.com/urfave/cli/v2"
+    "golang.org/x/crypto/openpgp"
+    "golang.org/x/crypto/openpgp/armor"
+    "io/ioutil"
+    "os"
 )
 
 ////privateKey, err := persistence.ReadPemFile("./data/certs/test.key")
@@ -62,70 +62,70 @@ import (
 //return nil
 
 func Test(c *cli.Context) error {
-	keyRingReader, err := os.Open("private-key.txt")
-	if err != nil {
-		return err
-	}
+    keyRingReader, err := os.Open("private-key.txt")
+    if err != nil {
+        return err
+    }
 
-	elist, err := openpgp.ReadArmoredKeyRing(keyRingReader)
-	if err != nil {
-		return err
-	}
-	pkey := elist[0].PrimaryKey
+    elist, err := openpgp.ReadArmoredKeyRing(keyRingReader)
+    if err != nil {
+        return err
+    }
+    pkey := elist[0].PrimaryKey
 
-	fp, err := os.Create("/tmp/pub.key")
-	if err != nil {
-		return err
-	}
-	w, err := armor.Encode(fp, openpgp.PublicKeyType, nil)
-	if err != nil {
-		return err
-	}
-	err = pkey.Serialize(w)
-	if err != nil {
-		return err
-	}
-	w.Close()
-	fp.Close()
+    fp, err := os.Create("/tmp/pub.key")
+    if err != nil {
+        return err
+    }
+    w, err := armor.Encode(fp, openpgp.PublicKeyType, nil)
+    if err != nil {
+        return err
+    }
+    err = pkey.Serialize(w)
+    if err != nil {
+        return err
+    }
+    w.Close()
+    fp.Close()
 
-	defer os.Remove("/tmp/pub.key")
+    defer os.Remove("/tmp/pub.key")
 
-	data, err := ioutil.ReadFile("/tmp/pub.key")
-	if err != nil {
-		return err
-	}
+    data, err := ioutil.ReadFile("/tmp/pub.key")
+    if err != nil {
+        return err
+    }
 
-	fmt.Println(string(data))
-	//
-	////fmt.Println(elist[0].PrimaryKey.PublicKey)
-	//for _, v := range elist[0].Identities {
-	//	fmt.Println(v.Name)
-	//	fmt.Println(v.Signatures)
-	//	//fmt.Println(v.SelfSignature)
-	//	fmt.Println(v.UserId)
-	//}
+    fmt.Println(string(data))
+    //
+    ////fmt.Println(elist[0].PrimaryKey.PublicKey)
+    //for _, v := range elist[0].Identities {
+    //	fmt.Println(v.Name)
+    //	fmt.Println(v.Signatures)
+    //	//fmt.Println(v.SelfSignature)
+    //	fmt.Println(v.UserId)
+    //}
 
-	//pem := persistence.DigitalSignPEM {
-	//	PrivateKey: keys[0].PrivateKey.PrivateKey.(*rsa.PrivateKey),
-	//	PublicKey: keys[0].PublicKey.PublicKey.(*rsa.PublicKey),
-	//}
-	//
-	//sign, err := persistence.RSA2048SignString("Hello World", pem.PrivateKey)
-	//if err != nil {
-	//	return err
-	//}
-	//fmt.Println(hex.EncodeToString(sign))
-	//
-	//err = persistence.RSA2048VerifyString("Hello World", sign, pem.PublicKey)
-	//if err != nil {
-	//	return err
-	//}
-	//fmt.Println("Yes!")
-	//
-	//passphrase, err := gopass.GetPasswdPrompt("please input passphrase of key>", true, os.Stdin, os.Stdout)
-	//if err != nil {
-	//	return err
-	//}
-	//fmt.Println(string(passphrase))
-	return nil
+    //pem := persistence.DigitalSignPEM {
+    //	PrivateKey: keys[0].PrivateKey.PrivateKey.(*rsa.PrivateKey),
+    //	PublicKey: keys[0].PublicKey.PublicKey.(*rsa.PublicKey),
+    //}
+    //
+    //sign, err := persistence.RSA2048SignString("Hello World", pem.PrivateKey)
+    //if err != nil {
+    //	return err
+    //}
+    //fmt.Println(hex.EncodeToString(sign))
+    //
+    //err = persistence.RSA2048VerifyString("Hello World", sign, pem.PublicKey)
+    //if err != nil {
+    //	return err
+    //}
+    //fmt.Println("Yes!")
+    //
+    //passphrase, err := gopass.GetPasswdPrompt("please input passphrase of key>", true, os.Stdin, os.Stdout)
+    //if err != nil {
+    //	return err
+    //}
+    //fmt.Println(string(passphrase))
+    return nil
 }
