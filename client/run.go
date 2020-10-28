@@ -2,12 +2,12 @@ package client
 
 import (
 	"fmt"
+	"github.com/LanceLRQ/deer-common/provider"
 	commonStructs "github.com/LanceLRQ/deer-common/structs"
 	"github.com/LanceLRQ/deer-executor/executor"
 	"github.com/LanceLRQ/deer-executor/persistence"
 	"github.com/LanceLRQ/deer-executor/persistence/judge_result"
 	"github.com/LanceLRQ/deer-executor/persistence/problems"
-	"github.com/LanceLRQ/deer-executor/provider"
 	uuid "github.com/satori/go.uuid"
 	"github.com/urfave/cli/v2"
 	"log"
