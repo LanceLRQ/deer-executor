@@ -77,6 +77,16 @@ var RunFlags = []cli.Flag {
 		Value: "",
 		Usage: "Working dir, using to unpack problem package",
 	},
+	&cli.StringFlag {
+		Name: "session-id",
+		Value: "",
+		Usage: "setup session id",
+	},
+	&cli.StringFlag {
+		Name: "session-root",
+		Value: "",
+		Usage: "setup session root dir",
+	},
 }
 
 func run(c *cli.Context, configFile string, counter int) (*executor.JudgeResult, *executor.JudgeSession, error) {
@@ -91,6 +101,8 @@ func run(c *cli.Context, configFile string, counter int) (*executor.JudgeResult,
 	}
 	// init files
 	session.CodeFile = c.Args().Get(1)
+	session.SessionId = c.String("session-id")
+	session.SessionRoot = c.String("session-root")
 	// create session info
 	if isBenchmarkMode {
 		session.SessionId = uuid.NewV1().String() + strconv.Itoa(counter)
