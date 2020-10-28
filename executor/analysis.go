@@ -2,6 +2,7 @@ package executor
 
 import (
 	"fmt"
+	commonStructs "github.com/LanceLRQ/deer-common/structs"
 	"io/ioutil"
 	"path"
 	"syscall"
@@ -9,7 +10,7 @@ import (
 
 
 // 分析进程退出状态
-func (session *JudgeSession) saveExitRusage(rst *TestCaseResult, pinfo *ProcessInfo, judger bool) {
+func (session *JudgeSession) saveExitRusage(rst *commonStructs.TestCaseResult, pinfo *ProcessInfo, judger bool) {
 	ru := pinfo.Rusage
 	status := pinfo.Status
 
@@ -29,7 +30,7 @@ func (session *JudgeSession) saveExitRusage(rst *TestCaseResult, pinfo *ProcessI
 }
 
 // 分析进程退出状态
-func (session *JudgeSession) analysisExitStatus(rst *TestCaseResult, pinfo *ProcessInfo, judger bool) {
+func (session *JudgeSession) analysisExitStatus(rst *commonStructs.TestCaseResult, pinfo *ProcessInfo, judger bool) {
 	status := pinfo.Status
 
 	// 特判
@@ -113,10 +114,10 @@ func (session *JudgeSession) analysisExitStatus(rst *TestCaseResult, pinfo *Proc
 }
 
 // 判定是否是灾难性结果
-func (session *JudgeSession) isDisastrousFault(judgeResult *JudgeResult, tcResult *TestCaseResult) bool {
+func (session *JudgeSession) isDisastrousFault(judgeResult *commonStructs.JudgeResult, tcResult *commonStructs.TestCaseResult) bool {
 	if tcResult.JudgeResult == JudgeFlagSE {
 		judgeResult.JudgeResult = JudgeFlagSE
-		judgeResult.SeInfo = fmt.Sprintf("testcase %s caused a problem", tcResult.Id)
+		judgeResult.SeInfo = fmt.Sprintf("testcase %s caused a problem", tcResult.Handle)
 		return true
 	}
 
@@ -146,7 +147,7 @@ func (session *JudgeSession) isDisastrousFault(judgeResult *JudgeResult, tcResul
 }
 
 // 计算判题结果
-func (session *JudgeSession) generateFinallyResult(result *JudgeResult, exitcodes []int) {
+func (session *JudgeSession) generateFinallyResult(result *commonStructs.JudgeResult, exitcodes []int) {
 	var (
 		ac, pe, wa int = 0, 0, 0
 	)

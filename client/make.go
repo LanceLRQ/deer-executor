@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	commonStructs "github.com/LanceLRQ/deer-common/structs"
 	"github.com/LanceLRQ/deer-executor/executor"
 	"github.com/LanceLRQ/deer-executor/provider"
 	"github.com/urfave/cli/v2"
@@ -45,20 +46,20 @@ func generateRSAKey(bits int){
 
 func MakeConfigFile(c *cli.Context) error {
 	config, _ := executor.NewSession("")
-	config.JudgeConfig.TestCases = []executor.TestCase {
+	config.JudgeConfig.TestCases = []commonStructs.TestCase {
 		{
-			Id: "1",
+			Handle: "1",
 			TestCaseIn: "",
 			TestCaseOut: "",
 		},
 	}
-	config.JudgeConfig.Problem.Sample = []executor.ProblemIOSample{
+	config.JudgeConfig.Problem.Sample = []commonStructs.ProblemIOSample{
 		{
 			Input: "",
 			Output: "",
 		},
 	}
-	config.JudgeConfig.Limitation["C"] = executor.JudgeLimit{
+	config.JudgeConfig.Limitation["C"] = commonStructs.JudgeResourceLimit{
 		TimeLimit:     0,
 		MemoryLimit:   0,
 		RealTimeLimit: 0,

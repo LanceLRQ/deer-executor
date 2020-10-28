@@ -6,6 +6,7 @@ import (
 	"compress/gzip"
 	"encoding/binary"
 	"fmt"
+	commonStructs "github.com/LanceLRQ/deer-common/structs"
 	"github.com/LanceLRQ/deer-executor/executor"
 	"github.com/LanceLRQ/deer-executor/persistence"
 	uuid "github.com/satori/go.uuid"
@@ -113,7 +114,7 @@ func validateJudgeResultPackage (pack *JudgeResultPackage) (bool, error) {
 }
 
 // 读取判题结果
-func ReadJudgeResult(resultFile string) (*executor.JudgeResult, error) {
+func ReadJudgeResult(resultFile string) (*commonStructs.JudgeResult, error) {
 	rf, err := os.Open(resultFile)
 	if err != nil {
 		return nil, fmt.Errorf("open file (%s) error: %s", resultFile, err.Error())
@@ -133,7 +134,7 @@ func ReadJudgeResult(resultFile string) (*executor.JudgeResult, error) {
 		return nil, fmt.Errorf("validate package hash error")
 	}
 
-	judgeResult := executor.JudgeResult{}
+	judgeResult := commonStructs.JudgeResult{}
 	executor.JSONBytesObject(pack.Result, &judgeResult)
 
 	// 如果使用了Gz

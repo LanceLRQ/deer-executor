@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"encoding/binary"
 	"fmt"
+	commonStructs "github.com/LanceLRQ/deer-common/structs"
 	"github.com/LanceLRQ/deer-executor/executor"
 	"github.com/LanceLRQ/deer-executor/persistence"
 	uuid "github.com/satori/go.uuid"
@@ -38,7 +39,7 @@ func readAndWriteToTempFile(writer io.Writer, fileName string, workDir string) e
 	return nil
 }
 
-func mergeResultBinary(session *executor.JudgeSession, judgeResult *executor.JudgeResult, compressType uint8) (string, error) {
+func mergeResultBinary(session *executor.JudgeSession, judgeResult *commonStructs.JudgeResult, compressType uint8) (string, error) {
 	tmpFileName := uuid.NewV1().String() + ".tmp"
 	tmpFilePath := path.Join("/tmp/", tmpFileName)
 	var testCaseWriter io.Writer
@@ -119,7 +120,7 @@ func writeFileHeaderAndResult (writer io.Writer, pack JudgeResultPackage) error 
 
 func PersistentJudgeResult(
 	session *executor.JudgeSession,
-	judgeResult *executor.JudgeResult,
+	judgeResult *commonStructs.JudgeResult,
 	options persistence.JudgeResultPersisOptions,
 ) error {
 	fout, err := os.Create(options.OutFile)
