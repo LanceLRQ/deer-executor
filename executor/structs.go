@@ -95,8 +95,8 @@ type JudgeLimit struct {
 
 // Judge session
 type JudgeSession struct {
-	SessionId		string					`json:"session_id"`				// Judge Session Id
-	SessionRoot		string					`json:"session_root"`			// Session Root Directory
+	SessionId		string					`json:"-"`						// Judge Session Id
+	SessionRoot		string					`json:"-"`						// Session Root Directory
 	SessionDir		string					`json:"-"`						// Session Directory
 	ConfigFile 		string					`json:"-"`						// Config file
 	ConfigDir 		string					`json:"-"`						// Config file dir

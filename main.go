@@ -84,6 +84,19 @@ func main() {
 				Action: client.PackProblem,
 			},
 			{
+				Name:   "info",
+				Usage:  "show problem package info",
+				ArgsUsage: "package_file",
+				Flags: []cli.Flag{
+					&cli.BoolFlag{
+						Name:    "sign",
+						Value: 	 false,
+						Usage:   "output GPG signature info",
+					},
+				},
+				Action: client.ReadProblemInfo,
+			},
+			{
 				Name:   "test",
 				Hidden: true,
 				Usage:  "",

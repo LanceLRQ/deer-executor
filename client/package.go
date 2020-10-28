@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"github.com/LanceLRQ/deer-executor/executor"
 	"github.com/LanceLRQ/deer-executor/persistence"
 	"github.com/LanceLRQ/deer-executor/persistence/problems"
@@ -63,6 +64,36 @@ func PackProblem(c *cli.Context) error {
 	err = problems.PackProblems(session, options)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func ReadProblemInfo(c *cli.Context) error {
+
+	configFile := c.Args().Get(0)
+	yes, err := problems.IsProblemPackage(configFile)
+	if err != nil {
+		return err
+	}
+	// 如果是题目包文件，进行解包
+	if yes {
+		if c.Bool("sign") {
+			g, err := problems.ReadProblemGPGInfo(configFile)
+			if err != nil {
+				return err
+			}
+			fmt.Println(g)
+		} else {
+			s, err := problems.ReadProblemInfo(configFile, false, "")
+			if err != nil {
+				return err
+			}
+			s.ConfigFile = ""
+			fmt.Println(executor.ObjectToJSONStringFormatted(s))
+		}
+	} else {
+		return fmt.Errorf("not deer-executor problem package file")
 	}
 
 	return nil
