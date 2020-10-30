@@ -122,13 +122,13 @@ func (session *JudgeSession) runSpecialJudge(rst *commonStructs.TestCaseResult) 
 }
 
 func getSpecialJudgerPath(session *JudgeSession, rst *commonStructs.TestCaseResult) []string {
-    tci, err := filepath.Abs(path.Join(session.ConfigDir, rst.TestCaseIn))
+    tci, err := filepath.Abs(path.Join(session.ConfigDir, rst.Input))
     if err != nil {
-        tci = path.Join(session.ConfigDir, rst.TestCaseIn)
+        tci = path.Join(session.ConfigDir, rst.Input)
     }
-    tco, err := filepath.Abs(path.Join(session.ConfigDir, rst.TestCaseOut))
+    tco, err := filepath.Abs(path.Join(session.ConfigDir, rst.Output))
     if err != nil {
-        tco = path.Join(session.ConfigDir, rst.TestCaseOut)
+        tco = path.Join(session.ConfigDir, rst.Output)
     }
     po, err := filepath.Abs(path.Join(session.SessionDir, rst.ProgramOut))
     if err != nil {
@@ -198,7 +198,7 @@ func runProgramProcess(session *JudgeSession, rst *commonStructs.TestCaseResult,
                 return 0, fds, err
             }
         } else {
-            // Redirect testCaseIn to STDIN
+            // Redirect test-case input to STDIN
             if judger {
                 if session.JudgeConfig.SpecialJudge.RedirectProgramOut {
                     fds[0], err = redirectFileDescriptor(
@@ -210,7 +210,7 @@ func runProgramProcess(session *JudgeSession, rst *commonStructs.TestCaseResult,
                 } else {
                     fds[0], err = redirectFileDescriptor(
                         syscall.Stdin,
-                        path.Join(session.ConfigDir, rst.TestCaseIn),
+                        path.Join(session.ConfigDir, rst.Input),
                         os.O_RDONLY,
                         0,
                     )
@@ -218,7 +218,7 @@ func runProgramProcess(session *JudgeSession, rst *commonStructs.TestCaseResult,
             } else {
                 fds[0], err = redirectFileDescriptor(
                     syscall.Stdin,
-                    path.Join(session.ConfigDir, rst.TestCaseIn),
+                    path.Join(session.ConfigDir, rst.Input),
                     os.O_RDONLY,
                     0,
                 )
