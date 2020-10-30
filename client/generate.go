@@ -1,10 +1,6 @@
 package client
 
 import (
-    "crypto/rand"
-    "crypto/rsa"
-    "crypto/x509"
-    "encoding/pem"
     "fmt"
     "github.com/LanceLRQ/deer-common/constants"
     "github.com/LanceLRQ/deer-common/provider"
@@ -16,34 +12,42 @@ import (
     "os"
 )
 
-//生成RSA私钥和公钥，保存到文件中
-func generateRSAKey(bits int) {
-    privateKey, err := rsa.GenerateKey(rand.Reader, bits)
-    if err != nil {
-        panic(err)
-    }
-    X509PrivateKey := x509.MarshalPKCS1PrivateKey(privateKey)
-    privateFile, err := os.Create("private.pem")
-    if err != nil {
-        panic(err)
-    }
-    defer privateFile.Close()
-    privateBlock := pem.Block{Type: "RSA Private Key", Bytes: X509PrivateKey}
-    _ = pem.Encode(privateFile, &privateBlock)
-
-    publicKey := privateKey.PublicKey
-    X509PublicKey, err := x509.MarshalPKIXPublicKey(&publicKey)
-    if err != nil {
-        panic(err)
-    }
-    publicFile, err := os.Create("public.pem")
-    if err != nil {
-        panic(err)
-    }
-    defer publicFile.Close()
-    publicBlock := pem.Block{Type: "RSA Public Key", Bytes: X509PublicKey}
-    //保存到文件
-    _ = pem.Encode(publicFile, &publicBlock)
+var AppMakeSubCommands = cli.Commands{
+    {
+        Name:   "config",
+        Action: MakeConfigFile,
+        Flags: []cli.Flag{
+            &cli.StringFlag{
+                Name:    "output",
+                Aliases: []string{"out"},
+                Value:   "",
+                Usage:   "output config file",
+            },
+        },
+    },
+    {
+        Name:   "compiler",
+        Action: MakeCompileConfigFile,
+        Flags: []cli.Flag{
+            &cli.StringFlag{
+                Name:    "output",
+                Aliases: []string{"out"},
+                Value:   "",
+                Usage:   "output config file",
+            },
+        },
+    }, {
+        Name:   "jit_memory",
+        Action: MakeJITMemoryConfigFile,
+        Flags: []cli.Flag{
+            &cli.StringFlag{
+                Name:    "output",
+                Aliases: []string{"out"},
+                Value:   "",
+                Usage:   "output config file",
+            },
+        },
+    },
 }
 
 func MakeConfigFile(c *cli.Context) error {
@@ -61,11 +65,12 @@ func MakeConfigFile(c *cli.Context) error {
             Output: "",
         },
     }
-    config.JudgeConfig.Limitation["C"] = commonStructs.JudgeResourceLimit{
-        TimeLimit:     0,
-        MemoryLimit:   0,
-        RealTimeLimit: 0,
-        FileSizeLimit: 0,
+    config.JudgeConfig.Limitation = make(map[string]commonStructs.JudgeResourceLimit)
+    config.JudgeConfig.Limitation["gcc"] = commonStructs.JudgeResourceLimit{
+        TimeLimit:     config.JudgeConfig.TimeLimit,
+        MemoryLimit:   config.JudgeConfig.MemoryLimit,
+        RealTimeLimit: config.JudgeConfig.RealTimeLimit,
+        FileSizeLimit: config.JudgeConfig.FileSizeLimit,
     }
     output := c.String("output")
     if output != "" {
@@ -137,14 +142,5 @@ func MakeJITMemoryConfigFile(c *cli.Context) error {
     if err != nil {
         return err
     }
-    return nil
-}
-
-func GenerateRSA(c *cli.Context) error {
-    bit := c.Int("bit")
-    if bit < 2048 || bit%2 != 0 {
-        return fmt.Errorf("RSA bit must larger than 2048 (or equal)")
-    }
-    generateRSAKey(bit)
     return nil
 }

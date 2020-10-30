@@ -20,81 +20,22 @@ func main() {
             {
                 Name:      "run",
                 Usage:     "run code judging",
+                Aliases:   []string{"r"},
                 ArgsUsage: "<config_file/problem_package> <code_file>",
                 Action:    client.Run,
                 Flags:     client.RunFlags,
             },
             {
-                Name:  "make",
-                Usage: "make/generate somethings",
-                Subcommands: cli.Commands{
-                    {
-                        Name:   "config",
-                        Action: client.MakeConfigFile,
-                        Flags: []cli.Flag{
-                            &cli.StringFlag{
-                                Name:    "output",
-                                Aliases: []string{"out"},
-                                Value:   "",
-                                Usage:   "output config file",
-                            },
-                        },
-                    },
-                    {
-                        Name:   "cert",
-                        Action: client.GenerateRSA,
-                        Flags: []cli.Flag{
-                            &cli.IntFlag{
-                                Name:    "bit",
-                                Value:   2048,
-                                Aliases: []string{"b"},
-                                Usage:   "RSA bit",
-                            },
-                        },
-                    }, {
-                        Name:   "compiler",
-                        Action: client.MakeCompileConfigFile,
-                        Flags: []cli.Flag{
-                            &cli.StringFlag{
-                                Name:    "output",
-                                Aliases: []string{"out"},
-                                Value:   "",
-                                Usage:   "output config file",
-                            },
-                        },
-                    }, {
-                        Name:   "jit_memory",
-                        Action: client.MakeJITMemoryConfigFile,
-                        Flags: []cli.Flag{
-                            &cli.StringFlag{
-                                Name:    "output",
-                                Aliases: []string{"out"},
-                                Value:   "",
-                                Usage:   "output config file",
-                            },
-                        },
-                    },
-                },
+                Name:        "generate",
+                Aliases:     []string{"g"},
+                Usage:       "generate problem config, compiler config or jit-memory config file",
+                Subcommands: client.AppMakeSubCommands,
             },
             {
-                Name:      "pack",
-                Usage:     "pack problem configs",
-                ArgsUsage: "configs_file output_file",
-                Flags:     client.PackProblemFlags,
-                Action:    client.PackProblem,
-            },
-            {
-                Name:      "info",
-                Usage:     "show problem package info",
-                ArgsUsage: "package_file",
-                Flags: []cli.Flag{
-                    &cli.BoolFlag{
-                        Name:  "sign",
-                        Value: false,
-                        Usage: "output GPG signature info",
-                    },
-                },
-                Action: client.ReadProblemInfo,
+                Name:        "package",
+                Aliases:     []string{"p"},
+                Usage:       "problem package manager",
+                Subcommands: client.AppPackageSubCommands,
             },
             {
                 Name:   "test",
