@@ -55,8 +55,8 @@ func MakeConfigFile(c *cli.Context) error {
     config.JudgeConfig.TestCases = []commonStructs.TestCase{
         {
             Handle:      "1",
-            TestCaseIn:  "",
-            TestCaseOut: "",
+            Input:  "",
+            Output: "",
         },
     }
     config.JudgeConfig.Problem.Sample = []commonStructs.ProblemIOSample{

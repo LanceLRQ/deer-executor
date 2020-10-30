@@ -68,8 +68,8 @@ func (session *JudgeSession) runOneCase(tc commonStructs.TestCase, Id string) *c
     tcResult := commonStructs.TestCaseResult{}
     tcResult.Handle = Id
     // 创建相关的文件路径
-    tcResult.TestCaseIn = tc.TestCaseIn
-    tcResult.TestCaseOut = tc.TestCaseOut
+    tcResult.Input = tc.Input
+    tcResult.Output = tc.Output
     tcResult.ProgramOut = Id + "_program.out"
     tcResult.ProgramError = Id + "_program.err"
     tcResult.JudgerOut = Id + "_judger.out"

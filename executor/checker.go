@@ -48,7 +48,7 @@ func isSpaceChar(ch byte) bool {
 // 逐行比较，获取错误行数
 // Compare each line, to find out the number of wrong line
 func lineDiff(session *JudgeSession, rst *commonStructs.TestCaseResult) (sameLines int, totalLines int) {
-    answer, err := os.OpenFile(path.Join(session.ConfigDir, rst.TestCaseOut), os.O_RDONLY|syscall.O_NONBLOCK, 0)
+    answer, err := os.OpenFile(path.Join(session.ConfigDir, rst.Output), os.O_RDONLY|syscall.O_NONBLOCK, 0)
     if err != nil {
         return 0, 0
     }
@@ -197,7 +197,7 @@ func charDiffIoUtil(useroutBuffer, answerBuffer []byte, useroutLen, answerLen in
 // 进行结果文本比较（主要工具）
 // Compare the text
 func (session *JudgeSession) DiffText(result *commonStructs.TestCaseResult) error {
-    answerInfo, err := os.Stat(path.Join(session.ConfigDir, result.TestCaseOut))
+    answerInfo, err := os.Stat(path.Join(session.ConfigDir, result.Output))
     if err != nil {
         result.JudgeResult = constants.JudgeFlagSE
         result.TextDiffLog = fmt.Sprintf("Get answer file info failed: %s", err.Error())
@@ -218,7 +218,7 @@ func (session *JudgeSession) DiffText(result *commonStructs.TestCaseResult) erro
     var useroutBuffer, answerBuffer []byte
     errText := ""
 
-    answerBuffer, errText, err = readFileWithTry(path.Join(session.ConfigDir, result.TestCaseOut), "answer", 3)
+    answerBuffer, errText, err = readFileWithTry(path.Join(session.ConfigDir, result.Output), "answer", 3)
     if err != nil {
         result.JudgeResult = constants.JudgeFlagSE
         result.TextDiffLog = errText
