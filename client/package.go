@@ -31,7 +31,30 @@ var PackProblemFlags = []cli.Flag{
     },
 }
 
-func PackProblem(c *cli.Context) error {
+var AppPackageSubCommands = cli.Commands{
+    {
+        Name:      "build",
+        Usage:     "build problem package",
+        ArgsUsage: "configs_file output_file",
+        Flags:     PackProblemFlags,
+        Action:    BuildProblemPackage,
+    },
+    {
+        Name:      "info",
+        Usage:     "show problem package info",
+        ArgsUsage: "package_file",
+        Flags: []cli.Flag{
+            &cli.BoolFlag{
+                Name:  "sign",
+                Value: false,
+                Usage: "output GPG signature info",
+            },
+        },
+        Action: ReadProblemInfo,
+    },
+}
+
+func BuildProblemPackage(c *cli.Context) error {
 
     if c.String("passphrase") != "" {
         log.Println("[warn] Using a password on the command line interface can be insecure.")
