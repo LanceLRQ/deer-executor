@@ -74,8 +74,8 @@ func MakeConfigFile(c *cli.Context) error {
     }
     output := c.String("output")
     if output != "" {
-        _, err := os.Stat(output)
-        if os.IsExist(err) {
+        s, err := os.Stat(output)
+        if s != nil || os.IsExist(err) {
             log.Fatal("output file exists")
             return nil
         }
@@ -101,12 +101,11 @@ func MakeCompileConfigFile(c *cli.Context) error {
     if output == "" {
         output = "./compilers.json"
     }
-    _, err := os.Stat(output)
-    if os.IsExist(err) {
+    s, err := os.Stat(output)
+    if s != nil || os.IsExist(err) {
         log.Fatal("output file exists")
         return nil
     }
-    fmt.Println(output)
     fp, err := os.OpenFile(output, os.O_WRONLY|os.O_CREATE, 0644)
     if err != nil {
         log.Fatalf("open output file error: %s\n", err.Error())
@@ -126,8 +125,8 @@ func MakeJITMemoryConfigFile(c *cli.Context) error {
     if output == "" {
         output = "./jit_memory.json"
     }
-    _, err := os.Stat(output)
-    if os.IsExist(err) {
+    s, err := os.Stat(output)
+    if s != nil || os.IsExist(err) {
         log.Fatal("output file exists")
         return nil
     }

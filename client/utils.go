@@ -15,8 +15,8 @@ func GetSessionDir(workDir string, sessionId string) (string, error) {
         return "", err
     }
     sessionDir := path.Join(workDir, sessionId)
-    _, err = os.Stat(sessionDir)
-    if os.IsExist(err) {
+    s, err := os.Stat(sessionDir)
+    if s != nil || os.IsExist(err) {
         _ = os.RemoveAll(sessionDir)
     }
     err = os.Mkdir(sessionDir, 0755)
