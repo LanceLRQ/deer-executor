@@ -11,9 +11,6 @@
             "name": "A + B Problem Test #2",
             "input": "1.in",
             "output": "1.out"
-        },
-        {
-
         }
     ],
     "time_limit": 1000,
