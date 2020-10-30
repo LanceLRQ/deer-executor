@@ -54,7 +54,7 @@ func MakeConfigFile(c *cli.Context) error {
     config, _ := executor.NewSession("")
     config.JudgeConfig.TestCases = []commonStructs.TestCase{
         {
-            Handle:      "1",
+            Handle: "1",
             Input:  "",
             Output: "",
         },

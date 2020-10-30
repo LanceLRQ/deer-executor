@@ -7,6 +7,7 @@ package executor
 
 import (
     "fmt"
+    commonStructs "github.com/LanceLRQ/deer-common/structs"
     "io/ioutil"
     "math"
     "os"
@@ -246,24 +247,26 @@ func readFileWithTry(filePath string, name string, tryOnFailed int) ([]byte, str
 }
 
 // 检查配置文件里的所有文件是否存在
-func CheckRequireFilesExists(session *JudgeSession) error {
+func CheckRequireFilesExists(config *commonStructs.JudgeConfiguration, configDir string) error {
     var err error
     // 检查特判程序是否存在
-    if session.JudgeConfig.SpecialJudge.Mode != 0 {
-        _, err = os.Stat(path.Join(session.ConfigDir, session.JudgeConfig.SpecialJudge.Checker))
+    if config.SpecialJudge.Mode != 0 {
+        _, err = os.Stat(path.Join(configDir, config.SpecialJudge.Checker))
         if os.IsNotExist(err) {
-            return fmt.Errorf("special judge checker file (%s) not exists", session.JudgeConfig.SpecialJudge.Checker)
+            return fmt.Errorf("special judge checker file (%s) not exists",config.SpecialJudge.Checker)
         }
     }
-    // 检查每个test case里的文件是否存在
+    // 检查每个测试数据里的文件是否存在
     // 新版判题机要求无论有没有数据，都要有对应的输入输出文件。
-    for i := 0; i < len(session.JudgeConfig.TestCases); i++ {
-        tcase := session.JudgeConfig.TestCases[i]
-        _, err = os.Stat(path.Join(session.ConfigDir, tcase.Input))
+    // 但Testlib模式例外，因为数据是由generator自动生成的。
+    for i := 0; i < len(config.TestCases); i++ {
+        tcase := config.TestCases[i]
+        if !tcase.Enabled || tcase.UseGenerator { continue }
+        _, err = os.Stat(path.Join(configDir, tcase.Input))
         if os.IsNotExist(err) {
             return fmt.Errorf("test case (%s) input file (%s) not exists", tcase.Handle, tcase.Input)
         }
-        _, err = os.Stat(path.Join(session.ConfigDir, tcase.Output))
+        _, err = os.Stat(path.Join(configDir, tcase.Output))
         if os.IsNotExist(err) {
             return fmt.Errorf("test case (%s) output file (%s) not exists", tcase.Handle, tcase.Output)
         }

@@ -69,13 +69,13 @@
     },
     "strict_mode": true,
     "special_judge": {
-        "mode": 0,
+        "mode": 1,
         "name": "checker",
         "checker": "codes/checker.cpp",
         "redirect_program_out": true,
         "time_limit": 1000,
         "memory_limit": 65535,
-        "use_testlib": false,
+        "use_testlib": true,
         "checker_cases": [
             {
                 "input": "1 2",
