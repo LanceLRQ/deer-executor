@@ -17,23 +17,23 @@ func matchCodeLanguage(keyword string, fileName string) (provider.CodeCompilePro
 _match:
     switch keyword {
     case "c", "gcc", "gnu-c":
-        return &provider.GnucCompileProvider{}, nil
+        return provider.NewGnucCompileProvider(), nil
     case "cpp", "gcc-cpp", "gpp", "g++":
-        return &provider.GnucppCompileProvider{}, nil
+        return provider.NewGnucppCompileProvider(), nil
     case "java":
-        return &provider.JavaCompileProvider{}, nil
+        return provider.NewJavaCompileProvider(), nil
     case "py2", "python2":
-        return &provider.Py2CompileProvider{}, nil
+        return provider.NewPy2CompileProvider(), nil
     case "py", "py3", "python3":
-        return &provider.Py3CompileProvider{}, nil
+        return provider.NewPy3CompileProvider(), nil
     case "php":
-        return &provider.PHPCompileProvider{}, nil
+        return provider.NewPHPCompileProvider(), nil
     case "go", "golang":
-        return &provider.GolangCompileProvider{}, nil
+        return provider.NewGolangCompileProvider(), nil
     case "node", "nodejs":
-        return &provider.NodeJSCompileProvider{}, nil
+        return provider.NewNodeJSCompileProvider(), nil
     case "rb", "ruby":
-        return &provider.RubyCompileProvider{}, nil
+        return provider.NewRubyCompileProvider(), nil
     case "auto", "":
         keyword = strings.Replace(path.Ext(fileName), ".", "", -1)
         goto _match
