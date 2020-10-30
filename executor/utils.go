@@ -259,13 +259,13 @@ func CheckRequireFilesExists(session *JudgeSession) error {
     // 新版判题机要求无论有没有数据，都要有对应的输入输出文件。
     for i := 0; i < len(session.JudgeConfig.TestCases); i++ {
         tcase := session.JudgeConfig.TestCases[i]
-        _, err = os.Stat(path.Join(session.ConfigDir, tcase.TestCaseIn))
+        _, err = os.Stat(path.Join(session.ConfigDir, tcase.Input))
         if os.IsNotExist(err) {
-            return fmt.Errorf("test case (%s) input file (%s) not exists", tcase.Handle, tcase.TestCaseIn)
+            return fmt.Errorf("test case (%s) input file (%s) not exists", tcase.Handle, tcase.Input)
         }
-        _, err = os.Stat(path.Join(session.ConfigDir, tcase.TestCaseOut))
+        _, err = os.Stat(path.Join(session.ConfigDir, tcase.Output))
         if os.IsNotExist(err) {
-            return fmt.Errorf("test case (%s) output file (%s) not exists", tcase.Handle, tcase.TestCaseOut)
+            return fmt.Errorf("test case (%s) output file (%s) not exists", tcase.Handle, tcase.Output)
         }
     }
     return nil
