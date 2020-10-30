@@ -1,0 +1,143 @@
+{
+    "test_cases": [
+        {
+            "handle": "1",
+            "name": "A + B Problem Test #1",
+            "input": "cases/0.in",
+            "output": "cases/0.out",
+            "enabled": true
+        },
+        {
+            "handle": "2",
+            "name": "A + B Problem Test #2",
+            "input": "cases/1.in",
+            "output": "cases/1.out",
+            "enabled": true
+        },
+        {
+            "handle": "3",
+            "name": "A + B Problem Test #3",
+            "visible": false,
+            "enabled": true,
+            "use_genarator": false,
+            "generator": "echo 0 1",
+            "validator_verdict": false,
+            "validator_comment": ""
+        },
+        {
+            "handle": "4",
+            "name": "A + B Problem Test #4",
+            "visible": false,
+            "enabled": true,
+            "use_genarator": false,
+            "generator": "echo -43 100",
+            "validator_verdict": false,
+            "validator_comment": ""
+        },
+        {
+            "handle": "5",
+            "name": "A + B Problem Test #5",
+            "visible": false,
+            "enabled": true,
+            "use_genarator": false,
+            "generator": "echo 1000 10000",
+            "validator_verdict": false,
+            "validator_comment": ""
+        }
+    ],
+    "time_limit": 1000,
+    "memory_limit": 65500,
+    "real_time_limit": 2000,
+    "file_size_limit": 52428800,
+    "uid": -1,
+    "problem": {
+        "author": "LanceLRQ",
+        "source": "",
+        "description": "Calculate A + B.",
+        "input": "Each line will contain two integers A and B. Process to end of file.",
+        "output": "For each case, output A + B in one line.",
+        "sample": [
+            {
+                "input": "1 1",
+                "output": "2"
+            }
+        ],
+        "tips": "",
+        "problem_type": 0,
+        "demo_cases": null,
+        "answer_cases": null
+    },
+    "strict_mode": true,
+    "special_judge": {
+        "mode": 0,
+        "name": "checker",
+        "checker": "codes/checker.cpp",
+        "redirect_program_out": true,
+        "time_limit": 1000,
+        "memory_limit": 65535,
+        "use_testlib": false,
+        "checker_cases": [
+            {
+                "input": "1 2",
+                "output": "3",
+                "answer": "3",
+                "verdict": true,
+                "expected_verdict": 0,
+                "checker_verdict": 0,
+                "checker_comment": ""
+            },
+            {
+                "input": "1 5",
+                "output": "6",
+                "answer": "6",
+                "verdict": true,
+                "expected_verdict": 0,
+                "checker_verdict": 0,
+                "checker_comment": ""
+            },
+            {
+                "input": "1 2",
+                "output": "4",
+                "answer": "3",
+                "verdict": true,
+                "expected_verdict": 4,
+                "checker_verdict": 4,
+                "checker_comment": ""
+            },
+            {
+                "input": "1 2",
+                "output": "4",
+                "answer": "3",
+                "verdict": false,
+                "expected_verdict": 0,
+                "checker_verdict": 4,
+                "checker_comment": ""
+            }
+        ]
+    },
+    "testlib": {
+        "version": "",
+        "validator": "codes/validator.cpp",
+        "validator_name": "validator",
+        "generators": [{
+            "name": "echo",
+            "source": "generators/echo.cpp"
+        }],
+        "validator_case": [
+            {
+                "input": "1 10",
+                "verdict": true,
+                "expected_verdict": true,
+                "validator_verdict": true,
+                "validator_comment": ""
+            },
+            {
+                "input": "101 0",
+                "verdict": true,
+                "expected_verdict": false,
+                "validator_verdict": false,
+                "validator_comment": ""
+            }
+        ]
+    }
+}
