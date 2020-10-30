@@ -1,4 +1,4 @@
-package problem
+package packmgr
 
 import (
     "fmt"
@@ -8,6 +8,7 @@ import (
     "github.com/LanceLRQ/deer-executor/executor"
     "github.com/urfave/cli/v2"
     "log"
+    "os"
 )
 
 func BuildProblemPackage(c *cli.Context) error {
@@ -21,6 +22,11 @@ func BuildProblemPackage(c *cli.Context) error {
 
     var err error
     var pem *persistence.DigitalSignPEM
+
+    _, err = os.Stat(configFile)
+    if err != nil && os.IsNotExist(err) {
+        return fmt.Errorf("problem config file (%s) not found", configFile)
+    }
 
     if c.Bool("sign") {
         pem, err = persistence.GetArmorPublicKey(c.String("gpg-key"), passphrase)

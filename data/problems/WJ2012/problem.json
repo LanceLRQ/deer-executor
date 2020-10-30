@@ -20,6 +20,7 @@
     "uid": -1,
     "strict_mode": true,
     "special_judge": {
+        "name": "checker",
         "mode": 2,
         "checker": "judger.cpp",
         "redirect_program_out": true,

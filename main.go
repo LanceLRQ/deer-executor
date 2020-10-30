@@ -33,9 +33,15 @@ func main() {
             },
             {
                 Name:        "package",
-                Aliases:     []string{"p"},
+                Aliases:     []string{"a"},
                 Usage:       "problem package manager",
                 Subcommands: client.AppPackageSubCommands,
+            },
+            {
+                Name:        "problem",
+                Aliases:     []string{"p"},
+                Usage:       "problem workdir manager",
+                Subcommands: client.AppProblemSubCommands,
             },
             {
                 Name:   "test",
