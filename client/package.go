@@ -1,7 +1,7 @@
 package client
 
 import (
-    "github.com/LanceLRQ/deer-executor/client/problem"
+    "github.com/LanceLRQ/deer-executor/packmgr"
     "github.com/urfave/cli/v2"
 )
 
@@ -32,7 +32,7 @@ var AppPackageSubCommands = cli.Commands{
         Usage:     "build problem package",
         ArgsUsage: "configs_file output_file",
         Flags:     PackProblemFlags,
-        Action:    problem.BuildProblemPackage,
+        Action:    packmgr.BuildProblemPackage,
     },
     {
         Name:      "info",
@@ -45,7 +45,7 @@ var AppPackageSubCommands = cli.Commands{
                 Usage: "output GPG signature info",
             },
         },
-        Action: problem.ReadProblemInfo,
+        Action: packmgr.ReadProblemInfo,
     },
 }
 
