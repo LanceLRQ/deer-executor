@@ -3,7 +3,8 @@
         {
             "handle": "1",
             "input": "0.in",
-            "output": "0.out"
+            "output": "0.out",
+            "enabled": true
         }
     ],
     "time_limit": 1000,

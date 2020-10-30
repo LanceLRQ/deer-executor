@@ -3,12 +3,14 @@
         {
             "handle": "1",
             "input": "0.in",
-            "output": "0.out"
+            "output": "0.out",
+            "enabled": true
         },
         {
             "handle": "1",
             "input": "1.in",
-            "output": "1.out"
+            "output": "1.out",
+            "enabled": true
         }
     ],
     "time_limit": 1000,
