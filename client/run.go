@@ -140,6 +140,10 @@ func Run(c *cli.Context) error {
     }
 
     configFile := c.Args().Get(0)
+    _, err = os.Stat(configFile)
+    if err != nil && os.IsNotExist(err) {
+        return fmt.Errorf("problem config file (%s) not found", configFile)
+    }
     yes, err := problems.IsProblemPackage(configFile)
     if err != nil {
         return err
