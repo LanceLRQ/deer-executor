@@ -8,6 +8,7 @@ import (
 var AppProblemSubCommands = cli.Commands{
     {
         Name:      "build",
+        Aliases:   []string{"b"},
         Usage:     "compile binary source codes",
         ArgsUsage: "configs_file",
         Flags: []cli.Flag{
@@ -19,5 +20,26 @@ var AppProblemSubCommands = cli.Commands{
             },
         },
         Action: packmgr.CompileProblemWorkDirSourceCodes,
+    },
+    {
+        Name:      "validate",
+        Aliases:   []string{"v"},
+        Usage:     "validate input case",
+        ArgsUsage: "configs_file",
+        Flags: []cli.Flag{
+            &cli.StringFlag{
+                Name:  "type",
+                Aliases: []string {"t"},
+                Value: "all",
+                Usage: "module type: validate_cases|test_cases|all",
+            },
+            &cli.IntFlag{
+                Name:  "case",
+                Aliases: []string {"c"},
+                Value: -1,
+                Usage: "case index, -1 means all. when module type set 'all'，it would't work.",
+            },
+        },
+        Action: packmgr.RunTestlibValidators,
     },
 }
