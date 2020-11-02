@@ -64,8 +64,8 @@ func compileNormalCodeFile (source, name, binRoot, configDir, libraryDir, lang, 
 }
 
 // 编译作业代码
-func compileWorkCodeFiles(config structs.JudgeConfiguration, configDir, libraryDir string) error {
-    binRoot := path.Join(configDir, "bin")
+func compileWorkCodeFiles(config structs.JudgeConfiguration, libraryDir string) error {
+    binRoot := path.Join(config.ConfigDir, "bin")
     _, err := os.Stat(binRoot)
     if err != nil && os.IsNotExist(err) {
         err = os.MkdirAll(binRoot, 0775)
@@ -75,14 +75,14 @@ func compileWorkCodeFiles(config structs.JudgeConfiguration, configDir, libraryD
     }
     // generators
     for _, gen := range config.TestLib.Generators {
-        err = compileTestlibCodeFile(gen.Source, gen.Name, binRoot, configDir, libraryDir, "generator")
+        err = compileTestlibCodeFile(gen.Source, gen.Name, binRoot, config.ConfigDir, libraryDir, "generator")
         if err != nil {
             return err
         }
     }
     // Validator
     if config.TestLib.Validator != "" && config.TestLib.ValidatorName != "" {
-        err = compileTestlibCodeFile(config.TestLib.Validator, config.TestLib.ValidatorName, binRoot, configDir, libraryDir, "validator")
+        err = compileTestlibCodeFile(config.TestLib.Validator, config.TestLib.ValidatorName, binRoot, config.ConfigDir, libraryDir, "validator")
         if err != nil {
             return err
         }
@@ -104,7 +104,7 @@ func compileWorkCodeFiles(config structs.JudgeConfiguration, configDir, libraryD
                 config.SpecialJudge.Checker,
                 config.SpecialJudge.Name,
                 binRoot,
-                configDir,
+                config.ConfigDir,
                 libraryDir,
                 checkerType,
             )
@@ -116,7 +116,7 @@ func compileWorkCodeFiles(config structs.JudgeConfiguration, configDir, libraryD
                 config.SpecialJudge.Checker,
                 config.SpecialJudge.Name,
                 binRoot,
-                configDir,
+                config.ConfigDir,
                 libraryDir,
                 config.SpecialJudge.CheckerLang,
                 "special judge " + checkerType,
@@ -142,6 +142,6 @@ func CompileProblemWorkDirSourceCodes(context *cli.Context) error {
     if err != nil {
         return err
     }
-    err = compileWorkCodeFiles(session.JudgeConfig, session.ConfigDir, libDir)
+    err = compileWorkCodeFiles(session.JudgeConfig, libDir)
     return err
 }
