@@ -21,4 +21,3 @@ var AppProblemSubCommands = cli.Commands{
         Action: packmgr.CompileProblemWorkDirSourceCodes,
     },
 }
-

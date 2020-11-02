@@ -52,6 +52,7 @@ func NewSession(configFile string) (*JudgeSession, error) {
         }
         session.ConfigFile = configFileAbsPath
         session.ConfigDir = path.Dir(configFileAbsPath)
+        session.JudgeConfig.ConfigDir = session.ConfigDir
         cbody, err := ioutil.ReadFile(configFileAbsPath)
         if err != nil {
             return nil, err
