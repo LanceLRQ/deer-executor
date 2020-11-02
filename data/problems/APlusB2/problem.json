@@ -10,7 +10,7 @@
             "enabled": true,
             "use_genarator": false,
             "generator": "",
-            "validator_verdict": false,
+            "validator_verdict": true,
             "validator_comment": ""
         },
         {
@@ -24,7 +24,7 @@
             "use_genarator": false,
             "generator": "",
             "validator_verdict": false,
-            "validator_comment": ""
+            "validator_comment": "FAIL Expected EOF (stdin, line 2)\n"
         },
         {
             "handle": "3",
@@ -34,9 +34,9 @@
             "output": "",
             "visible": false,
             "enabled": true,
-            "use_genarator": false,
+            "use_genarator": true,
             "generator": "echo 0 1",
-            "validator_verdict": false,
+            "validator_verdict": true,
             "validator_comment": ""
         },
         {
@@ -47,9 +47,9 @@
             "output": "",
             "visible": false,
             "enabled": true,
-            "use_genarator": false,
+            "use_genarator": true,
             "generator": "echo -43 100",
-            "validator_verdict": false,
+            "validator_verdict": true,
             "validator_comment": ""
         },
         {
@@ -60,10 +60,10 @@
             "output": "",
             "visible": false,
             "enabled": true,
-            "use_genarator": false,
+            "use_genarator": true,
             "generator": "echo 1000 10000",
             "validator_verdict": false,
-            "validator_comment": ""
+            "validator_comment": "FAIL Integer parameter [name=a] equals to 1000, violates the range [-100, 100] (stdin, line 1)\n"
         }
     ],
     "time_limit": 1000,
