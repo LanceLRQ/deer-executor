@@ -41,7 +41,7 @@ func (session *JudgeSession) SaveConfiguration(userConfirm bool) error {
         ans := ""
         _, err := fmt.Scanf("%s", &ans)
         if err != nil {
-            return err
+            return nil          // don't crash at EOF
         }
         if len(ans) > 0 && strings.ToLower(ans[:1]) != "y" {
             return nil
