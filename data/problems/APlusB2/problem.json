@@ -2,21 +2,36 @@
     "test_cases": [
         {
             "handle": "1",
+            "order": 0,
             "name": "A + B Problem Test #1",
             "input": "cases/0.in",
             "output": "cases/0.out",
-            "enabled": true
+            "visible": false,
+            "enabled": true,
+            "use_genarator": false,
+            "generator": "",
+            "validator_verdict": false,
+            "validator_comment": ""
         },
         {
             "handle": "2",
+            "order": 0,
             "name": "A + B Problem Test #2",
             "input": "cases/1.in",
             "output": "cases/1.out",
-            "enabled": true
+            "visible": false,
+            "enabled": true,
+            "use_genarator": false,
+            "generator": "",
+            "validator_verdict": false,
+            "validator_comment": ""
         },
         {
             "handle": "3",
+            "order": 0,
             "name": "A + B Problem Test #3",
+            "input": "",
+            "output": "",
             "visible": false,
             "enabled": true,
             "use_genarator": false,
@@ -26,7 +41,10 @@
         },
         {
             "handle": "4",
+            "order": 0,
             "name": "A + B Problem Test #4",
+            "input": "",
+            "output": "",
             "visible": false,
             "enabled": true,
             "use_genarator": false,
@@ -36,7 +54,10 @@
         },
         {
             "handle": "5",
+            "order": 0,
             "name": "A + B Problem Test #5",
+            "input": "",
+            "output": "",
             "visible": false,
             "enabled": true,
             "use_genarator": false,
@@ -50,27 +71,11 @@
     "real_time_limit": 2000,
     "file_size_limit": 52428800,
     "uid": -1,
-    "problem": {
-        "author": "LanceLRQ",
-        "source": "",
-        "description": "Calculate A + B.",
-        "input": "Each line will contain two integers A and B. Process to end of file.",
-        "output": "For each case, output A + B in one line.",
-        "sample": [
-            {
-                "input": "1 1",
-                "output": "2"
-            }
-        ],
-        "tips": "",
-        "problem_type": 0,
-        "demo_cases": null,
-        "answer_cases": null
-    },
     "strict_mode": true,
     "special_judge": {
-        "mode": 1,
         "name": "checker",
+        "mode": 1,
+        "checker_lang": "",
         "checker": "codes/checker.cpp",
         "redirect_program_out": true,
         "time_limit": 1000,
@@ -115,29 +120,50 @@
             }
         ]
     },
+    "limitation": null,
+    "problem": {
+        "author": "LanceLRQ",
+        "source": "",
+        "description": "Calculate A + B.",
+        "input": "Each line will contain two integers A and B. Process to end of file.",
+        "output": "For each case, output A + B in one line.",
+        "sample": [
+            {
+                "input": "1 1",
+                "output": "2"
+            }
+        ],
+        "tips": "",
+        "problem_type": 0,
+        "demo_cases": null,
+        "answer_cases": null
+    },
     "testlib": {
         "version": "",
         "validator": "codes/validator.cpp",
         "validator_name": "validator",
-        "generators": [{
-            "name": "echo",
-            "source": "generators/echo.cpp"
-        }],
+        "generators": [
+            {
+                "name": "echo",
+                "source": "generators/echo.cpp"
+            }
+        ],
         "validator_case": [
             {
-                "input": "1 10",
+                "input": "1 10\n",
                 "verdict": true,
                 "expected_verdict": true,
                 "validator_verdict": true,
                 "validator_comment": ""
             },
             {
-                "input": "101 0",
+                "input": "101 0\n",
                 "verdict": true,
                 "expected_verdict": false,
                 "validator_verdict": false,
-                "validator_comment": ""
+                "validator_comment": "FAIL Integer parameter [name=a] equals to 101, violates the range [-100, 100] (stdin, line 1)\n"
             }
         ]
-    }
+    },
+    "files": null
 }

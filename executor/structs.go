@@ -2,11 +2,14 @@ package executor
 
 import (
     "encoding/json"
+    "fmt"
     "github.com/LanceLRQ/deer-common/provider"
     commonStructs "github.com/LanceLRQ/deer-common/structs"
+    "github.com/LanceLRQ/deer-common/utils"
     "io/ioutil"
     "path"
     "path/filepath"
+    "strings"
     "syscall"
 )
 
@@ -30,6 +33,28 @@ type JudgeSession struct {
     JudgeConfig commonStructs.JudgeConfiguration // Judge Configurations
 
     Compiler provider.CodeCompileProviderInterface // Compiler entity
+}
+
+func (session *JudgeSession) SaveConfiguration(userConfirm bool) error {
+    if userConfirm {
+        fmt.Print("Save all the changed to config file? [y/N] ")
+        ans := ""
+        _, err := fmt.Scanf("%s", &ans)
+        if err != nil {
+            return err
+        }
+        if len(ans) > 0 && strings.ToLower(ans[:1]) != "y" {
+            return nil
+        }
+    }
+    err := ioutil.WriteFile(session.ConfigFile, []byte(utils.ObjectToJSONStringFormatted(session.JudgeConfig)), 0644)
+    if err != nil {
+        return err
+    }
+    if userConfirm {
+        fmt.Println("Saved!")
+    }
+    return nil
 }
 
 func NewSession(configFile string) (*JudgeSession, error) {
