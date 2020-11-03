@@ -117,7 +117,8 @@ func run(c *cli.Context, configFile string, counter int) (*commonStructs.JudgeRe
     if session.SessionRoot == "" {
         session.SessionRoot = "/tmp"
     }
-    sessionDir, err := GetSessionDir(session.SessionRoot, session.SessionId)
+    // 初始化session dir
+    sessionDir, err := utils.GetSessionDir(session.SessionRoot, session.SessionId)
     if err != nil {
         log.Fatal(err)
         return nil, nil, err
