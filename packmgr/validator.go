@@ -36,27 +36,14 @@ func runValidatorCase(vBin string, vCase *structs.TestlibValidatorCase) error {
 }
 
 func runTestCase(configDir, vBin string, tCase *structs.TestCase) error {
-    ctx, _ := context.WithTimeout(context.Background(), 5 * time.Second)
+    ctx, _ := context.WithTimeout(context.Background(), 3 * time.Second)
     var inbytes []byte
     var err error
     // 判断是generator还是普通input
     if tCase.UseGenerator {
-        name, args, err := utils.ParseGeneratorScript(tCase.Generator)
+        inbytes, err = utils.CallGenerator(ctx, tCase, configDir)
         if err != nil {
             return err
-        }
-        gBin, err := utils.GetCompiledBinaryFileAbsPath("generator", name, configDir)
-        if err != nil {
-            return err
-        }
-        rel, err := utils.RunUnixShell(ctx, gBin, args, nil)
-        if err != nil {
-            return err
-        }
-        if rel.Success {
-            inbytes = []byte(rel.Stdout)
-        } else {
-            return fmt.Errorf("generate data error")
         }
     } else {
         inbytes, err = ioutil.ReadFile(path.Join(configDir, tCase.Input))
