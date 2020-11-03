@@ -1,15 +1,12 @@
 package executor
 
 import (
-    "context"
     "fmt"
     "github.com/LanceLRQ/deer-common/constants"
     commonStructs "github.com/LanceLRQ/deer-common/structs"
-    "github.com/LanceLRQ/deer-common/utils"
     "os"
     "path"
     "strconv"
-    "time"
 )
 
 // 基于JudgeOptions进行评测调度
@@ -67,9 +64,8 @@ func (session *JudgeSession) judgeOnce(judgeResult *commonStructs.TestCaseResult
     return
 }
 
-
-func checkTestCaseInputOutput(tcase commonStructs.TestCase, configDir string, input, output bool) error {
-    // 检查Input、Output是否存在
+// 检查Input、Output是否存在
+func checkTestCaseInputOutput(tcase commonStructs.TestCase, configDir string) error {
     _, err := os.Stat(path.Join(configDir, tcase.Input))
     if os.IsNotExist(err) {
         return fmt.Errorf("test case (%s) input file (%s) not exists", tcase.Handle, tcase.Input)
@@ -80,7 +76,6 @@ func checkTestCaseInputOutput(tcase commonStructs.TestCase, configDir string, in
     }
     return nil
 }
-
 
 // 对一组测试数据运行一次评测
 func (session *JudgeSession) runOneCase(config *commonStructs.JudgeConfiguration, tc commonStructs.TestCase, Id string) *commonStructs.TestCaseResult {
@@ -98,27 +93,8 @@ func (session *JudgeSession) runOneCase(config *commonStructs.JudgeConfiguration
     tcResult.JudgerError = Id + "_judger.err"
     tcResult.JudgerReport = Id + "_judger.report"
 
-
-    if config.SpecialJudge.Mode > 0 && tc.UseGenerator {
-        // 当普通特殊评测启用的时候
-        // 判断是否有generator，如果有先运行它并获取输入数据
-        ctx, _ := context.WithTimeout(context.Background(), 3*time.Second)
-        _, err = utils.CallGenerator(ctx, &tc, config.ConfigDir)
-        if err != nil {
-            tcResult.JudgeResult = constants.JudgeFlagSE
-            tcResult.SeInfo = err.Error()
-            return &tcResult
-        }
-        // TODO 写入到Input
-    }
-
-    if config.SpecialJudge.Mode == 0 {
-        // 非特判模式检查Input、Output是否存在
-        err =checkTestCaseInputOutput(tc, config.ConfigDir, true, true)
-    } else {
-        // 特判模式只需要检查Input是否存在
-        err = checkTestCaseInputOutput(tc, config.ConfigDir, true, false)
-    }
+    // 检查测试数据的输入输出文件是否存在
+    err = checkTestCaseInputOutput(tc, config.ConfigDir)
     if err != nil {
         tcResult.JudgeResult = constants.JudgeFlagSE
         tcResult.SeInfo = err.Error()
