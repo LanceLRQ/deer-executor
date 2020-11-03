@@ -33,8 +33,8 @@ func compileTestlibCodeFile (source, name, binRoot, configDir, libraryDir, typeN
     return nil
 }
 
-// 普通的编译方法
-func compileNormalCodeFile (source, name, binRoot, configDir, libraryDir, lang, typeName string) error {
+// 普通特殊评测的编译方法
+func compileSpecialJudgeCodeFile (source, name, binRoot, configDir, libraryDir, lang, typeName string) error {
     fmt.Printf("build %s [%s]...", typeName, name)
     genCodeFile := path.Join(configDir, source)
     compileTarget := path.Join(binRoot, name)
@@ -73,11 +73,13 @@ func compileWorkCodeFiles(config structs.JudgeConfiguration, libraryDir string) 
             return fmt.Errorf("cannot create binary work directory: %s", err.Error())
         }
     }
-    // generators
-    for _, gen := range config.TestLib.Generators {
-        err = compileTestlibCodeFile(gen.Source, gen.Name, binRoot, config.ConfigDir, libraryDir, "generator")
-        if err != nil {
-            return err
+    // Generators
+    if config.TestLib.Generators != nil {
+        for _, gen := range config.TestLib.Generators {
+            err = compileTestlibCodeFile(gen.Source, gen.Name, binRoot, config.ConfigDir, libraryDir, "generator")
+            if err != nil {
+                return err
+            }
         }
     }
     // Validator
@@ -112,7 +114,7 @@ func compileWorkCodeFiles(config structs.JudgeConfiguration, libraryDir string) 
                 return err
             }
         } else {
-            err = compileNormalCodeFile(
+            err = compileSpecialJudgeCodeFile(
                 config.SpecialJudge.Checker,
                 config.SpecialJudge.Name,
                 binRoot,

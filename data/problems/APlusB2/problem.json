@@ -135,8 +135,7 @@
         ],
         "tips": "",
         "problem_type": 0,
-        "demo_cases": null,
-        "answer_cases": null
+        "demo_cases": null
     },
     "testlib": {
         "version": "",
@@ -165,5 +164,12 @@
             }
         ]
     },
-    "files": null
+    "answer_cases": [
+        {
+            "name": "Answer 1 (C ver.)",
+            "file_name": "./answers/answer.c",
+            "language": "gcc",
+            "content": ""
+        }
+    ]
 }

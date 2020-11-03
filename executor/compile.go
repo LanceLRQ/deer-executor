@@ -43,7 +43,7 @@ _match:
 
 // 编译文件
 // 如果不设置codeStr，默认会读取配置文件里的code_file字段并打开对应文件
-func (session *JudgeSession) getCompiler(codeStr string) (provider.CodeCompileProviderInterface, error) {
+func (session *JudgeSession) GetCompiler(codeStr string) (provider.CodeCompileProviderInterface, error) {
     if codeStr == "" {
         codeFileBytes, err := ioutil.ReadFile(session.CodeFile)
         if err != nil {
@@ -66,7 +66,7 @@ func (session *JudgeSession) getCompiler(codeStr string) (provider.CodeCompilePr
 // 编译目标程序
 func (session *JudgeSession) compileTargetProgram(judgeResult *commonStructs.JudgeResult) error {
     // 获取对应的编译器提供程序
-    compiler, err := session.getCompiler("")
+    compiler, err := session.GetCompiler("")
     if err != nil {
         judgeResult.JudgeResult = constants.JudgeFlagSE
         judgeResult.SeInfo = err.Error()
