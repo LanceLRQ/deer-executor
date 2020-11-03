@@ -4,7 +4,9 @@ import (
     "fmt"
     "github.com/LanceLRQ/deer-common/constants"
     commonStructs "github.com/LanceLRQ/deer-common/structs"
+    "log"
     "os"
+    "os/exec"
     "path"
     "path/filepath"
     "syscall"
@@ -15,7 +17,8 @@ func (session *JudgeSession) runProgramCommon(rst *commonStructs.TestCaseResult,
     pinfo := ProcessInfo{}
     pid, fds, err := runProgramProcess(session, rst, judger, pipeMode, pipeStd)
     if err != nil {
-        if pid == 0 {
+        log.Println(err.Error())
+        if pid <= 0 {
             // 如果是子进程错误了，输出到程序的error去
             panic(err)
         }
@@ -299,10 +302,17 @@ func runProgramProcess(session *JudgeSession, rst *commonStructs.TestCaseResult,
         } else {
             // Run Program
             commands := session.Commands
+            // 参考exec.Command，从环境变量获取编译器/VM真实的地址
+            programPath := commands[0]
+            if filepath.Base(programPath) == programPath {
+                if programPath, err = exec.LookPath(programPath); err != nil {
+                    return 0, fds, err
+                }
+            }
             if len(commands) > 1 {
-                _ = syscall.Exec(commands[0], commands[1:], CommonEnvs)
+                err = syscall.Exec(programPath, commands[1:], CommonEnvs)
             } else {
-                _ = syscall.Exec(commands[0], nil, CommonEnvs)
+                err = syscall.Exec(programPath, nil, CommonEnvs)
             }
         }
         // it won't be run.
@@ -310,5 +320,5 @@ func runProgramProcess(session *JudgeSession, rst *commonStructs.TestCaseResult,
         return 0, fds, fmt.Errorf("fork process error: pid < 0")
     }
     // parent process
-    return pid, fds, nil
+    return pid, fds, err
 }
