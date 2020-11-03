@@ -8,14 +8,14 @@ import (
 )
 
 // 基于JudgeOptions进行评测调度
-func (session *JudgeSession) judgeOnce(judgeResult *commonStructs.TestCaseResult) error {
+func (session *JudgeSession) judgeOnce(judgeResult *commonStructs.TestCaseResult) {
     switch session.JudgeConfig.SpecialJudge.Mode {
     case constants.SpecialJudgeModeDisabled:
         pinfo, err := session.runNormalJudge(judgeResult)
         if err != nil {
             judgeResult.JudgeResult = constants.JudgeFlagSE
             judgeResult.SeInfo = err.Error()
-            return err
+            return
         }
         session.saveExitRusage(judgeResult, pinfo, false)
         // 分析目标程序的状态
@@ -27,7 +27,7 @@ func (session *JudgeSession) judgeOnce(judgeResult *commonStructs.TestCaseResult
             if err != nil {
                 judgeResult.JudgeResult = constants.JudgeFlagSE
                 judgeResult.SeInfo = err.Error()
-                return err
+                return
             }
         }
 
@@ -36,7 +36,7 @@ func (session *JudgeSession) judgeOnce(judgeResult *commonStructs.TestCaseResult
         if err != nil {
             judgeResult.JudgeResult = constants.JudgeFlagSE
             judgeResult.SeInfo = err.Error()
-            return err
+            return
         }
         session.saveExitRusage(judgeResult, tinfo, false)
         session.saveExitRusage(judgeResult, jinfo, true)
@@ -54,12 +54,12 @@ func (session *JudgeSession) judgeOnce(judgeResult *commonStructs.TestCaseResult
                 if err != nil {
                     judgeResult.JudgeResult = constants.JudgeFlagSE
                     judgeResult.SeInfo = err.Error()
-                    return err
+                    return
                 }
             }
         }
     }
-    return nil
+    return
 }
 
 // 对一组测试数据运行一次评测
@@ -77,11 +77,8 @@ func (session *JudgeSession) runOneCase(tc commonStructs.TestCase, Id string) *c
     tcResult.JudgerReport = Id + "_judger.report"
 
     // 运行judge程序
-    err := session.judgeOnce(&tcResult)
-    if err != nil {
-        tcResult.JudgeResult = constants.JudgeFlagSE
-        tcResult.SeInfo = err.Error()
-    }
+    session.judgeOnce(&tcResult)
+
 
     return &tcResult
 }
