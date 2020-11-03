@@ -1,3 +1,4 @@
+// 数据校验
 package packmgr
 
 import (
@@ -149,6 +150,7 @@ func RunTestlibValidators(c *cli.Context) error {
     if err != nil { return err }
     mtype := c.String("type")
     mCaseIndex := c.Int("case")
+    silence := c.Bool("silence")
 
     LIST := []string{"all", "validate_cases", "test_cases"}
     if !utils.Contains(LIST, mtype) {
@@ -158,5 +160,5 @@ func RunTestlibValidators(c *cli.Context) error {
     if err != nil {
         return err
     }
-    return session.SaveConfiguration(true)
+    return session.SaveConfiguration(!silence)
 }

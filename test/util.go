@@ -6,7 +6,6 @@ import (
     "github.com/LanceLRQ/deer-common/provider"
     commonStructs "github.com/LanceLRQ/deer-common/structs"
     "github.com/LanceLRQ/deer-common/utils"
-    "github.com/LanceLRQ/deer-executor/client"
     "github.com/LanceLRQ/deer-executor/executor"
     uuid "github.com/satori/go.uuid"
     "os"
@@ -45,7 +44,7 @@ func runJudge(conf, codeFile, codeLang string) (*commonStructs.JudgeResult, erro
     session.CodeLangName = codeLang
     session.SessionRoot = "/tmp"
     session.SessionId = uuid.NewV1().String()
-    sessionDir, err := client.GetSessionDir(session.SessionRoot, session.SessionId)
+    sessionDir, err := utils.GetSessionDir(session.SessionRoot, session.SessionId)
     if err != nil {
         return nil, err
     }
