@@ -89,5 +89,3 @@ func NewSession(configFile string) (*JudgeSession, error) {
     }
     return &session, nil
 }
-
-func (*JudgeSession) GetCompiledBinary() {}
