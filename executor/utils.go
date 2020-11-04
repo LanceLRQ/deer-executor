@@ -7,6 +7,7 @@ package executor
 
 import (
     "fmt"
+    "github.com/LanceLRQ/deer-common/provider"
     commonStructs "github.com/LanceLRQ/deer-common/structs"
     "io/ioutil"
     "math"
@@ -272,4 +273,47 @@ func CheckRequireFilesExists(config *commonStructs.JudgeConfiguration, configDir
         }
     }
     return nil
+}
+
+// 获取二进制文件的目录
+func GetOrCreateBinaryRoot(config *commonStructs.JudgeConfiguration) (string, error) {
+    binRoot := path.Join(config.ConfigDir, "bin")
+    _, err := os.Stat(binRoot)
+    if err != nil && os.IsNotExist(err) {
+        err = os.MkdirAll(binRoot, 0775)
+        if err != nil {
+            return "", fmt.Errorf("cannot create binary work directory: %s", err.Error())
+        }
+    }
+    return binRoot, nil
+}
+
+// 普通特殊评测的编译方法
+func CompileSpecialJudgeCodeFile (source, name, binRoot, configDir, libraryDir, lang string) (string, error) {
+    genCodeFile := path.Join(configDir, source)
+    compileTarget := path.Join(binRoot, name)
+    _, err := os.Stat(genCodeFile)
+    if err != nil && os.IsNotExist(err) {
+        return compileTarget, fmt.Errorf("checker source code file not exists")
+    }
+    var ok bool
+    var ceinfo string
+    switch lang {
+    case "c", "gcc", "gnu-c":
+        compiler := provider.NewGnucppCompileProvider()
+        ok, ceinfo = compiler.ManualCompile(genCodeFile, compileTarget, [] string{libraryDir})
+    case "go", "golang":
+        compiler := provider.NewGolangCompileProvider()
+        ok, ceinfo = compiler.ManualCompile(genCodeFile, compileTarget)
+    case "cpp", "gcc-cpp", "gcpp", "g++":
+        compiler := provider.NewGnucppCompileProvider()
+        ok, ceinfo = compiler.ManualCompile(genCodeFile, compileTarget, [] string{libraryDir})
+    default:
+        return compileTarget, fmt.Errorf("checker must be written by c/c++/golang")
+    }
+    if ok {
+        return compileTarget, nil
+    } else {
+        return compileTarget, fmt.Errorf("compile error: %s", ceinfo)
+    }
 }

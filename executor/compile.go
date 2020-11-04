@@ -18,7 +18,7 @@ _match:
     switch keyword {
     case "c", "gcc", "gnu-c":
         return provider.NewGnucCompileProvider(), nil
-    case "cpp", "gcc-cpp", "gpp", "g++":
+    case "cpp", "gcc-cpp", "gcpp", "g++":
         return provider.NewGnucppCompileProvider(), nil
     case "java":
         return provider.NewJavaCompileProvider(), nil
@@ -85,71 +85,46 @@ func (session *JudgeSession) compileTargetProgram(judgeResult *commonStructs.Jud
     return nil
 }
 
+
+
 // 编译裁判程序
+// 如果有已经编译好的裁判程序，则直接返回这个程序
+// 打包的时候不会打包二进制文件，重新编译一次
 func (session *JudgeSession) compileJudgerProgram(judgeResult *commonStructs.JudgeResult) error {
-    _, err := os.Stat(path.Join(session.ConfigDir, session.JudgeConfig.SpecialJudge.Checker))
+    // 检查是否存在已经编译好的裁判程序
+    cType := "checker"
+    if session.JudgeConfig.SpecialJudge.Mode == 2 {
+        cType = "interactor"
+    }
+    cPath, err := utils.GetCompiledBinaryFileAbsPath(cType, session.JudgeConfig.SpecialJudge.Name, session.ConfigDir)
+    // 如果有已经编译好的裁判程序，则直接返回这个程序
+    if err == nil {
+        session.JudgeConfig.SpecialJudge.Checker = cPath
+        return nil
+    }
+    // 如果没有，则检查checker是否被设置
+    _, err = os.Stat(path.Join(session.ConfigDir, session.JudgeConfig.SpecialJudge.Checker))
     if os.IsNotExist(err) {
         judgeResult.JudgeResult = constants.JudgeFlagSE
         judgeResult.SeInfo = fmt.Sprintf("checker file not exists")
         return fmt.Errorf(judgeResult.SeInfo)
     }
 
-    execuable, err := utils.IsExecutableFile(path.Join(session.ConfigDir, session.JudgeConfig.SpecialJudge.Checker))
+    // 编译特判程序
+    config := session.JudgeConfig
+    binRoot, err := GetOrCreateBinaryRoot(&config)
     if err != nil {
-        judgeResult.JudgeResult = constants.JudgeFlagSE
-        judgeResult.SeInfo = fmt.Sprintf("checker file not exists")
-        return fmt.Errorf("compile checker error: %s", err)
+        return err
     }
-    // 如果是可执行程序，直接放行
-    if execuable {
-        return nil
-    }
-
-    // 判断文件格式
-    compiler, err := matchCodeLanguage("auto", session.JudgeConfig.SpecialJudge.Checker)
-    if err != nil {
-        return fmt.Errorf("compile checker error: %s", err)
-    }
-    switch compiler.(type) {
-    case *provider.GnucCompileProvider, *provider.GnucppCompileProvider, *provider.GolangCompileProvider:
-        // 初始化编译程序
-        codeFile, err := os.Open(path.Join(session.ConfigDir, session.JudgeConfig.SpecialJudge.Checker))
-        if err != nil {
-            judgeResult.JudgeResult = constants.JudgeFlagSE
-            judgeResult.SeInfo = fmt.Sprintf("special judge checker source file open error:\n%s", err.Error())
-            return fmt.Errorf(judgeResult.SeInfo)
-        }
-        defer codeFile.Close()
-        code, err := ioutil.ReadAll(codeFile)
-        if err != nil {
-            judgeResult.JudgeResult = constants.JudgeFlagSE
-            judgeResult.SeInfo = fmt.Sprintf("special judge checker source file read error:\n%s", err.Error())
-            return fmt.Errorf(judgeResult.SeInfo)
-        }
-        err = compiler.Init(string(code), session.SessionDir)
-        if err != nil {
-            return err
-        }
-        //log.Println(fmt.Sprintf(
-        //	"compile (%s) with %s provider",
-        //	path.Join(session.ConfigDir, session.JudgeConfig.SpecialJudge.Checker),
-        //	compiler.GetName(),
-        //))
-    default:
-        judgeResult.JudgeResult = constants.JudgeFlagSE
-        judgeResult.SeInfo = "special judge checker only support c/c++/go language"
-        return fmt.Errorf(judgeResult.SeInfo)
-    }
-
-    // 编译程序
-    success, ceinfo := compiler.Compile()
-    if !success {
-        judgeResult.JudgeResult = constants.JudgeFlagSE
-        judgeResult.SeInfo = fmt.Sprintf("special judge checker compile error:\n%s", ceinfo)
-        return fmt.Errorf("special judge checker compile error:\n%s", ceinfo)
-    }
+    compileTarget, err := CompileSpecialJudgeCodeFile(
+        config.SpecialJudge.Checker,
+        config.SpecialJudge.Name,
+        binRoot,
+        config.ConfigDir,
+        session.LibraryDir,
+        config.SpecialJudge.CheckerLang,
+    )
     // 获取执行指令
-    session.JudgeConfig.SpecialJudge.Checker = compiler.GetRunArgs()[0]
-    session.Compiler = compiler
+    session.JudgeConfig.SpecialJudge.Checker = compileTarget
     return nil
 }
