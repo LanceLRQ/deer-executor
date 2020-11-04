@@ -19,9 +19,15 @@ import (
 
 func runValidatorCase(vBin string, vCase *structs.TestlibValidatorCase) error {
     ctx, _ := context.WithTimeout(context.Background(), 5 * time.Second)
-    rel, err := utils.RunUnixShell(ctx, vBin, nil, func(writer io.Writer) error {
-        _, err := writer.Write([]byte(vCase.Input))
-        return err
+    rel, err := utils.RunUnixShell(&structs.ShellOptions{
+        Context:   ctx,
+        Name:      vBin,
+        Args:      nil,
+        StdWriter: nil,
+        OnStart:   func(writer io.Writer) error {
+            _, err := writer.Write([]byte(vCase.Input))
+            return err
+        },
     })
     if err != nil { return err }
     if rel.Success {
@@ -52,9 +58,16 @@ func runTestCase(configDir, vBin string, tCase *structs.TestCase) error {
             return err
         }
     }
-    rel, err := utils.RunUnixShell(ctx, vBin, nil, func(writer io.Writer) error {
-        _, err := writer.Write(inbytes)
-        return err
+
+    rel, err := utils.RunUnixShell(&structs.ShellOptions{
+        Context:   ctx,
+        Name:      vBin,
+        Args:      nil,
+        StdWriter: nil,
+        OnStart:   func(writer io.Writer) error {
+            _, err := writer.Write(inbytes)
+            return err
+        },
     })
     if err != nil { return err }
     if rel.Success {
@@ -86,7 +99,7 @@ func runTestlibValidators(config *structs.JudgeConfiguration, moduleName string,
     if moduleName == "all" {
         caseIndex = -1
     }
-    if moduleName == "all" || moduleName == "validate_cases" {
+    if moduleName == "all" || moduleName == "validator_cases" {
         if err := RunTestlibValidatorCases(config, caseIndex) ; err != nil {
             return err
         }
@@ -108,12 +121,12 @@ func RunTestlibValidatorCases(config *structs.JudgeConfiguration, caseIndex int)
     // 执行遍历
     if caseIndex < 0 {
         for key, _ := range config.TestLib.ValidatorCases {
-            log.Printf("[validator] run case #%d", key)
+            log.Printf("[validator] run validator case #%d", key)
             err := runValidatorCase(validator, &config.TestLib.ValidatorCases[key])
             if err != nil { return err }
         }
     } else {
-        log.Printf("[validator] run case #%d", caseIndex)
+        log.Printf("[validator] run validator case #%d", caseIndex)
         err := runValidatorCase(validator, &config.TestLib.ValidatorCases[caseIndex])
         if err != nil { return err }
     }
@@ -127,12 +140,12 @@ func RunTestCasesInputValidation(config *structs.JudgeConfiguration, caseIndex i
     // 执行遍历
     if caseIndex < 0 {
         for key, _ := range config.TestCases {
-            log.Printf("[validator] run case #%d", key)
+            log.Printf("[validator] run test case #%d", key)
             err := runTestCase(config.ConfigDir, validator, &config.TestCases[key])
             if err != nil { return err }
         }
     } else {
-        log.Printf("[validator] run case #%d", caseIndex)
+        log.Printf("[validator] run test case #%d", caseIndex)
         err := runTestCase(config.ConfigDir, validator, &config.TestCases[caseIndex])
         if err != nil { return err }
     }
@@ -152,7 +165,7 @@ func RunTestlibValidators(c *cli.Context) error {
     mCaseIndex := c.Int("case")
     silence := c.Bool("silence")
 
-    LIST := []string{"all", "validate_cases", "test_cases"}
+    LIST := []string{"all", "validator_cases", "test_cases"}
     if !utils.Contains(LIST, mtype) {
         return fmt.Errorf("unsupport module type")
     }
