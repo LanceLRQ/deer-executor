@@ -19,18 +19,43 @@ import (
 
 
 
-func runTestCaseGen(config *structs.JudgeConfiguration, tCase *structs.TestCase, withAnswer bool) error {
+func runTestCaseGen(session *executor.JudgeSession, tCase *structs.TestCase, withAnswer bool) error {
     ctx, _ := context.WithTimeout(context.Background(), 3 * time.Second)
     // 如果是generator脚本
     if tCase.UseGenerator {
-        inbytes, err := utils.CallGenerator(ctx, tCase, config.ConfigDir)
+        inbytes, err := utils.CallGenerator(ctx, tCase, session.ConfigDir)
         if err != nil {
             return err
         }
         // 写入到文件
-        err = ioutil.WriteFile(path.Join(config.ConfigDir, tCase.Input), inbytes, 0644)
+        err = ioutil.WriteFile(path.Join(session.ConfigDir, tCase.Input), inbytes, 0664)
         if err != nil {
             return err
+        }
+        log.Printf("[generator] generate input done!")
+    }
+    if withAnswer {
+        fin, err := os.Open(path.Join(session.ConfigDir, tCase.Input))
+        if err != nil { return nil }
+        fout, err := os.Create(path.Join(session.ConfigDir, tCase.Output))
+        if err != nil { return nil }
+        ctx, _ := context.WithTimeout(context.Background(), 5 * time.Second)
+        rel, err := utils.RunUnixShell(&structs.ShellOptions{
+            Context:   ctx,
+            Name:      session.Commands[0],
+            Args:      session.Commands[1:],
+            StdWriter: &structs.ShellWriters{
+                Input:  fin,
+                Output: fout,
+                Error:  nil,
+            },
+        })
+        if err != nil { return err }
+        if !rel.Success {
+           log.Printf("[generator] run answer code error: %s", rel.Stderr)
+           return fmt.Errorf("[generator] run answer code error: %s", rel.Stderr)
+        } else {
+            log.Printf("[generator] generate answer done!")
         }
     }
     return nil
@@ -38,17 +63,17 @@ func runTestCaseGen(config *structs.JudgeConfiguration, tCase *structs.TestCase,
 
 // 运行test cases的数据生成
 // caseIndex < 0 表示校验全部
-func runTestCaseGenerator(config *structs.JudgeConfiguration, caseIndex int, answerCaseIndex uint, withAnswer bool) error {
+func runTestCaseGenerator(session *executor.JudgeSession, caseIndex int, withAnswer bool) error {
     // 执行遍历
     if caseIndex < 0 {
-        for key, _ := range config.TestCases {
+        for key, _ := range session.JudgeConfig.TestCases {
             log.Printf("[generator] run case #%d", key)
-            err := runTestCaseGen(config, &config.TestCases[key], withAnswer)
+            err := runTestCaseGen(session, &session.JudgeConfig.TestCases[key], withAnswer)
             if err != nil { return err }
         }
     } else {
         log.Printf("[generator] run case #%d", caseIndex)
-        err := runTestCaseGen(config, &config.TestCases[caseIndex], withAnswer)
+        err := runTestCaseGen(session, &session.JudgeConfig.TestCases[caseIndex], withAnswer)
         if err != nil { return err }
     }
     return nil
@@ -66,7 +91,7 @@ func RunTestCaseGenerator(c *cli.Context) error {
 
 
     if !c.Bool("silence") {
-        fmt.Print("Save all the changed to config file? [y/N] ")
+        fmt.Print("Operation will cover all files, continue? [y/N] ")
         ans := ""
         _, err := fmt.Scanf("%s", &ans)
         if err != nil {
@@ -79,7 +104,7 @@ func RunTestCaseGenerator(c *cli.Context) error {
 
     withAnswer := c.Bool("with-answer")
     answerCaseIndex := c.Uint("answer")
-    //testCaseIndex := c.Int("case")
+    testCaseIndex := c.Int("case")
 
     // 编译答案代码
     if withAnswer {
@@ -116,9 +141,6 @@ func RunTestCaseGenerator(c *cli.Context) error {
         session.Commands = compiler.GetRunArgs()
         session.Compiler = compiler
     }
-    fmt.Println(session.Commands)
 
-
-    return nil
-    //return runTestCaseGenerator(&session.JudgeConfig, testCaseIndex, withAnswer)
+    return runTestCaseGenerator(session, testCaseIndex, withAnswer)
 }

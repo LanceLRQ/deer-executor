@@ -37,7 +37,7 @@ var AppProblemSubCommands = cli.Commands{
                 Name:  "type",
                 Aliases: []string {"t"},
                 Value: "all",
-                Usage: "module type: validate_cases|test_cases|all",
+                Usage: "module type: validator_cases|test_cases|all",
             },
             &cli.IntFlag{
                 Name:  "case",
