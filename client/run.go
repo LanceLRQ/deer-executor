@@ -14,6 +14,7 @@ import (
     "github.com/urfave/cli/v2"
     "log"
     "os"
+    "path/filepath"
     "strconv"
     "time"
 )
@@ -90,6 +91,11 @@ var RunFlags = []cli.Flag{
         Value: "",
         Usage: "setup session root dir",
     },
+    &cli.StringFlag{
+        Name:  "library",
+        Value: "./lib",
+        Usage: "library root for special judge, contains \"testlib.h\" and \"bits/stdc++.h\" etc.",
+    },
 }
 
 func run(c *cli.Context, configFile string, counter int) (*commonStructs.JudgeResult, *executor.JudgeSession, error) {
@@ -101,6 +107,21 @@ func run(c *cli.Context, configFile string, counter int) (*commonStructs.JudgeRe
     }
     if c.String("language") != "" {
         session.CodeLangName = c.String("language")
+    }
+    if session.JudgeConfig.SpecialJudge.Mode > 0 {
+        // 特判时需要检查library目录
+        libDir, err := filepath.Abs(c.String("library"))
+        if err != nil {
+            return nil, nil, fmt.Errorf("get library root error: %s", err.Error())
+        }
+        if s, err := os.Stat(libDir); err != nil {
+            return nil, nil, fmt.Errorf("library root not exists")
+        } else {
+            if !s.IsDir() {
+                return nil, nil, fmt.Errorf("library root not a directory")
+            }
+        }
+        session.LibraryDir = libDir
     }
     // init files
     session.CodeFile = c.Args().Get(1)

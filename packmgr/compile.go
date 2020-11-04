@@ -33,45 +33,12 @@ func compileTestlibCodeFile (source, name, binRoot, configDir, libraryDir, typeN
     return nil
 }
 
-// 普通特殊评测的编译方法
-func compileSpecialJudgeCodeFile (source, name, binRoot, configDir, libraryDir, lang, typeName string) error {
-    fmt.Printf("build %s [%s]...", typeName, name)
-    genCodeFile := path.Join(configDir, source)
-    compileTarget := path.Join(binRoot, name)
-    _, err := os.Stat(genCodeFile)
-    if err != nil && os.IsNotExist(err) {
-        return fmt.Errorf("cannot find source code")
-    }
-    var ok bool
-    var ceinfo string
-    switch lang {
-        case "c", "gcc":
-            compiler := provider.NewGnucppCompileProvider()
-            ok, ceinfo = compiler.ManualCompile(genCodeFile, compileTarget, [] string{libraryDir})
-        case "go", "golang":
-            compiler := provider.NewGolangCompileProvider()
-            ok, ceinfo = compiler.ManualCompile(genCodeFile, compileTarget)
-        default:
-            compiler := provider.NewGnucppCompileProvider()
-            ok, ceinfo = compiler.ManualCompile(genCodeFile, compileTarget, [] string{libraryDir})
-    }
-    if ok {
-        fmt.Println("Done.")
-    } else {
-        fmt.Printf("Error.\n\n%s", ceinfo)
-    }
-    return nil
-}
 
 // 编译作业代码
 func compileWorkCodeFiles(config structs.JudgeConfiguration, libraryDir string) error {
-    binRoot := path.Join(config.ConfigDir, "bin")
-    _, err := os.Stat(binRoot)
-    if err != nil && os.IsNotExist(err) {
-        err = os.MkdirAll(binRoot, 0775)
-        if err != nil {
-            return fmt.Errorf("cannot create binary work directory: %s", err.Error())
-        }
+    binRoot, err := executor.GetOrCreateBinaryRoot(&config)
+    if err != nil {
+        return err
     }
     // Generators
     if config.TestLib.Generators != nil {
@@ -114,17 +81,20 @@ func compileWorkCodeFiles(config structs.JudgeConfiguration, libraryDir string) 
                 return err
             }
         } else {
-            err = compileSpecialJudgeCodeFile(
+            fmt.Printf("build %s [%s]...", "special judge " + checkerType, config.SpecialJudge.Name)
+            _, err = executor.CompileSpecialJudgeCodeFile(
                 config.SpecialJudge.Checker,
                 config.SpecialJudge.Name,
                 binRoot,
                 config.ConfigDir,
                 libraryDir,
                 config.SpecialJudge.CheckerLang,
-                "special judge " + checkerType,
             )
             if err != nil {
-                return err
+                fmt.Printf("Error!\n%s", err.Error())
+                return fmt.Errorf("compile error")
+            } else {
+                fmt.Println("Ok!")
             }
         }
     }
@@ -132,17 +102,24 @@ func compileWorkCodeFiles(config structs.JudgeConfiguration, libraryDir string) 
 }
 
 // 编译作业代码(APP入口)
-func CompileProblemWorkDirSourceCodes(context *cli.Context) error {
-    configFile := context.Args().Get(0)
+func CompileProblemWorkDirSourceCodes(c *cli.Context) error {
+    configFile := c.Args().Get(0)
     _, err := os.Stat(configFile)
     if err != nil && os.IsNotExist(err) {
         return fmt.Errorf("problem config file (%s) not found", configFile)
     }
     session, err := executor.NewSession(configFile)
     if err != nil { return err }
-    libDir, err := filepath.Abs(context.String("library"))
+    libDir, err := filepath.Abs(c.String("library"))
     if err != nil {
-        return err
+        return fmt.Errorf("get library root error: %s", err.Error())
+    }
+    if s, err := os.Stat(libDir); err != nil {
+        return fmt.Errorf("library root not exists")
+    } else {
+        if !s.IsDir() {
+            return fmt.Errorf("library root not a directory")
+        }
     }
     err = compileWorkCodeFiles(session.JudgeConfig, libDir)
     return err

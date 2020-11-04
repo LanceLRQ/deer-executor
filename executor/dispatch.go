@@ -10,7 +10,7 @@ import (
 )
 
 // 基于JudgeOptions进行评测调度
-func (session *JudgeSession) judgeOnce(judgeResult *commonStructs.TestCaseResult) {
+func (session *JudgeSession) JudgeOnce(judgeResult *commonStructs.TestCaseResult) {
     switch session.JudgeConfig.SpecialJudge.Mode {
     case constants.SpecialJudgeModeDisabled:
         pinfo, err := session.runNormalJudge(judgeResult)
@@ -102,7 +102,7 @@ func (session *JudgeSession) runOneCase(config *commonStructs.JudgeConfiguration
     }
 
     // 运行judge程序
-    session.judgeOnce(&tcResult)
+    session.JudgeOnce(&tcResult)
 
     return &tcResult
 }

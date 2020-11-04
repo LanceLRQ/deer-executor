@@ -16,7 +16,7 @@ var AppProblemSubCommands = cli.Commands{
                 Name:  "library",
                 Aliases: []string {"l"},
                 Value: "./lib",
-                Usage: "library dir, contains \"testlib.h\" and \"bits/stdc++.h\" etc.",
+                Usage: "library root for special judge, contains \"testlib.h\" and \"bits/stdc++.h\" etc.",
             },
         },
         Action: packmgr.CompileProblemWorkDirSourceCodes,

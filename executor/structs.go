@@ -28,6 +28,7 @@ type JudgeSession struct {
     ConfigDir    string   // Config file dir
     CodeLangName string   // Code file language name
     CodeFile     string   // Code File Path
+    LibraryDir   string   // Compile Library Path for Working Program
     Commands     []string // Executable program commands
 
     JudgeConfig commonStructs.JudgeConfiguration // Judge Configurations
