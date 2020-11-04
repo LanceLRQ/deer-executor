@@ -132,6 +132,7 @@ func RunTestlibValidatorCases(config *structs.JudgeConfiguration, caseIndex int)
     }
     return nil
 }
+
 // 运行test cases的校验
 // caseIndex < 0 表示校验全部
 func RunTestCasesInputValidation(config *structs.JudgeConfiguration, caseIndex int) error {
@@ -167,7 +168,7 @@ func RunTestlibValidators(c *cli.Context) error {
 
     LIST := []string{"all", "validator_cases", "test_cases"}
     if !utils.Contains(LIST, mtype) {
-        return fmt.Errorf("unsupport module type")
+        return fmt.Errorf("[validator] unsupport module type")
     }
     err = runTestlibValidators(&session.JudgeConfig, mtype, mCaseIndex)
     if err != nil {

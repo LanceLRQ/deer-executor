@@ -18,7 +18,7 @@ import (
 )
 
 
-
+// 运行测试数据生成
 func runTestCaseGen(session *executor.JudgeSession, tCase *structs.TestCase, withAnswer bool) error {
     ctx, _ := context.WithTimeout(context.Background(), 3 * time.Second)
     // 如果是generator脚本
@@ -79,19 +79,53 @@ func runTestCaseGenerator(session *executor.JudgeSession, caseIndex int, withAns
     return nil
 }
 
-// 运行Testlib的validator校验 (APP入口)
+func initWork(session *executor.JudgeSession, answerCaseIndex uint) error {
+
+    // 强制设定工作目录
+    session.SessionId = uuid.NewV4().String()
+    session.SessionRoot = "/tmp"
+    // 初始化session dir
+    sessionDir, err := utils.GetSessionDir(session.SessionRoot, session.SessionId)
+    if err != nil {
+        return err
+    }
+    session.SessionDir = sessionDir
+    defer session.Clean()
+    acase := session.JudgeConfig.AnswerCases[answerCaseIndex]
+    // 如果有代码文件
+    if acase.FileName != "" {
+        session.CodeFile = path.Join(session.ConfigDir, acase.FileName)
+    }
+    session.CodeLangName = acase.Language
+    // 获取对应的编译器提供程序
+    compiler, err := session.GetCompiler(acase.Content)
+    if err != nil {
+        return err
+    }
+    // 编译程序
+    success, ceinfo := compiler.Compile()
+    if !success {
+        return fmt.Errorf("[generator] compile error:\n%s", ceinfo)
+    }
+    // 获取执行指令
+    session.Commands = compiler.GetRunArgs()
+    session.Compiler = compiler
+    return nil
+}
+
+// 运行测试数据生成器 (APP入口)
 func RunTestCaseGenerator(c *cli.Context) error {
     configFile := c.Args().Get(0)
     _, err := os.Stat(configFile)
     if err != nil && os.IsNotExist(err) {
-        return fmt.Errorf("[validator] problem config file (%s) not found", configFile)
+        return fmt.Errorf("[generator] problem config file (%s) not found", configFile)
     }
     session, err := executor.NewSession(configFile)
     if err != nil { return err }
 
 
     if !c.Bool("silence") {
-        fmt.Print("Operation will cover all files, continue? [y/N] ")
+        fmt.Print("[generator] Operation will cover all files, continue? [y/N] ")
         ans := ""
         _, err := fmt.Scanf("%s", &ans)
         if err != nil {
@@ -108,38 +142,10 @@ func RunTestCaseGenerator(c *cli.Context) error {
 
     // 编译答案代码
     if withAnswer {
-        if len(session.JudgeConfig.AnswerCases) <= 0 {
-            return fmt.Errorf("please setup answer case")
-        }
-        // 强制放到对应地方
-        session.SessionId = uuid.NewV4().String()
-        session.SessionRoot = "/tmp"
-        // 初始化session dir
-        sessionDir, err := utils.GetSessionDir(session.SessionRoot, session.SessionId)
+        err = initWork(session, answerCaseIndex)
         if err != nil {
             return err
         }
-        session.SessionDir = sessionDir
-        defer session.Clean()
-        acase := session.JudgeConfig.AnswerCases[answerCaseIndex]
-        // 如果有代码文件
-        if acase.FileName != "" {
-            session.CodeFile = path.Join(session.ConfigDir, acase.FileName)
-        }
-        session.CodeLangName = acase.Language
-        // 获取对应的编译器提供程序
-        compiler, err := session.GetCompiler(acase.Content)
-        if err != nil {
-            return err
-        }
-        // 编译程序
-        success, ceinfo := compiler.Compile()
-        if !success {
-            return fmt.Errorf("compile error:\n%s", ceinfo)
-        }
-        // 获取执行指令
-        session.Commands = compiler.GetRunArgs()
-        session.Compiler = compiler
     }
 
     return runTestCaseGenerator(session, testCaseIndex, withAnswer)
