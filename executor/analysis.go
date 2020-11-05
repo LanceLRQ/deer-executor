@@ -55,14 +55,31 @@ func (session *JudgeSession) analysisExitStatus(rst *commonStructs.TestCaseResul
             // 如果特判程序正常退出
             exitcode := status.ExitStatus()
             rst.SPJExitCode = exitcode
-            // 判断退出代码是否正确
-            if exitcode == constants.JudgeFlagAC || exitcode == constants.JudgeFlagPE ||
-                exitcode == constants.JudgeFlagWA || exitcode == constants.JudgeFlagOLE ||
-                exitcode == constants.JudgeFlagSpecialJudgeRequireChecker {
-                rst.JudgeResult = exitcode
+            if session.JudgeConfig.SpecialJudge.UseTestlib {
+                // 如果是Testlib的checker，则退出代码要按照他们的规则去判定
+                exitCode, ok := constants.TestlibExitCodeMapping[exitcode]
+                if ok {
+                    rst.JudgeResult = exitCode
+                    emsg, err := ioutil.ReadFile(path.Join(session.SessionDir, rst.JudgerError))
+
+                    if err != nil {
+                        rst.SPJErrMsg = "read checker report file error"
+                    } else {
+                        rst.SPJErrMsg = string(emsg)
+                    }
+                } else {
+                    rst.JudgeResult = constants.JudgeFlagSpecialJudgeError
+                }
             } else {
-                rst.JudgeResult = constants.JudgeFlagSpecialJudgeError
-                rst.ReInfo = fmt.Sprintf("special judger return with a wrong exitcode: %d", exitcode)
+                // 判断退出代码是否正确
+                if exitcode == constants.JudgeFlagAC || exitcode == constants.JudgeFlagPE ||
+                    exitcode == constants.JudgeFlagWA || exitcode == constants.JudgeFlagOLE ||
+                    exitcode == constants.JudgeFlagSpecialJudgeRequireChecker {
+                    rst.JudgeResult = exitcode
+                } else {
+                    rst.JudgeResult = constants.JudgeFlagSpecialJudgeError
+                    rst.SPJErrMsg = fmt.Sprintf("special judger return with a wrong exitcode: %d", exitcode)
+                }
             }
         }
     } else {

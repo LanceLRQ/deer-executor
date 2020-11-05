@@ -121,6 +121,8 @@ func (session *JudgeSession) RunJudge() commonStructs.JudgeResult {
         // 如果需要特殊评测，则编译相关代码
         err := session.compileJudgerProgram(&judgeResult)
         if err != nil {
+            judgeResult.JudgeResult = constants.JudgeFlagSE
+            judgeResult.SeInfo = err.Error()
             return judgeResult
         }
     }

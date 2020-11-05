@@ -305,7 +305,7 @@ func CompileSpecialJudgeCodeFile (source, name, binRoot, configDir, libraryDir, 
     case "go", "golang":
         compiler := provider.NewGolangCompileProvider()
         ok, ceinfo = compiler.ManualCompile(genCodeFile, compileTarget)
-    case "cpp", "gcc-cpp", "gcpp", "g++":
+    case "cpp", "gcc-cpp", "gcpp", "g++", "":
         compiler := provider.NewGnucppCompileProvider()
         ok, ceinfo = compiler.ManualCompile(genCodeFile, compileTarget, [] string{libraryDir})
     default:
