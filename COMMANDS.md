@@ -60,7 +60,9 @@ gpg --armor --output private-key.txt --export-secret-keys F896F5F1F6AFF7FA
     - (可选) 使用`go run main.go problem validate ./data/problems/APlusB2/problem.json`命令，运行validator对测试数据、
     手打数据(validator_cases)进行校验。其中，测试数据如果启用了generator，会运行generator生成数据，否则会使用Input文件中的数据。
     
-3. 使用`go run main.go problem gen ./data/problems/APlusB2/problem.json`命令，生成完整的评测数据输入文件。
+    - (可选) 使用`go run main.go problem checker ./data/problems/APlusB2/problem.json`命令，运行checker对checker_cases的数据进行验证。
+        
+3. 使用`go run main.go problem generate ./data/problems/APlusB2/problem.json`命令，生成完整的评测数据输入文件。
 如果带上`--with-answer`参数，则会运行答案代码，覆盖对应的输出文件。
 
 4. 执行正常的判题命令即可。
