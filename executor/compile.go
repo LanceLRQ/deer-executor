@@ -99,8 +99,10 @@ func (session *JudgeSession) compileJudgerProgram(judgeResult *commonStructs.Jud
     cPath, err := utils.GetCompiledBinaryFileAbsPath(cType, session.JudgeConfig.SpecialJudge.Name, session.ConfigDir)
     // 如果有已经编译好的裁判程序，则直接返回这个程序
     if err == nil {
-        session.JudgeConfig.SpecialJudge.Checker = cPath
-        return nil
+        if _, err := os.Stat(cPath); err == nil {
+            session.JudgeConfig.SpecialJudge.Checker = cPath
+            return nil
+        }
     }
     // 如果没有，则检查checker是否被设置
     _, err = os.Stat(path.Join(session.ConfigDir, session.JudgeConfig.SpecialJudge.Checker))
@@ -124,6 +126,9 @@ func (session *JudgeSession) compileJudgerProgram(judgeResult *commonStructs.Jud
         session.LibraryDir,
         config.SpecialJudge.CheckerLang,
     )
+    if err != nil {
+        return err
+    }
     // 获取执行指令
     session.JudgeConfig.SpecialJudge.Checker = compileTarget
     return nil
