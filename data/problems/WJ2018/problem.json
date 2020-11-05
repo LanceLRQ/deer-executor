@@ -1,9 +1,10 @@
 {
     "test_cases": [
         {
-            "id": "1",
-            "test_case_in": "0.in",
-            "test_case_out": "0.out"
+            "handle": "1",
+            "input": "0.in",
+            "output": "0.out",
+            "enabled": true
         }
     ],
     "time_limit": 1000,
@@ -13,8 +14,10 @@
     "uid": -1,
     "strict_mode": true,
     "special_judge": {
+        "name": "checker",
         "mode": 1,
         "checker": "judger.cpp",
+        "use_testlib": false,
         "redirect_program_out": true,
         "time_limit": 1000,
         "memory_limit": 65535
