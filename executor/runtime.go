@@ -126,26 +126,27 @@ func (session *JudgeSession) runSpecialJudge(rst *commonStructs.TestCaseResult) 
 
 func getSpecialJudgerPath(session *JudgeSession, rst *commonStructs.TestCaseResult) []string {
     tci, err := filepath.Abs(path.Join(session.ConfigDir, rst.Input))
-    if err != nil {
+    if err == nil {
         tci = path.Join(session.ConfigDir, rst.Input)
     }
     tco, err := filepath.Abs(path.Join(session.ConfigDir, rst.Output))
-    if err != nil {
+    if err == nil {
         tco = path.Join(session.ConfigDir, rst.Output)
     }
     po, err := filepath.Abs(path.Join(session.SessionDir, rst.ProgramOut))
-    if err != nil {
+    if err == nil {
         po = path.Join(session.SessionDir, rst.ProgramOut)
     }
     jr, err := filepath.Abs(path.Join(session.SessionDir, rst.JudgerReport))
-    if err != nil {
+    if err == nil {
         jr = path.Join(session.SessionDir, rst.JudgerReport)
     }
     args := []string{
-        tci,
-        tco,
-        po,
-        jr,
+        session.JudgeConfig.SpecialJudge.Checker,       // 程序
+        tci,                                            // 输入文件流
+        po,                                             // 选手输出流
+        tco,                                            // 参考输出流
+        jr,                                             // report
     }
     return args
 }
@@ -203,20 +204,22 @@ func runProgramProcess(session *JudgeSession, rst *commonStructs.TestCaseResult,
         } else {
             // Redirect test-case input to STDIN
             if judger {
-                if session.JudgeConfig.SpecialJudge.RedirectProgramOut {
-                    fds[0], err = redirectFileDescriptor(
-                        syscall.Stdout,
-                        path.Join(session.SessionDir, rst.ProgramOut),
-                        os.O_RDONLY,
-                        0,
-                    )
-                } else {
-                    fds[0], err = redirectFileDescriptor(
-                        syscall.Stdin,
-                        path.Join(session.ConfigDir, rst.Input),
-                        os.O_RDONLY,
-                        0,
-                    )
+                if !session.JudgeConfig.SpecialJudge.UseTestlib {
+                    if session.JudgeConfig.SpecialJudge.RedirectProgramOut {
+                        fds[0], err = redirectFileDescriptor(
+                            syscall.Stdout,
+                            path.Join(session.SessionDir, rst.ProgramOut),
+                            os.O_RDONLY,
+                            0,
+                        )
+                    } else {
+                        fds[0], err = redirectFileDescriptor(
+                            syscall.Stdin,
+                            path.Join(session.ConfigDir, rst.Input),
+                            os.O_RDONLY,
+                            0,
+                        )
+                    }
                 }
             } else {
                 fds[0], err = redirectFileDescriptor(
