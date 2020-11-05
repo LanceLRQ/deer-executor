@@ -1,0 +1,175 @@
+{
+    "test_cases": [
+        {
+            "handle": "1",
+            "order": 0,
+            "name": "A + B Problem Test #1",
+            "input": "cases/0.in",
+            "output": "cases/0.out",
+            "visible": false,
+            "enabled": true,
+            "use_genarator": false,
+            "generator": "",
+            "validator_verdict": true,
+            "validator_comment": ""
+        },
+        {
+            "handle": "2",
+            "order": 0,
+            "name": "A + B Problem Test #2",
+            "input": "cases/1.in",
+            "output": "cases/1.out",
+            "visible": false,
+            "enabled": true,
+            "use_genarator": false,
+            "generator": "",
+            "validator_verdict": false,
+            "validator_comment": "FAIL Expected EOF (stdin, line 2)\n"
+        },
+        {
+            "handle": "3",
+            "order": 0,
+            "name": "A + B Problem Test #3",
+            "input": "cases/2.in",
+            "output": "cases/2.out",
+            "visible": false,
+            "enabled": true,
+            "use_genarator": true,
+            "generator": "echo 0 1",
+            "validator_verdict": true,
+            "validator_comment": ""
+        },
+        {
+            "handle": "4",
+            "order": 0,
+            "name": "A + B Problem Test #4",
+            "input": "cases/3.in",
+            "output": "cases/3.out",
+            "visible": false,
+            "enabled": true,
+            "use_genarator": true,
+            "generator": "echo -43 100",
+            "validator_verdict": true,
+            "validator_comment": ""
+        },
+        {
+            "handle": "5",
+            "order": 0,
+            "name": "A + B Problem Test #5",
+            "input": "cases/4.in",
+            "output": "cases/4.out",
+            "visible": false,
+            "enabled": true,
+            "use_genarator": true,
+            "generator": "echo 1000 10000",
+            "validator_verdict": false,
+            "validator_comment": "FAIL Integer parameter [name=a] equals to 1000, violates the range [-100, 100] (stdin, line 1)\n"
+        }
+    ],
+    "time_limit": 1000,
+    "memory_limit": 65500,
+    "real_time_limit": 2000,
+    "file_size_limit": 52428800,
+    "uid": -1,
+    "strict_mode": true,
+    "special_judge": {
+        "name": "checker",
+        "mode": 1,
+        "checker_lang": "",
+        "checker": "codes/checker.cpp",
+        "redirect_program_out": true,
+        "time_limit": 1000,
+        "memory_limit": 65535,
+        "use_testlib": true,
+        "checker_cases": [
+            {
+                "input": "1 2",
+                "output": "3",
+                "answer": "3",
+                "verdict": true,
+                "expected_verdict": 0,
+                "checker_verdict": 0,
+                "checker_comment": "ok found '3.0000000', expected '3.0000000', error '0.0000000'\n"
+            },
+            {
+                "input": "1 5",
+                "output": "6",
+                "answer": "6",
+                "verdict": true,
+                "expected_verdict": 0,
+                "checker_verdict": 0,
+                "checker_comment": "ok found '6.0000000', expected '6.0000000', error '0.0000000'\n"
+            },
+            {
+                "input": "1 2",
+                "output": "4",
+                "answer": "3",
+                "verdict": true,
+                "expected_verdict": 4,
+                "checker_verdict": 4,
+                "checker_comment": "wrong answer 1st numbers differ - expected: '3.0000000', found: '4.0000000', error = '0.3333333'\n"
+            },
+            {
+                "input": "1 2",
+                "output": "4",
+                "answer": "3",
+                "verdict": false,
+                "expected_verdict": 0,
+                "checker_verdict": 4,
+                "checker_comment": "wrong answer 1st numbers differ - expected: '3.0000000', found: '4.0000000', error = '0.3333333'\n"
+            }
+        ]
+    },
+    "limitation": null,
+    "problem": {
+        "author": "LanceLRQ",
+        "source": "",
+        "description": "Calculate A + B.",
+        "input": "Each line will contain two integers A and B. Process to end of file.",
+        "output": "For each case, output A + B in one line.",
+        "sample": [
+            {
+                "input": "1 1",
+                "output": "2"
+            }
+        ],
+        "tips": "",
+        "problem_type": 0,
+        "demo_cases": null
+    },
+    "testlib": {
+        "version": "",
+        "validator": "codes/validator.cpp",
+        "validator_name": "validator",
+        "generators": [
+            {
+                "name": "echo",
+                "source": "generators/echo.cpp"
+            }
+        ],
+        "validator_case": [
+            {
+                "input": "1 10\n",
+                "verdict": true,
+                "expected_verdict": true,
+                "validator_verdict": true,
+                "validator_comment": ""
+            },
+            {
+                "input": "101 0\n",
+                "verdict": true,
+                "expected_verdict": false,
+                "validator_verdict": false,
+                "validator_comment": "FAIL Integer parameter [name=a] equals to 101, violates the range [-100, 100] (stdin, line 1)\n"
+            }
+        ]
+    },
+    "answer_cases": [
+        {
+            "name": "Answer 1 (C ver.)",
+            "file_name": "./answers/answer.c",
+            "language": "gcc",
+            "content": ""
+        }
+    ]
+}

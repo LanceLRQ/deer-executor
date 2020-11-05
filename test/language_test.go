@@ -1,59 +1,58 @@
 package test
 
 import (
-	"flag"
-	"github.com/LanceLRQ/deer-executor/executor"
-	"testing"
+    "flag"
+    "github.com/LanceLRQ/deer-common/constants"
+    "testing"
 )
 
 // Test: CPP language
 func TestAPlusBProblemCpp(t *testing.T) {
-	if flag.Arg(0) != "all-language" {
-		t.Log("CPP: Skip")
-		return
-	}
-	err := initWorkRoot()
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	result, err := runAPlusB("./data/codes/APlusB/ac.cpp", "")
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	err = analysisResult("test cpp", result, executor.JudgeFlagAC)
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	t.Log("OK")
+    if flag.Arg(0) != "all-language" {
+        t.Log("CPP: Skip")
+        return
+    }
+    err := initWorkRoot()
+    if err != nil {
+        t.Fatal(err)
+        return
+    }
+    result, err := runAPlusB("./data/codes/APlusB/ac.cpp", "")
+    if err != nil {
+        t.Fatal(err)
+        return
+    }
+    err = analysisResult("test cpp", result, constants.JudgeFlagAC)
+    if err != nil {
+        t.Fatal(err)
+        return
+    }
+    t.Log("OK")
 }
 
 // Test: Java language
 func TestAPlusBProblemJava(t *testing.T) {
-	if flag.Arg(0) != "all-language" {
-		t.Log("Java: Skip")
-		return
-	}
-	err := initWorkRoot()
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	result, err := runAPlusB("./data/codes/APlusB/ac.java", "")
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	err = analysisResult("test java", result, executor.JudgeFlagAC)
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	t.Log("OK")
+    if flag.Arg(0) != "all-language" {
+        t.Log("Java: Skip")
+        return
+    }
+    err := initWorkRoot()
+    if err != nil {
+        t.Fatal(err)
+        return
+    }
+    result, err := runAPlusB("./data/codes/APlusB/ac.java", "")
+    if err != nil {
+        t.Fatal(err)
+        return
+    }
+    err = analysisResult("test java", result, constants.JudgeFlagAC)
+    if err != nil {
+        t.Fatal(err)
+        return
+    }
+    t.Log("OK")
 }
-
 
 //// Test: Python 2 language
 //func TestAPlusBProblemPython2(t *testing.T) {
@@ -81,101 +80,99 @@ func TestAPlusBProblemJava(t *testing.T) {
 
 // Test: Python 3 language
 func TestAPlusBProblemPython3(t *testing.T) {
-	if flag.Arg(0) != "all-language" {
-		t.Log("Python 3: Skip")
-		return
-	}
-	err := initWorkRoot()
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	result, err := runAPlusB("./data/codes/APlusB/ac_py3.py", "python3")
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	err = analysisResult("test python 3", result, executor.JudgeFlagAC)
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	t.Log("OK")
+    if flag.Arg(0) != "all-language" {
+        t.Log("Python 3: Skip")
+        return
+    }
+    err := initWorkRoot()
+    if err != nil {
+        t.Fatal(err)
+        return
+    }
+    result, err := runAPlusB("./data/codes/APlusB/ac_py3.py", "python3")
+    if err != nil {
+        t.Fatal(err)
+        return
+    }
+    err = analysisResult("test python 3", result, constants.JudgeFlagAC)
+    if err != nil {
+        t.Fatal(err)
+        return
+    }
+    t.Log("OK")
 }
 
 // Test: Python 3 language ce - indent error
 func TestAPlusBProblemPython3CE(t *testing.T) {
-	if flag.Arg(0) != "all-language" {
-		t.Log("Python 3 CE 1: Skip")
-		return
-	}
-	err := initWorkRoot()
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	result, err := runAPlusB("./data/codes/APlusB/ce_py3.py", "python3")
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	err = analysisResult("test python 3 ce 1", result, executor.JudgeFlagCE)
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	t.Log("OK")
+    if flag.Arg(0) != "all-language" {
+        t.Log("Python 3 CE 1: Skip")
+        return
+    }
+    err := initWorkRoot()
+    if err != nil {
+        t.Fatal(err)
+        return
+    }
+    result, err := runAPlusB("./data/codes/APlusB/ce_py3.py", "python3")
+    if err != nil {
+        t.Fatal(err)
+        return
+    }
+    err = analysisResult("test python 3 ce 1", result, constants.JudgeFlagCE)
+    if err != nil {
+        t.Fatal(err)
+        return
+    }
+    t.Log("OK")
 }
 
 // Test: Python 3 language ce - syntax error
 func TestAPlusBProblemPython3CE2(t *testing.T) {
-	if flag.Arg(0) != "all-language" {
-		t.Log("Python 3 CE 2: Skip")
-		return
-	}
-	err := initWorkRoot()
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	result, err := runAPlusB("./data/codes/APlusB/ce2_py3.py", "python3")
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	err = analysisResult("test python 3 ce 2", result, executor.JudgeFlagCE)
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	t.Log("OK")
+    if flag.Arg(0) != "all-language" {
+        t.Log("Python 3 CE 2: Skip")
+        return
+    }
+    err := initWorkRoot()
+    if err != nil {
+        t.Fatal(err)
+        return
+    }
+    result, err := runAPlusB("./data/codes/APlusB/ce2_py3.py", "python3")
+    if err != nil {
+        t.Fatal(err)
+        return
+    }
+    err = analysisResult("test python 3 ce 2", result, constants.JudgeFlagCE)
+    if err != nil {
+        t.Fatal(err)
+        return
+    }
+    t.Log("OK")
 }
-
 
 // Test: Go language
 func TestAPlusBProblemGo(t *testing.T) {
-	if flag.Arg(0) != "all-language" {
-		t.Log("Go: Skip")
-		return
-	}
-	err := initWorkRoot()
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	result, err := runAPlusB("./data/codes/APlusB/ac.go", "")
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	err = analysisResult("test golang", result, executor.JudgeFlagAC)
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	t.Log("OK")
+    if flag.Arg(0) != "all-language" {
+        t.Log("Go: Skip")
+        return
+    }
+    err := initWorkRoot()
+    if err != nil {
+        t.Fatal(err)
+        return
+    }
+    result, err := runAPlusB("./data/codes/APlusB/ac.go", "")
+    if err != nil {
+        t.Fatal(err)
+        return
+    }
+    err = analysisResult("test golang", result, constants.JudgeFlagAC)
+    if err != nil {
+        t.Fatal(err)
+        return
+    }
+    t.Log("OK")
 }
-
 
 //// Test: Nodejs language
 //func TestAPlusBProblemNode(t *testing.T) {
@@ -201,29 +198,28 @@ func TestAPlusBProblemGo(t *testing.T) {
 //	t.Log("OK")
 //}
 
-
 // Test: PHP language
 func TestAPlusBProblemPHP(t *testing.T) {
-	if flag.Arg(0) != "all-language" {
-		t.Log("PHP: Skip")
-		return
-	}
-	err := initWorkRoot()
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	result, err := runAPlusB("./data/codes/APlusB/ac.php", "")
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	err = analysisResult("test php", result, executor.JudgeFlagAC)
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	t.Log("OK")
+    if flag.Arg(0) != "all-language" {
+        t.Log("PHP: Skip")
+        return
+    }
+    err := initWorkRoot()
+    if err != nil {
+        t.Fatal(err)
+        return
+    }
+    result, err := runAPlusB("./data/codes/APlusB/ac.php", "")
+    if err != nil {
+        t.Fatal(err)
+        return
+    }
+    err = analysisResult("test php", result, constants.JudgeFlagAC)
+    if err != nil {
+        t.Fatal(err)
+        return
+    }
+    t.Log("OK")
 }
 
 //
@@ -250,4 +246,3 @@ func TestAPlusBProblemPHP(t *testing.T) {
 //	}
 //	t.Log("OK")
 //}
-
