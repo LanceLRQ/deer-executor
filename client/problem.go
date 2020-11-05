@@ -24,7 +24,7 @@ var AppProblemSubCommands = cli.Commands{
     {
         Name:      "validate",
         Aliases:   []string{"v"},
-        Usage:     "validate input case",
+        Usage:     "run validator cases and test case input",
         ArgsUsage: "configs_file",
         Flags: []cli.Flag{
             &cli.BoolFlag{
@@ -77,5 +77,32 @@ var AppProblemSubCommands = cli.Commands{
             },
         },
         Action: packmgr.RunTestCaseGenerator,
+    },
+    {
+        Name:      "checker",
+        Aliases:   []string{"c"},
+        Usage:     "run checker cases",
+        ArgsUsage: "configs_file",
+        Flags: []cli.Flag{
+            &cli.BoolFlag{
+                Name:  "silence",
+                Aliases: []string {"s"},
+                Value: false,
+                Usage: "silence mode",
+            },
+            &cli.UintFlag{
+                Name:  "answer",
+                Aliases: []string {"a"},
+                Value: 0,
+                Usage: "answer case index.",
+            },
+            &cli.IntFlag{
+                Name:  "case",
+                Aliases: []string {"c"},
+                Value: -1,
+                Usage: "case index, -1 means all. when module type set 'all'，it would't work.",
+            },
+        },
+        Action: packmgr.RunCheckerCases,
     },
 }

@@ -90,7 +90,7 @@ func initWork(session *executor.JudgeSession, answerCaseIndex uint) error {
         return err
     }
     session.SessionDir = sessionDir
-    defer session.Clean()
+
     acase := session.JudgeConfig.AnswerCases[answerCaseIndex]
     // 如果有代码文件
     if acase.FileName != "" {
@@ -146,6 +146,7 @@ func RunTestCaseGenerator(c *cli.Context) error {
         if err != nil {
             return err
         }
+        defer session.Clean()
     }
 
     return runTestCaseGenerator(session, testCaseIndex, withAnswer)
