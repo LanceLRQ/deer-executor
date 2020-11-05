@@ -3,7 +3,7 @@ module github.com/LanceLRQ/deer-executor
 go 1.14
 
 require (
-	github.com/LanceLRQ/deer-common v0.0.0-00010101000000-000000000000
+	github.com/LanceLRQ/deer-common v0.0.0-20201105083049-42056bcd7f7e
 	github.com/docker/docker v1.13.1
 	github.com/howeyc/gopass v0.0.0-20190910152052-7cb4b85ec19c
 	github.com/kr/pretty v0.1.0 // indirect
