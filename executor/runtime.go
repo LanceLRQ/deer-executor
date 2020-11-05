@@ -148,6 +148,9 @@ func getSpecialJudgerPath(session *JudgeSession, rst *commonStructs.TestCaseResu
         tco,                                            // 参考输出流
         jr,                                             // report
     }
+    if session.JudgeConfig.SpecialJudge.UseTestlib {
+        args = append(args, "-appes")
+    }
     return args
 }
 

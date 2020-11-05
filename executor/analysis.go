@@ -4,8 +4,10 @@ import (
     "fmt"
     "github.com/LanceLRQ/deer-common/constants"
     commonStructs "github.com/LanceLRQ/deer-common/structs"
+    "github.com/LanceLRQ/deer-common/utils"
     "io/ioutil"
     "path"
+    "strconv"
     "syscall"
 )
 
@@ -57,18 +59,27 @@ func (session *JudgeSession) analysisExitStatus(rst *commonStructs.TestCaseResul
             rst.SPJExitCode = exitcode
             if session.JudgeConfig.SpecialJudge.UseTestlib {
                 // 如果是Testlib的checker，则退出代码要按照他们的规则去判定
-                exitCode, ok := constants.TestlibExitCodeMapping[exitcode]
-                if ok {
-                    rst.JudgeResult = exitCode
-                    emsg, err := ioutil.ReadFile(path.Join(session.SessionDir, rst.JudgerError))
-
-                    if err != nil {
-                        rst.SPJErrMsg = "read checker report file error"
-                    } else {
-                        rst.SPJErrMsg = string(emsg)
-                    }
-                } else {
+                msg, err := ioutil.ReadFile(path.Join(session.SessionDir, rst.JudgerReport))
+                if err != nil {
                     rst.JudgeResult = constants.JudgeFlagSpecialJudgeError
+                    rst.SPJMsg = fmt.Sprintf("read checker report file error: %s", err.Error())
+                } else {
+                    tr := commonStructs.TestlibCheckerResult{}
+                    ok := utils.XMLStringObject(string(msg), &tr)
+                    if ok {
+                        rst.SPJMsg = tr.Description
+                        if flag, ok := constants.TestlibOutcomeMapping[tr.Outcome]; ok {
+                            rst.JudgeResult = flag
+                        } else {
+                            rst.JudgeResult = constants.JudgeFlagSpecialJudgeError
+                        }
+                        if tr.Outcome == "partially-correct" {
+                            rst.PartiallyScore, _ = strconv.Atoi(tr.PcType)
+                        }
+                    } else {
+                        rst.JudgeResult = constants.JudgeFlagSpecialJudgeError
+                        rst.SPJMsg = fmt.Sprintf("parsee checker report file error:\n%s", string(msg))
+                    }
                 }
             } else {
                 // 判断退出代码是否正确
@@ -78,7 +89,7 @@ func (session *JudgeSession) analysisExitStatus(rst *commonStructs.TestCaseResul
                     rst.JudgeResult = exitcode
                 } else {
                     rst.JudgeResult = constants.JudgeFlagSpecialJudgeError
-                    rst.SPJErrMsg = fmt.Sprintf("special judger return with a wrong exitcode: %d", exitcode)
+                    rst.SPJMsg = fmt.Sprintf("special judger return with a wrong exitcode: %d", exitcode)
                 }
             }
         }
