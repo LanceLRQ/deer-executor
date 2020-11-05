@@ -31,8 +31,8 @@ jobs:
 
     - name: Build
       run: |
-      go mod tidy
-      go build -v .
+        go mod tidy
+        go build -v .
 
     - name: Archive production artifacts
       uses: actions/upload-artifact@v2
