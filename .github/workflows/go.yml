@@ -30,7 +30,9 @@ jobs:
         fi
 
     - name: Build
-      run: go get && go build -v .
+      run: |
+      go mod tidy
+      go build -v .
 
     - name: Archive production artifacts
       uses: actions/upload-artifact@v2
