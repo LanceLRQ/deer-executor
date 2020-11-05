@@ -74,7 +74,7 @@
     "strict_mode": true,
     "special_judge": {
         "name": "checker",
-        "mode": 0,
+        "mode": 1,
         "checker_lang": "",
         "checker": "codes/checker.cpp",
         "redirect_program_out": true,
@@ -89,7 +89,7 @@
                 "verdict": true,
                 "expected_verdict": 0,
                 "checker_verdict": 0,
-                "checker_comment": ""
+                "checker_comment": "ok found '3.0000000', expected '3.0000000', error '0.0000000'\n"
             },
             {
                 "input": "1 5",
@@ -98,7 +98,7 @@
                 "verdict": true,
                 "expected_verdict": 0,
                 "checker_verdict": 0,
-                "checker_comment": ""
+                "checker_comment": "ok found '6.0000000', expected '6.0000000', error '0.0000000'\n"
             },
             {
                 "input": "1 2",
@@ -107,7 +107,7 @@
                 "verdict": true,
                 "expected_verdict": 4,
                 "checker_verdict": 4,
-                "checker_comment": ""
+                "checker_comment": "wrong answer 1st numbers differ - expected: '3.0000000', found: '4.0000000', error = '0.3333333'\n"
             },
             {
                 "input": "1 2",
@@ -116,7 +116,7 @@
                 "verdict": false,
                 "expected_verdict": 0,
                 "checker_verdict": 4,
-                "checker_comment": ""
+                "checker_comment": "wrong answer 1st numbers differ - expected: '3.0000000', found: '4.0000000', error = '0.3333333'\n"
             }
         ]
     },

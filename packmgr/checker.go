@@ -1,7 +1,9 @@
 package packmgr
 
 import (
+    "context"
     "fmt"
+    "github.com/LanceLRQ/deer-common/constants"
     "github.com/LanceLRQ/deer-common/structs"
     "github.com/LanceLRQ/deer-common/utils"
     "github.com/LanceLRQ/deer-executor/executor"
@@ -10,32 +12,66 @@ import (
     "log"
     "os"
     "path"
+    "time"
 )
 
 func runCheckerCase(session *executor.JudgeSession, caseIndex int) error {
     iCase := &session.JudgeConfig.SpecialJudge.CheckerCases[caseIndex]
-
+    tInput := path.Join(session.SessionDir, fmt.Sprintf("%d_problem.in", caseIndex))
+    tOutput := path.Join(session.SessionDir, fmt.Sprintf("%d_problem.out", caseIndex))
+    tAnswer := path.Join(session.SessionDir, fmt.Sprintf("%d_problem.ans", caseIndex))
 
     // 写入数据
-    err := ioutil.WriteFile(path.Join(session.SessionDir, string(caseIndex) + "_problem.in"), []byte(iCase.Input), 0666)
+    err := ioutil.WriteFile(tInput, []byte(iCase.Input), 0666)
     if err != nil {
         return err
     }
-    err = ioutil.WriteFile(path.Join(session.SessionDir, string(caseIndex) + "_problem.out"), []byte(iCase.Output), 0666)
+    err = ioutil.WriteFile(tOutput, []byte(iCase.Output), 0666)
     if err != nil {
         return err
     }
-    err = ioutil.WriteFile(path.Join(session.SessionDir, string(caseIndex) + "_problem.answer"), []byte(iCase.Answer), 0666)
+    err = ioutil.WriteFile(tAnswer, []byte(iCase.Answer), 0666)
     if err != nil {
         return err
     }
 
-    // TODO 运行checker程序
+    config := session.JudgeConfig
 
+    cPath, err := utils.GetCompiledBinaryFileAbsPath("checker", config.SpecialJudge.Name, session.ConfigDir)
+    if err != nil { return err }
+    // 运行checker程序
+    ctx, _ := context.WithTimeout(context.Background(), 5 * time.Second)
+    // <input-file> <output-file> <answer-file> [<report-file>]
+    ret, err := utils.RunUnixShell(&structs.ShellOptions{
+        Context:   ctx,
+        Name:      cPath,
+        Args:      []string {
+            tInput,
+            tOutput,
+            tAnswer,
+        },
+        StdWriter: nil,
+        OnStart:   nil,
+    })
+    if err != nil { return err }
+    if ret.Success {
+        iCase.CheckerVerdict = 0
+        iCase.CheckerComment = ret.Stderr
+    } else {
+        exitCode, ok := constants.TestlibExitCodeMapping[ret.ExitCode]
+        if ok {
+            iCase.CheckerVerdict = exitCode
+        } else {
+            iCase.CheckerVerdict = constants.JudgeFlagSpecialJudgeError
+        }
+        iCase.CheckerComment = ret.Stderr
+    }
+    iCase.Verdict = iCase.CheckerVerdict == iCase.ExpectedVerdict
     return nil
 }
 
 
+// 检查是否存在checker
 func isCheckerExists(config *structs.JudgeConfiguration) error {
     cPath, err := utils.GetCompiledBinaryFileAbsPath("checker", config.SpecialJudge.Name, config.ConfigDir)
     if err != nil { return err }
@@ -48,7 +84,7 @@ func isCheckerExists(config *structs.JudgeConfiguration) error {
 
 
 // 遍历checker cases
-func runSpecialJudgeChecker (session *executor.JudgeSession, caseIndex int) error {
+func runCheckerCases (session *executor.JudgeSession, caseIndex int) error {
     if caseIndex < 0 {
         for key, _ := range session.JudgeConfig.SpecialJudge.CheckerCases {
             log.Printf("[generator] run case #%d", key)
@@ -64,7 +100,7 @@ func runSpecialJudgeChecker (session *executor.JudgeSession, caseIndex int) erro
 }
 
 // 运行特殊评测的checker (APP入口)
-func RunSpecialJudgeChecker(c *cli.Context) error {
+func RunCheckerCases(c *cli.Context) error {
     configFile := c.Args().Get(0)
     _, err := os.Stat(configFile)
     if err != nil && os.IsNotExist(err) {
@@ -91,8 +127,9 @@ func RunSpecialJudgeChecker(c *cli.Context) error {
     if err != nil {
         return err
     }
+    defer session.Clean()
 
-    err = runSpecialJudgeChecker(session, caseIndex)
+    err = runCheckerCases(session, caseIndex)
     if err != nil {
         return err
     }
