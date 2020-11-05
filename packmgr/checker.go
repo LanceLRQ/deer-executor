@@ -12,6 +12,7 @@ import (
     "log"
     "os"
     "path"
+    "strings"
     "time"
 )
 
@@ -54,18 +55,18 @@ func runCheckerCase(session *executor.JudgeSession, caseIndex int) error {
         OnStart:   nil,
     })
     if err != nil { return err }
-    if ret.Success {
-        iCase.CheckerVerdict = 0
-        iCase.CheckerComment = ret.Stderr
-    } else {
-        exitCode, ok := constants.TestlibExitCodeMapping[ret.ExitCode]
-        if ok {
-            iCase.CheckerVerdict = exitCode
-        } else {
-            iCase.CheckerVerdict = constants.JudgeFlagSpecialJudgeError
+
+    judgeResult := -1
+    for _, item := range constants.TestlibExitMsgMapping {
+        if strings.HasPrefix(ret.Stderr, item.ErrName) {
+            judgeResult = item.JudgeResult
         }
-        iCase.CheckerComment = ret.Stderr
     }
+    if judgeResult == -1 {
+        judgeResult = constants.JudgeFlagSpecialJudgeError
+    }
+    iCase.CheckerVerdict = judgeResult
+    iCase.CheckerComment = ret.Stderr
     iCase.Verdict = iCase.CheckerVerdict == iCase.ExpectedVerdict
     return nil
 }
@@ -87,12 +88,12 @@ func isCheckerExists(config *structs.JudgeConfiguration) error {
 func runCheckerCases (session *executor.JudgeSession, caseIndex int) error {
     if caseIndex < 0 {
         for key, _ := range session.JudgeConfig.SpecialJudge.CheckerCases {
-            log.Printf("[generator] run case #%d", key)
+            log.Printf("[checker] run case #%d", key)
             err := runCheckerCase(session, key)
             if err != nil { return err }
         }
     } else {
-        log.Printf("[generator] run case #%d", caseIndex)
+        log.Printf("[checker] run case #%d", caseIndex)
         err := runCheckerCase(session, caseIndex)
         if err != nil { return err }
     }
