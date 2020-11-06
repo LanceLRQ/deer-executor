@@ -13,6 +13,7 @@
 # JetBrains
 .idea
 
+dist
 !data/problems/**/*.out
 data/problems/**/bin
 data/test_cases/*
