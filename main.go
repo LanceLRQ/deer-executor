@@ -3,6 +3,7 @@ package main
 import (
     "fmt"
     "github.com/LanceLRQ/deer-executor/client"
+    "github.com/LanceLRQ/deer-executor/client/run"
     "github.com/urfave/cli/v2"
     "log"
     "os"
@@ -22,7 +23,7 @@ func main() {
                 Usage:     "run code judging",
                 Aliases:   []string{"r"},
                 ArgsUsage: "<config_file/problem_package> <code_file>",
-                Action:    client.Run,
+                Action:    run.UserRunJudge,
                 Flags:     client.RunFlags,
             },
             {

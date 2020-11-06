@@ -16,6 +16,9 @@ import (
     "syscall"
 )
 
+// 通常情况下，我们定义Tab、换行和空格字符是"空白字符"
+// Usually, tab, line break and white space are the special blank words, called 'SpaceChar'
+
 // 使用IOReader读写每一行， 并移除空白字符
 func readLineAndRemoveSpaceChar(buf *bufio.Reader) (string, error) {
     line, isContinue, err := buf.ReadLine()
@@ -26,9 +29,6 @@ func readLineAndRemoveSpaceChar(buf *bufio.Reader) (string, error) {
     }
     return removeSpaceChar(string(line)), err
 }
-
-// 通常情况下，我们定义Tab、换行和空格字符是"空白字符"
-// Usually, tab, line break and white space are the special blank words, called 'SpaceChar'
 
 // 移除空白字符
 // Remove the special blank words in a string
@@ -194,7 +194,7 @@ func charDiffIoUtil(useroutBuffer, answerBuffer []byte, useroutLen, answerLen in
     }
 }
 
-// 进行结果文本比较（主要工具）
+// 进行文本比较
 // Compare the text
 func (session *JudgeSession) DiffText(result *commonStructs.TestCaseResult) error {
     answerInfo, err := os.Stat(path.Join(session.ConfigDir, result.Output))

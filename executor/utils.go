@@ -94,6 +94,7 @@ func forkProc() (pid uintptr, err error) {
     return pid, nil
 }
 
+// 获取管道数据
 func getPipe() ([]int, error) {
     var pipe = []int{0, 0}
     err := syscall.Pipe(pipe)

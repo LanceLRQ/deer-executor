@@ -13,13 +13,14 @@ import (
     "syscall"
 )
 
+// 进程信息
 type ProcessInfo struct {
     Pid    uintptr            `json:"pid"`
     Status syscall.WaitStatus `json:"status"`
     Rusage syscall.Rusage     `json:"rusage"`
 }
 
-// Judge session
+// 评测会话类
 type JudgeSession struct {
     SessionId    string   // Judge Session Id
     SessionRoot  string   // Session Root Directory
@@ -36,6 +37,7 @@ type JudgeSession struct {
     Compiler provider.CodeCompileProviderInterface // Compiler entity
 }
 
+// 保存评测会话
 func (session *JudgeSession) SaveConfiguration(userConfirm bool) error {
     if userConfirm {
         fmt.Print("Save all the changed to config file? [y/N] ")
@@ -58,6 +60,7 @@ func (session *JudgeSession) SaveConfiguration(userConfirm bool) error {
     return nil
 }
 
+// 创建会话对象
 func NewSession(configFile string) (*JudgeSession, error) {
     session := JudgeSession{}
     session.SessionRoot = "/tmp"
