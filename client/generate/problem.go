@@ -70,8 +70,17 @@ func InitProblemWorkDir(c *cli.Context) error {
     }
     example := c.String("example")
     if example != "" {
+        packageFile := path.Join("./lib/example", example)
+        // 检查题目包是否存在
+        yes, err := problems.IsProblemPackage(packageFile)
+        if err != nil {
+            return err
+        }
+        if !yes {
+            return fmt.Errorf("not a problem package")
+        }
         // 如果指定了对应的模板
-        if _, _, err := problems.ReadProblemInfo(path.Join("./lib/example", example), true, workDir); err != nil {
+        if _, _, err := problems.ReadProblemInfo(packageFile, true, true, workDir); err != nil {
             return err
         }
     } else {

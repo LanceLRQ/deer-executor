@@ -60,8 +60,39 @@ func BuildProblemPackage(c *cli.Context) error {
     return nil
 }
 
-func ReadProblemInfo(c *cli.Context) error {
+// 题目包解包
+func UnpackProblemPackage(c *cli.Context) error {
+    packageFile := c.Args().Get(0)
+    workDir := c.Args().Get(1)
+    // 如果路径存在目录或者文件
+    if _, err := os.Stat(workDir); err == nil {
+        return fmt.Errorf("work directory (%s) path exisis", workDir)
+    }
+    // 检查题目包是否存在
+    yes, err := problems.IsProblemPackage(packageFile)
+    if err != nil {
+        return err
+    }
+    if !yes {
+        return fmt.Errorf("not a problem package")
+    }
+    // 创建目录
+    if err := os.MkdirAll(workDir, 0775); err != nil {
+        return err
+    }
+    if c.Bool("no-validate") {
+        log.Println("[warn] package validation had been disabled!")
+    }
+    // 解包
+    if _, _, err := problems.ReadProblemInfo(packageFile, true, !c.Bool("no-validate"), workDir); err != nil {
+        return err
+    }
+    fmt.Println("Done.")
+    return nil
+}
 
+// 访问题目包信息
+func ReadProblemInfo(c *cli.Context) error {
     configFile := c.Args().Get(0)
     yes, err := problems.IsProblemPackage(configFile)
     if err != nil {
@@ -76,7 +107,7 @@ func ReadProblemInfo(c *cli.Context) error {
             }
             fmt.Println(g)
         } else {
-            s, _, err := problems.ReadProblemInfo(configFile, false, "")
+            s, _, err := problems.ReadProblemInfo(configFile, false, true, "")
             if err != nil {
                 return err
             }

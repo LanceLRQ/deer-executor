@@ -35,6 +35,19 @@ var AppPackageSubCommands = cli.Commands{
         Action:    packmgr.BuildProblemPackage,
     },
     {
+        Name:      "unpack",
+        Usage:     "unpack problem package",
+        ArgsUsage: "problem_file output_dir",
+        Flags:     []cli.Flag{
+            &cli.BoolFlag{
+                Name:  "no-validate",
+                Value: false,
+                Usage: "disable package validation",
+            },
+        },
+        Action:    packmgr.UnpackProblemPackage,
+    },
+    {
         Name:      "info",
         Usage:     "show problem package info",
         ArgsUsage: "package_file",
