@@ -5,7 +5,7 @@ import (
     "github.com/urfave/cli/v2"
 )
 
-var AppMakeSubCommands = cli.Commands{
+var AppGeneratorSubCommands = cli.Commands{
     {
         Name:   "config",
         Action: generate.MakeProblemConfigFile,
