@@ -11,7 +11,7 @@ import (
     "syscall"
 )
 
-// 分析进程退出状态
+// 分析进程资源占用
 func (session *JudgeSession) saveExitRusage(rst *commonStructs.TestCaseResult, pinfo *ProcessInfo, judger bool) {
     ru := pinfo.Rusage
     status := pinfo.Status

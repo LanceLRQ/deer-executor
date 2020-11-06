@@ -50,6 +50,7 @@ var AppMakeSubCommands = cli.Commands{
     },
 }
 
+// 生成评测配置文件
 func MakeConfigFile(c *cli.Context) error {
     config, _ := executor.NewSession("")
     config.JudgeConfig.TestCases = []commonStructs.TestCase{
@@ -95,6 +96,7 @@ func MakeConfigFile(c *cli.Context) error {
     return nil
 }
 
+// 生成编译器配置(程序使用)
 func MakeCompileConfigFile(c *cli.Context) error {
     config := provider.CompileCommands
     output := c.String("output")
@@ -119,6 +121,7 @@ func MakeCompileConfigFile(c *cli.Context) error {
     return nil
 }
 
+// 生成JIT内存宽限配置
 func MakeJITMemoryConfigFile(c *cli.Context) error {
     config := constants.MemorySizeForJIT
     output := c.String("output")

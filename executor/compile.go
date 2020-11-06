@@ -86,7 +86,6 @@ func (session *JudgeSession) compileTargetProgram(judgeResult *commonStructs.Jud
 }
 
 
-
 // 编译裁判程序
 // 如果有已经编译好的裁判程序，则直接返回这个程序
 // 打包的时候不会打包二进制文件，重新编译一次
