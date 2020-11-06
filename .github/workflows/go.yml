@@ -23,9 +23,9 @@ jobs:
 
     - name: Check out deer-common
       uses: actions/checkout@v2
-        with:
-          path: ./pkg/deer-common
-          repository: LanceLRQ/deer-common
+      with:
+        path: ./pkg/deer-common
+        repository: LanceLRQ/deer-common
 
   - name: Get dependencies
       run: |
