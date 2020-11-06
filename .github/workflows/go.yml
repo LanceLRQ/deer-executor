@@ -20,6 +20,12 @@ jobs:
 
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
+      
+    - name: Check out deer-common
+      uses: actions/checkout@v2
+      with: 
+        path: "../"
+        repository: LanceLRQ/deer-common      
 
     - name: Get dependencies
       run: |
@@ -30,7 +36,9 @@ jobs:
         fi
         
     - name: Print
-      run: printenv
+      run: |
+        printenv
+        ls -l ../deer-common
 
     - name: Build
       run: |
