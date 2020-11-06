@@ -46,7 +46,7 @@ func loadProblemConfiguration(configFile string, workDir string) (string, bool, 
         } else if !info.IsDir() {
             return "", false, "", fmt.Errorf("work dir path cannot be a file path")
         }
-        _, newConfigFile, err := problems.ReadProblemInfo(configFile, true, workDir)
+        _, newConfigFile, err := problems.ReadProblemInfo(configFile, true, true, workDir)
         if err != nil {
             return "", false, "", err
         }
