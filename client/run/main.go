@@ -15,9 +15,14 @@ func UserRunJudge(c *cli.Context) error {
         return err
     }
 
-    configFile, err := loadProblemConfiguration(c.Args().Get(0), c.String("work-dir"))
+    configFile, autoRemoveWorkDir, workDir, err := loadProblemConfiguration(c.Args().Get(0), c.String("work-dir"))
     if err != nil {
         return err
+    }
+    if autoRemoveWorkDir {
+        defer (func() {
+            _ = os.RemoveAll(workDir)
+        })()
     }
 
     isBenchmarkMode := c.Int("benchmark") > 1
