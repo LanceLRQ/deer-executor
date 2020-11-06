@@ -124,7 +124,8 @@ func (session *JudgeSession) runSpecialJudge(rst *commonStructs.TestCaseResult) 
     return nil, nil, fmt.Errorf("unkonw special judge mode")
 }
 
-func getSpecialJudgerPath(session *JudgeSession, rst *commonStructs.TestCaseResult) []string {
+// 构建判题程序的命令行参数
+func getSpecialJudgeArgs(session *JudgeSession, rst *commonStructs.TestCaseResult) []string {
     tci, err := filepath.Abs(path.Join(session.ConfigDir, rst.Input))
     if err == nil {
         tci = path.Join(session.ConfigDir, rst.Input)
@@ -154,6 +155,7 @@ func getSpecialJudgerPath(session *JudgeSession, rst *commonStructs.TestCaseResu
     return args
 }
 
+// 获取资源限制的参数列表
 func getLimitation(session *JudgeSession) (int, int, int, int, int) {
     langName := session.Compiler.GetName()
     memoryLimitExtend := 0
@@ -303,7 +305,7 @@ func runProgramProcess(session *JudgeSession, rst *commonStructs.TestCaseResult,
         if judger {
             // Run Judger (Testlib compatible)
             // ./checker <input-file> <output-file> <answer-file> <report-file>
-            args := getSpecialJudgerPath(session, rst)
+            args := getSpecialJudgeArgs(session, rst)
             _ = syscall.Exec(session.JudgeConfig.SpecialJudge.Checker, args, nil)
         } else {
             // Run Program
