@@ -38,6 +38,13 @@ func main() {
                 Aliases:   []string{"init"},
                 ArgsUsage: "<config_file>",
                 Usage:     "init problem work directory",
+                Flags:  []cli.Flag {
+                    &cli.StringFlag{
+                        Name: "example",
+                        Value: "",
+                        Usage: "template file (found in ./lib/example/)",
+                    },
+                },
                 Action:    generate.InitProblemWorkDir,
             },
             {
