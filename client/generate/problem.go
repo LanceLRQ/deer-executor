@@ -6,7 +6,9 @@ import (
     "github.com/LanceLRQ/deer-common/utils"
     "github.com/LanceLRQ/deer-executor/executor"
     "github.com/urfave/cli/v2"
+    "io/ioutil"
     "os"
+    "path"
 )
 
 func makeProblmConfig() (*commonStructs.JudgeConfiguration, error) {
@@ -54,3 +56,29 @@ func MakeProblemConfigFile(c *cli.Context) error {
     return nil
 }
 
+// 创建一个题目工作目录
+func InitProblemWorkDir(c *cli.Context) error {
+    config, err := makeProblmConfig()
+    if err != nil { return err }
+    workDir := c.Args().Get(0)
+    // 如果路径存在目录或者文件
+    if _, err := os.Stat(workDir); err == nil {
+        return fmt.Errorf("work directory (%s) path exisis", workDir)
+    }
+    err = os.MkdirAll(workDir, 0775)
+    if err != nil {
+         return err
+    }
+    err = ioutil.WriteFile(path.Join(workDir, "problem.json"), []byte(utils.ObjectToJSONStringFormatted(config)), 0664)
+    if err != nil {
+        return err
+    }
+    dirs := []string{"answers", "cases", "bin", "codes", "generators"}
+    for _, dirname := range dirs{
+        err = os.MkdirAll(path.Join(workDir, dirname), 0775)
+        if err != nil {
+            return err
+        }
+    }
+    return err
+}

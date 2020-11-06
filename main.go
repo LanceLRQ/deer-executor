@@ -3,6 +3,7 @@ package main
 import (
     "fmt"
     "github.com/LanceLRQ/deer-executor/client"
+    "github.com/LanceLRQ/deer-executor/client/generate"
     "github.com/LanceLRQ/deer-executor/client/run"
     "github.com/urfave/cli/v2"
     "log"
@@ -30,7 +31,14 @@ func main() {
                 Name:        "generate",
                 Aliases:     []string{"g"},
                 Usage:       "generate problem config, compiler config or jit-memory config file",
-                Subcommands: client.AppMakeSubCommands,
+                Subcommands: client.AppGeneratorSubCommands,
+            },
+            {
+                Name:      "init",
+                Aliases:   []string{"init"},
+                ArgsUsage: "<config_file>",
+                Usage:     "init problem work directory",
+                Action:    generate.InitProblemWorkDir,
             },
             {
                 Name:        "package",
