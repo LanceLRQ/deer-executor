@@ -27,7 +27,7 @@ jobs:
         path: ./pkg/deer-common
         repository: LanceLRQ/deer-common
 
-    - name: Get dependencies
+  - name: Get dependencies
       run: |
         go get -v -t -d ./...
         if [ -f Gopkg.toml ]; then
