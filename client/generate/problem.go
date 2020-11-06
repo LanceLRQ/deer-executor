@@ -2,6 +2,7 @@ package generate
 
 import (
     "fmt"
+    "github.com/LanceLRQ/deer-common/persistence/problems"
     commonStructs "github.com/LanceLRQ/deer-common/structs"
     "github.com/LanceLRQ/deer-common/utils"
     "github.com/LanceLRQ/deer-executor/executor"
@@ -58,27 +59,39 @@ func MakeProblemConfigFile(c *cli.Context) error {
 
 // 创建一个题目工作目录
 func InitProblemWorkDir(c *cli.Context) error {
-    config, err := makeProblmConfig()
-    if err != nil { return err }
     workDir := c.Args().Get(0)
     // 如果路径存在目录或者文件
     if _, err := os.Stat(workDir); err == nil {
         return fmt.Errorf("work directory (%s) path exisis", workDir)
     }
-    err = os.MkdirAll(workDir, 0775)
-    if err != nil {
-         return err
-    }
-    err = ioutil.WriteFile(path.Join(workDir, "problem.json"), []byte(utils.ObjectToJSONStringFormatted(config)), 0664)
-    if err != nil {
+    // 创建目录
+    if err := os.MkdirAll(workDir, 0775); err != nil {
         return err
     }
-    dirs := []string{"answers", "cases", "bin", "codes", "generators"}
-    for _, dirname := range dirs{
-        err = os.MkdirAll(path.Join(workDir, dirname), 0775)
+    example := c.String("example")
+    if example != "" {
+        // 如果指定了对应的模板
+        if _, _, err := problems.ReadProblemInfo(path.Join("./lib/example", example), true, workDir); err != nil {
+            return err
+        }
+    } else {
+        // 创建文件夹
+        dirs := []string{"answers", "cases", "bin", "codes", "generators"}
+        for _, dirname := range dirs {
+            err := os.MkdirAll(path.Join(workDir, dirname), 0775)
+            if err != nil {
+                return err
+            }
+        }
+        /// 创建配置
+        config, err := makeProblmConfig()
         if err != nil {
             return err
         }
+        // 写入到文件
+        if err = ioutil.WriteFile(path.Join(workDir, "problem.json"), []byte(utils.ObjectToJSONStringFormatted(config)), 0664); err != nil {
+            return err
+        }
     }
-    return err
+    return nil
 }
