@@ -8,6 +8,6 @@ import (
 
 // 执行评测
 func UserRunJudge(c *cli.Context) error {
-    fmt.Println("The functional is base on linux/darwin")
+    fmt.Println("Sorry, runner only supporting linux/darwin")
     return nil
 }
