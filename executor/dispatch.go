@@ -1,3 +1,5 @@
+// +build linux darwin
+
 package executor
 
 import (
@@ -172,9 +174,4 @@ func (session *JudgeSession) RunJudge() commonStructs.JudgeResult {
     // 计算最终结果
     session.generateFinallyResult(&judgeResult, exitCodes)
     return judgeResult
-}
-
-// 清理案发现场
-func (session *JudgeSession) Clean() {
-    _ = os.RemoveAll(session.SessionDir)
 }
