@@ -8,6 +8,7 @@ import (
     "github.com/urfave/cli/v2"
     "log"
     "os"
+    "runtime"
 )
 
 func main() {
@@ -16,6 +17,7 @@ func main() {
         Usage: "An executor for online judge.",
         Action: func(c *cli.Context) error {
             fmt.Println("Deer Executor v2.0")
+            fmt.Printf("built: %s(%s)\n", runtime.GOOS, runtime.GOARCH)
             return nil
         },
         Commands: cli.Commands{

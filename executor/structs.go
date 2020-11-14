@@ -7,18 +7,12 @@ import (
     commonStructs "github.com/LanceLRQ/deer-common/structs"
     "github.com/LanceLRQ/deer-common/utils"
     "io/ioutil"
+    "os"
     "path"
     "path/filepath"
     "strings"
-    "syscall"
 )
 
-// 进程信息
-type ProcessInfo struct {
-    Pid    uintptr            `json:"pid"`
-    Status syscall.WaitStatus `json:"status"`
-    Rusage syscall.Rusage     `json:"rusage"`
-}
 
 // 评测会话类
 type JudgeSession struct {
@@ -92,4 +86,9 @@ func NewSession(configFile string) (*JudgeSession, error) {
         }
     }
     return &session, nil
+}
+
+// 清理案发现场
+func (session *JudgeSession) Clean() {
+    _ = os.RemoveAll(session.SessionDir)
 }
