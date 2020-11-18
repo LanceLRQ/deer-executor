@@ -13,6 +13,8 @@
 # JetBrains
 .idea
 
+lib/testlib.h
+
 dist
 !data/problems/**/*.out
 data/problems/**/bin
