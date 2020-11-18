@@ -1,7 +1,7 @@
+// +build linux darwin
+
 /* Deer executor
  * (C) 2019 LanceLRQ
- *
- * This code is licenced under the GPLv3.
  */
 package executor
 
