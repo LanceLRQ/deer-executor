@@ -130,6 +130,8 @@ func RunProgram(options JudgeOption, result *JudgeResult, msg chan string) error
 		return childErr		// In general, it won't be run.
 
 	} else {
+		// let golang gc know the progress
+		_, _ = os.FindProcess(int(pid))
 		if msg != nil {
 			msg <- fmt.Sprintf("pid:program:%d", pid)
 		}
