@@ -26,10 +26,13 @@ func waitCustomChecker(options JudgeOption, pid uintptr, rst *JudgeResult, isInt
 		if !isInteractive {
 			if sig == syscall.SIGXCPU || sig == syscall.SIGALRM {
 				rst.JudgeResult = JudgeFlagSpecialJudgeTimeout
-				return fmt.Errorf("special judger time limit exceed, unix singal: %d", sig)
+				rst.SeInfo += fmt.Sprintf("special judger time limit exceed, unix singal: %d\n", sig)
+				return nil
+				//return fmt.Errorf("special judger time limit exceed, unix singal: %d", sig)
 			}
-			rst.JudgeResult = JudgeFlagSpecialJudgeError
-			return fmt.Errorf("special judger caused an error, unix singal: %d", sig)
+			rst.JudgeResult = JudgeFlagRE //JudgeFlagSpecialJudgeError
+			rst.SeInfo += fmt.Sprintf("special judger caused an error, unix singal: %d\n", sig)
+			//return fmt.Errorf("special judger caused an error, unix singal: %d", sig)
 		} else {
 			rst.JudgeResult = JudgeFlagRE
 		}
@@ -44,9 +47,13 @@ func waitCustomChecker(options JudgeOption, pid uintptr, rst *JudgeResult, isInt
 				rst.JudgeResult = exitcode
 			} else {
 				rst.JudgeResult = JudgeFlagSpecialJudgeError
-				return fmt.Errorf("special judger return with a wrong exitcode: %d", exitcode)
+				rst.SeInfo += fmt.Sprintf("special judger return with a wrong exitcode: %d\n", exitcode)
+				//return fmt.Errorf("special judger return with a wrong exitcode: %d", exitcode)
 			}
+		} else {
+			rst.JudgeResult = JudgeFlagSpecialJudgeError
 		}
+
 	}
 	return nil
 }
