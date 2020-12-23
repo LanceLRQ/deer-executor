@@ -37,7 +37,7 @@ var AppPackageSubCommands = cli.Commands{
     {
         Name:      "unpack",
         Usage:     "unpack problem package",
-        ArgsUsage: "problem_file output_dir",
+        ArgsUsage: "package_file output_dir",
         Flags:     []cli.Flag{
             &cli.BoolFlag{
                 Name:  "no-validate",
