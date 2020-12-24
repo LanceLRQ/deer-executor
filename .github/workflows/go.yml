@@ -46,7 +46,7 @@ jobs:
     - name: Build (linux_amd64)
       run: |
         go mod tidy
-        GOOS=linux GOARCH=amd64 go build -v -ldflags "-X 'main.buildGoVersion=${$(go version)/go version /}' -X 'main.buildGitHash=$(git show -s --format=%H)' -X 'main.buildTime=$(git show -s --format=%cI)' -X 'main.buildVersion=$(basename ${GITHUB_REF})'" .
+        GOOS=linux GOARCH=amd64 go build -v -ldflags "-X 'main.buildGoVersion=$(go version)' -X 'main.buildGitHash=$(git show -s --format=%H)' -X 'main.buildTime=$(git show -s --format=%cI)' -X 'main.buildVersion=$(basename ${GITHUB_REF})'" .
 
     - name: Pack (linux_amd64)
       run: |
@@ -54,7 +54,7 @@ jobs:
 
     - name: Build (darwin_amd64)
       run: |
-        GOOS=darwin GOARCH=amd64 go build -v -ldflags "-X 'main.buildGoVersion=${$(go version)/go version /}' -X 'main.buildGitHash=$(git show -s --format=%H)' -X 'main.buildTime=$(git show -s --format=%cI)' -X 'main.buildVersion=$(basename ${GITHUB_REF})'" .
+        GOOS=darwin GOARCH=amd64 go build -v -ldflags "-X 'main.buildGoVersion=$(go version)' -X 'main.buildGitHash=$(git show -s --format=%H)' -X 'main.buildTime=$(git show -s --format=%cI)' -X 'main.buildVersion=$(basename ${GITHUB_REF})'" .
 
     - name: Pack (darwin_amd64)
       run: |
