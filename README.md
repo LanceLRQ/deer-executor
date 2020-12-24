@@ -1,6 +1,8 @@
 <h1 align="center">Deer Executor</h1>
 <p align="center">一个基于Go语言实现的代码评测工具</p>
 
+![Go](https://github.com/LanceLRQ/deer-executor/workflows/Go/badge.svg?branch=v2)
+
 简体中文 | [English](./README-en_US.md)
 
 ## ✨ 特性
