@@ -26,7 +26,7 @@ func main() {
             fmt.Println("Deer Executor\n--------------------")
             fmt.Printf("version: %s (built %s)\n", buildVersion, buildTime)
             fmt.Printf("commit: %s \n", buildGitHash)
-            fmt.Printf("platform: %s\n", buildGoVersion)
+            fmt.Printf("compiler: %s\n", buildGoVersion)
             return nil
         },
         Commands: cli.Commands{
