@@ -44,7 +44,7 @@ jobs:
 
     - name: Pack (linux_amd64)
       run: |
-        zip -r deer-executor_${{ github.ref }}_linux_amd64.zip deer-executor lib CHANGELOG COMMANDS.md README.md LICENSE data
+        zip -r deer-executor-linux-amd64.zip deer-executor lib CHANGELOG COMMANDS.md README.md LICENSE data
 
     - name: Build (darwin_amd64)
       run: |
@@ -52,7 +52,7 @@ jobs:
 
     - name: Pack (darwin_amd64)
       run: |
-        zip -r deer-executor_${{ github.ref }}_darwin_amd64.zip deer-executor lib CHANGELOG COMMANDS.md README.md LICENSE data
+        zip -r deer-executor-darwin-amd64.zip deer-executor lib CHANGELOG COMMANDS.md README.md LICENSE data
 
     - name: Create Release
       id: create_release
@@ -71,8 +71,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-        asset_path: ./deer-executor_${{ github.ref }}_linux_amd64.zip
-        asset_name: deer-executor_${{ github.ref }}_linux_amd64.zip
+        asset_path: ./deer-executor-linux-amd64.zip
+        asset_name: deer-executor-${{ steps.create_release.outputs.tag }}-linux-amd64.zip
         asset_content_type: application/zip
 
     - name: Upload Release Asset (Drawin)
@@ -81,8 +81,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-        asset_path: ./deer-executor_${{ github.ref }}_darwin_amd64.zip
-        asset_name: deer-executor_${{ github.ref }}_darwin_amd64.zip
+        asset_path: ./deer-executor-darwin-amd64.zip
+        asset_name: deer-executor-${{ steps.create_release.outputs.tag }}-darwin-amd64.zip
         asset_content_type: application/zip
 #     - name: Test
 #       run: go test -v .
