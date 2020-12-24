@@ -2,9 +2,11 @@ name: Go
 
 on:
   push:
-    branches: [ v2 ]
-  pull_request:
-    branches: [ v2 ]
+    tags:
+      - 'v*'
+#    branches: [ v2 ]
+#  pull_request:
+#    branches: [ v2 ]
 
 jobs:
 
@@ -35,23 +37,54 @@ jobs:
             dep ensure
         fi
 
-    - name: Build
+    - name: Build (linux_amd64)
       run: |
         go mod tidy
-        go build -v .
+        GOOS=linux GOARCH=amd64 go build -v .
 
-    - name: Archive production artifacts
-      uses: actions/upload-artifact@v2
+    - name: Pack (linux_amd64)
+      run: |
+        zip -r deer-executor_${{ github.ref }}_linux_amd64.zip deer-executor lib CHANGELOG COMMANDS.md README.md LICENSE data
+
+    - name: Build (darwin_amd64)
+      run: |
+        GOOS=darwin GOARCH=amd64 go build -v .
+
+    - name: Pack (darwin_amd64)
+      run: |
+        zip -r deer-executor_${{ github.ref }}_darwin_amd64.zip deer-executor lib CHANGELOG COMMANDS.md README.md LICENSE data
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        name: deer-executor
-        path: |
-          lib
-          deer-executor
-          CHANGELOG
-          COMMANDS.md
-          README.md
-          LICENSE
-          data
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
 
+    - name: Upload Release Asset
+      id: upload-release-asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+        asset_path: ./deer-executor_${{ github.ref }}_linux_amd64.zip
+        asset_name: deer-executor_${{ github.ref }}_linux_amd64.zip
+        asset_content_type: application/zip
+
+    - name: Upload Release Asset (Drawin)
+      id: upload-release-asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+        asset_path: ./deer-executor_${{ github.ref }}_darwin_amd64.zip
+        asset_name: deer-executor_${{ github.ref }}_darwin_amd64.zip
+        asset_content_type: application/zip
 #     - name: Test
 #       run: go test -v .
