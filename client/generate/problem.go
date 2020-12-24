@@ -68,7 +68,7 @@ func InitProblemWorkDir(c *cli.Context) error {
     if err := os.MkdirAll(workDir, 0775); err != nil {
         return err
     }
-    example := c.String("example")
+    example := c.String("name")
     if example != "" {
         packageFile := path.Join("./lib/example", example)
         // 检查题目包是否存在

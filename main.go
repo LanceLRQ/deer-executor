@@ -13,8 +13,9 @@ import (
 
 func main() {
     main := &cli.App{
-        Name:  "Deer Executor",
-        Usage: "An executor for online judge.",
+        Name:     "Deer Executor",
+        HelpName: "deer-executor",
+        Usage:    "An executor for online judge.",
         Action: func(c *cli.Context) error {
             fmt.Println("Deer Executor v2.0")
             fmt.Printf("built: %s(%s)\n", runtime.GOOS, runtime.GOARCH)
@@ -25,40 +26,39 @@ func main() {
                 Name:      "run",
                 Usage:     "run code judging",
                 Aliases:   []string{"r"},
-                ArgsUsage: "<config_file/problem_package> <code_file>",
+                ArgsUsage: "<config_file|problem_package> <code_file>",
                 Action:    run.UserRunJudge,
                 Flags:     client.RunFlags,
             },
             {
-                Name:        "generate",
-                Aliases:     []string{"g"},
-                Usage:       "generate problem config, compiler config or jit-memory config file",
+                Name:        "example",
+                Aliases:     []string{"e"},
+                Usage:       "generate all kinds of configuration files",
                 Subcommands: client.AppGeneratorSubCommands,
             },
             {
-                Name:      "init",
-                Aliases:   []string{"init"},
-                ArgsUsage: "<config_file>",
-                Usage:     "init problem work directory",
-                Flags:  []cli.Flag {
+                Name:      "new",
+                Aliases:   []string{"n"},
+                ArgsUsage: "<output_dir>",
+                Usage:     "create a new problem with example",
+                Flags: []cli.Flag{
                     &cli.StringFlag{
-                        Name: "example",
-                        Value: "",
-                        Usage: "template file (found in ./lib/example/)",
+                        Name:  "name",
+                        Value: "a+b",
+                        Usage: "template file name (found in ./lib/example/)",
                     },
                 },
-                Action:    generate.InitProblemWorkDir,
+                Action: generate.InitProblemWorkDir,
             },
             {
                 Name:        "package",
-                Aliases:     []string{"a"},
-                Usage:       "problem package manager",
+                Usage:       "package manager",
                 Subcommands: client.AppPackageSubCommands,
             },
             {
                 Name:        "problem",
                 Aliases:     []string{"p"},
-                Usage:       "problem workdir manager",
+                Usage:       "problem manager",
                 Subcommands: client.AppProblemSubCommands,
             },
             {

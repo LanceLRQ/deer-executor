@@ -29,28 +29,31 @@ var PackProblemFlags = []cli.Flag{
 var AppPackageSubCommands = cli.Commands{
     {
         Name:      "build",
+        HelpName:  "deer-executor package build",
         Usage:     "build problem package",
-        ArgsUsage: "configs_file output_file",
+        ArgsUsage: "<configs_file> <output_file>",
         Flags:     PackProblemFlags,
         Action:    packmgr.BuildProblemPackage,
     },
     {
         Name:      "unpack",
+        HelpName:  "deer-executor package unpack",
         Usage:     "unpack problem package",
-        ArgsUsage: "package_file output_dir",
-        Flags:     []cli.Flag{
+        ArgsUsage: "<package_file> <output_dir>",
+        Flags: []cli.Flag{
             &cli.BoolFlag{
                 Name:  "no-validate",
                 Value: false,
                 Usage: "disable package validation",
             },
         },
-        Action:    packmgr.UnpackProblemPackage,
+        Action: packmgr.UnpackProblemPackage,
     },
     {
         Name:      "info",
+        HelpName:  "deer-executor package info",
         Usage:     "show problem package info",
-        ArgsUsage: "package_file",
+        ArgsUsage: "<package_file>",
         Flags: []cli.Flag{
             &cli.BoolFlag{
                 Name:  "sign",
@@ -61,4 +64,3 @@ var AppPackageSubCommands = cli.Commands{
         Action: packmgr.ReadProblemInfo,
     },
 }
-
