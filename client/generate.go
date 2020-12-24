@@ -7,8 +7,10 @@ import (
 
 var AppGeneratorSubCommands = cli.Commands{
     {
-        Name:   "config",
-        Action: generate.MakeProblemConfigFile,
+        Name:     "config",
+        HelpName: "deer-executor example config",
+        Action:   generate.MakeProblemConfigFile,
+        Usage:    "generate problem config file",
         Flags: []cli.Flag{
             &cli.StringFlag{
                 Name:    "output",
@@ -19,8 +21,10 @@ var AppGeneratorSubCommands = cli.Commands{
         },
     },
     {
-        Name:   "compiler",
-        Action: generate.MakeCompileConfigFile,
+        Name:     "compiler",
+        HelpName: "deer-executor example compiler",
+        Action:   generate.MakeCompileConfigFile,
+        Usage:    "generate compiler settings file",
         Flags: []cli.Flag{
             &cli.StringFlag{
                 Name:    "output",
@@ -30,8 +34,10 @@ var AppGeneratorSubCommands = cli.Commands{
             },
         },
     }, {
-        Name:   "jit_memory",
-        Action: generate.MakeJITMemoryConfigFile,
+        Name:     "jit_memory",
+        HelpName: "deer-executor example jit_memory",
+        Action:   generate.MakeJITMemoryConfigFile,
+        Usage:    "generate jit memory limitation settings file",
         Flags: []cli.Flag{
             &cli.StringFlag{
                 Name:    "output",
