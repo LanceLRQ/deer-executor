@@ -29,6 +29,12 @@ jobs:
         path: ./pkg/deer-common
         repository: LanceLRQ/deer-common
 
+    - name: Get version
+      id: get_version
+      run: |
+        TAG=$(basename ${GITHUB_REF})
+        echo "::set-output name=TAG::$TAG"
+
     - name: Get dependencies
       run: |
         go get -v -t -d ./...
@@ -40,7 +46,7 @@ jobs:
     - name: Build (linux_amd64)
       run: |
         go mod tidy
-        GOOS=linux GOARCH=amd64 go build -v .
+        GOOS=linux GOARCH=amd64 go build -v -ldflags "-X 'main.buildGoVersion=${$(go version)/go version /}' -X 'main.buildGitHash=$(git show -s --format=%H)' -X 'main.buildTime=$(git show -s --format=%cI)' -X 'main.buildVersion=$(basename ${GITHUB_REF})'" .
 
     - name: Pack (linux_amd64)
       run: |
@@ -48,7 +54,7 @@ jobs:
 
     - name: Build (darwin_amd64)
       run: |
-        GOOS=darwin GOARCH=amd64 go build -v .
+        GOOS=darwin GOARCH=amd64 go build -v -ldflags "-X 'main.buildGoVersion=${$(go version)/go version /}' -X 'main.buildGitHash=$(git show -s --format=%H)' -X 'main.buildTime=$(git show -s --format=%cI)' -X 'main.buildVersion=$(basename ${GITHUB_REF})'" .
 
     - name: Pack (darwin_amd64)
       run: |
@@ -72,7 +78,7 @@ jobs:
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
         asset_path: ./deer-executor-linux-amd64.zip
-        asset_name: deer-executor-${{ steps.create_release.outputs.tag_name }}-linux-amd64.zip
+        asset_name: deer-executor-${{ steps.get_version.outputs.TAG }}-linux-amd64.zip
         asset_content_type: application/zip
 
     - name: Upload Release Asset (Drawin)
@@ -82,7 +88,7 @@ jobs:
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
         asset_path: ./deer-executor-darwin-amd64.zip
-        asset_name: deer-executor-${{ steps.create_release.outputs.tag_name }}-darwin-amd64.zip
+        asset_name: deer-executor-${{ steps.get_version.outputs.TAG }}-darwin-amd64.zip
         asset_content_type: application/zip
 #     - name: Test
 #       run: go test -v .

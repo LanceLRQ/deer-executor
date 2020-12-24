@@ -8,7 +8,13 @@ import (
     "github.com/urfave/cli/v2"
     "log"
     "os"
-    "runtime"
+)
+
+var (
+    buildGitHash   string
+    buildTime string
+    buildGoVersion string
+    buildVersion string
 )
 
 func main() {
@@ -17,8 +23,10 @@ func main() {
         HelpName: "deer-executor",
         Usage:    "An executor for online judge.",
         Action: func(c *cli.Context) error {
-            fmt.Println("Deer Executor v2.0")
-            fmt.Printf("built: %s(%s)\n", runtime.GOOS, runtime.GOARCH)
+            fmt.Println("Deer Executor\n--------------------")
+            fmt.Printf("version: %s (built %s)\n", buildVersion, buildTime)
+            fmt.Printf("commit: %s \n", buildGitHash)
+            fmt.Printf("platform: %s\n", buildGoVersion)
             return nil
         },
         Commands: cli.Commands{
