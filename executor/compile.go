@@ -70,15 +70,21 @@ func (session *JudgeSession) compileTargetProgram(judgeResult *commonStructs.Jud
     if err != nil {
         judgeResult.JudgeResult = constants.JudgeFlagSE
         judgeResult.SeInfo = err.Error()
+        session.Logger.Error(err.Error())
         return err
     }
+
     // 编译程序
+    session.Logger.Infof("Do complie or syntax checkup, Language: %s",  session.CodeLangName)
     success, ceinfo := compiler.Compile()
     if !success {
         judgeResult.JudgeResult = constants.JudgeFlagCE
         judgeResult.CeInfo = ceinfo
-        return fmt.Errorf("compile error:\n%s", ceinfo)
+        err = fmt.Errorf("compile error:\n%s", ceinfo)
+        session.Logger.Error(err.Error())
+        return err
     }
+
     // 获取执行指令
     session.Commands = compiler.GetRunArgs()
     session.Compiler = compiler
@@ -108,6 +114,7 @@ func (session *JudgeSession) compileJudgerProgram(judgeResult *commonStructs.Jud
     if os.IsNotExist(err) {
         judgeResult.JudgeResult = constants.JudgeFlagSE
         judgeResult.SeInfo = fmt.Sprintf("checker file not exists")
+        session.Logger.Error("checker file not exists")
         return fmt.Errorf(judgeResult.SeInfo)
     }
 
@@ -115,8 +122,10 @@ func (session *JudgeSession) compileJudgerProgram(judgeResult *commonStructs.Jud
     config := session.JudgeConfig
     binRoot, err := GetOrCreateBinaryRoot(&config)
     if err != nil {
+        session.Logger.Error(err.Error())
         return err
     }
+    session.Logger.Infof("Complie special judge checker, Language: %s",  config.SpecialJudge.CheckerLang)
     compileTarget, err := CompileSpecialJudgeCodeFile(
         config.SpecialJudge.Checker,
         config.SpecialJudge.Name,
@@ -126,6 +135,7 @@ func (session *JudgeSession) compileJudgerProgram(judgeResult *commonStructs.Jud
         config.SpecialJudge.CheckerLang,
     )
     if err != nil {
+        session.Logger.Error(err.Error())
         return err
     }
     // 获取执行指令

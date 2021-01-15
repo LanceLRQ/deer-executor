@@ -19,6 +19,7 @@ func (session *JudgeSession) JudgeOnce(judgeResult *commonStructs.TestCaseResult
         if err != nil {
             judgeResult.JudgeResult = constants.JudgeFlagSE
             judgeResult.SeInfo = err.Error()
+            session.Logger.Error(err.Error())
             return
         }
         session.saveExitRusage(judgeResult, pinfo, false)
@@ -26,11 +27,13 @@ func (session *JudgeSession) JudgeOnce(judgeResult *commonStructs.TestCaseResult
         session.analysisExitStatus(judgeResult, pinfo, false)
         // 只有AC的时候才进行文本比较！
         if judgeResult.JudgeResult == constants.JudgeFlagAC {
+            session.Logger.Infof("Run text checker.")
             // 进行文本比较
             err = session.DiffText(judgeResult)
             if err != nil {
                 judgeResult.JudgeResult = constants.JudgeFlagSE
                 judgeResult.SeInfo = err.Error()
+                session.Logger.Error(err.Error())
                 return
             }
         }
@@ -53,11 +56,13 @@ func (session *JudgeSession) JudgeOnce(judgeResult *commonStructs.TestCaseResult
         // 普通checker的时候支持按判题机的意愿进行文本比较
         if session.JudgeConfig.SpecialJudge.Mode == constants.SpecialJudgeModeChecker {
             if judgeResult.JudgeResult == constants.JudgeFlagSpecialJudgeRequireChecker {
+                session.Logger.Infof("Run text checker.")
                 // 进行文本比较
                 err = session.DiffText(judgeResult)
                 if err != nil {
                     judgeResult.JudgeResult = constants.JudgeFlagSE
                     judgeResult.SeInfo = err.Error()
+                    session.Logger.Error(err.Error())
                     return
                 }
             }
@@ -81,8 +86,9 @@ func checkTestCaseInputOutput(tcase commonStructs.TestCase, configDir string) er
 
 // 对一组测试数据运行一次评测
 func (session *JudgeSession) runOneCase(config *commonStructs.JudgeConfiguration, tc commonStructs.TestCase, Id string) *commonStructs.TestCaseResult {
+    session.Logger.Infof("Run test case: %s", Id)
 
-     var err error
+    var err error
 
     tcResult := commonStructs.TestCaseResult{}
     tcResult.Handle = Id
@@ -100,6 +106,7 @@ func (session *JudgeSession) runOneCase(config *commonStructs.JudgeConfiguration
     if err != nil {
         tcResult.JudgeResult = constants.JudgeFlagSE
         tcResult.SeInfo = err.Error()
+        session.Logger.Error(err.Error())
         return &tcResult
     }
 
@@ -111,11 +118,16 @@ func (session *JudgeSession) runOneCase(config *commonStructs.JudgeConfiguration
 
 // 执行评测
 func (session *JudgeSession) RunJudge() commonStructs.JudgeResult {
+    session.Logger.Info("Start Judgement")
+
+    // make judge result
     judgeResult := commonStructs.JudgeResult{}
     judgeResult.SessionId = session.SessionId
 
+    // compile code
     err := session.compileTargetProgram(&judgeResult)
     if err != nil {
+        judgeResult.JudgeLogs = session.Logger.GetLogs()
         return judgeResult
     }
 
@@ -125,19 +137,13 @@ func (session *JudgeSession) RunJudge() commonStructs.JudgeResult {
         if err != nil {
             judgeResult.JudgeResult = constants.JudgeFlagSE
             judgeResult.SeInfo = err.Error()
+            judgeResult.JudgeLogs = session.Logger.GetLogs()
             return judgeResult
         }
     }
-    //tl, ml, rtl, fsl, mlf := getLimitation(session)
-    //mlfText := ""
-    //if mlf > 0 {
-    //	mlfText = fmt.Sprintf(" (with %d KB for VM)", mlf)
-    //}
-    //log.Printf(
-    //	"Time limit: %d ms, Memory limit: %d KB%s, Real-time limit: %d ms, File size limit: %d KB\n",
-    //	tl, ml, mlfText, rtl, fsl/1024,
-    //)
 
+    session.Logger.Info("Ready for judgement")
+    // Init exit code
     exitCodes := make([]int, 0, 1)
     for i := 0; i < len(session.JudgeConfig.TestCases); i++ {
         if session.JudgeConfig.TestCases[i].Handle == "" {
@@ -146,6 +152,12 @@ func (session *JudgeSession) RunJudge() commonStructs.JudgeResult {
         id := session.JudgeConfig.TestCases[i].Handle
 
         tcResult := session.runOneCase(&session.JudgeConfig, session.JudgeConfig.TestCases[i], id)
+
+        flagName, ok := constants.FlagMeansMap[tcResult.JudgeResult]
+        if !ok {
+            flagName = "Unkonwn"
+        }
+        session.Logger.Infof("This case's result is " + flagName)
 
         isFault := session.isDisastrousFault(&judgeResult, tcResult)
         judgeResult.TestCases = append(judgeResult.TestCases, *tcResult)
@@ -173,5 +185,19 @@ func (session *JudgeSession) RunJudge() commonStructs.JudgeResult {
     }
     // 计算最终结果
     session.generateFinallyResult(&judgeResult, exitCodes)
+
+    // Log
+    if judgeResult.JudgeResult == constants.JudgeFlagAC {
+        session.Logger.Info("Congratulations! Your code have been ACCEPTED.")
+    } else {
+        flagName, ok := constants.FlagMeansMap[judgeResult.JudgeResult]
+        if !ok {
+            flagName = "Unkonwn"
+        }
+        session.Logger.Warnf("Oops, %s! There is something wrong.", flagName)
+    }
+    // get judge logs
+    judgeResult.JudgeLogs = session.Logger.GetLogs()
+    // return
     return judgeResult
 }

@@ -9,7 +9,6 @@ import (
     "os"
 )
 
-
 // 执行评测
 func UserRunJudge(c *cli.Context) error {
     err := loadSystemConfiguration()

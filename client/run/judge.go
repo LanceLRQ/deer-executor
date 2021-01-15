@@ -4,6 +4,7 @@ package run
 
 import (
     "fmt"
+    "github.com/LanceLRQ/deer-common/logger"
     "github.com/LanceLRQ/deer-common/persistence"
     "github.com/LanceLRQ/deer-common/persistence/judge_result"
     commonStructs "github.com/LanceLRQ/deer-common/structs"
@@ -20,8 +21,13 @@ import (
 // 执行一次完整的评测
 func runOnceJudge(c *cli.Context, configFile string, counter int) (*commonStructs.JudgeResult, *executor.JudgeSession, error) {
     isBenchmarkMode := c.Int("benchmark") > 1
+    logLevelStr := c.String("log")
+    logLevel, ok := logger.LogLevelStrMapping[logLevelStr]
+    if !ok {
+        logLevel = 0
+    }
     // create session
-    session, err := executor.NewSession(configFile)
+    session, err := executor.NewSessionWithLog(configFile, !isBenchmarkMode && logLevel > 0, logLevel)
     if err != nil {
         return nil, nil, err
     }
@@ -65,7 +71,7 @@ func runOnceJudge(c *cli.Context, configFile string, counter int) (*commonStruct
         return nil, nil, err
     }
     session.SessionDir = sessionDir
-    // start judge
+    // start judgement
     judgeResult := session.RunJudge()
     return &judgeResult, session, nil
 }
@@ -97,7 +103,7 @@ func runUserJudge (c *cli.Context, configFile string, ) (*commonStructs.JudgeRes
             jOption.DigitalPEM = pem
         }
     }
-    // Start Judge
+    // Start Judgement
     judgeResult, judgeSession, err := runOnceJudge(c, configFile, 0)
     if err != nil {
         return nil, err
@@ -117,6 +123,7 @@ func runUserJudge (c *cli.Context, configFile string, ) (*commonStructs.JudgeRes
     }
     if !c.Bool("detail") {
         judgeResult.TestCases = nil
+        judgeResult.JudgeLogs = nil
     }
     return judgeResult, nil
 }
