@@ -24,6 +24,7 @@ func (session *JudgeSession) runProgramCommon(rst *commonStructs.TestCaseResult,
             // 如果是子进程错误了，输出到程序的error去
             panic(err)
         }
+        session.Logger.Error(err.Error())
         return nil, err
     }
     pinfo.Pid = pid
@@ -32,6 +33,7 @@ func (session *JudgeSession) runProgramCommon(rst *commonStructs.TestCaseResult,
     // Wait4
     _, err = syscall.Wait4(int(pid), &pinfo.Status, syscall.WUNTRACED, &pinfo.Rusage)
     if err != nil {
+        session.Logger.Error(err.Error())
         return nil, err
     }
 
@@ -55,6 +57,7 @@ func (session *JudgeSession) runProgramAsync(rst *commonStructs.TestCaseResult, 
             // 如果是子进程错误了(没能正确执行到目标程序里)，输出到程序的error去
             panic(err)
         }
+        session.Logger.Error(err.Error())
         return err
     }
 

@@ -3,6 +3,7 @@ package executor
 import (
     "encoding/json"
     "fmt"
+    "github.com/LanceLRQ/deer-common/logger"
     "github.com/LanceLRQ/deer-common/provider"
     commonStructs "github.com/LanceLRQ/deer-common/structs"
     "github.com/LanceLRQ/deer-common/utils"
@@ -12,7 +13,6 @@ import (
     "path/filepath"
     "strings"
 )
-
 
 // 评测会话类
 type JudgeSession struct {
@@ -26,9 +26,10 @@ type JudgeSession struct {
     LibraryDir   string   // Compile Library Path for Working Program
     Commands     []string // Executable program commands
 
-    JudgeConfig commonStructs.JudgeConfiguration // Judge Configurations
+    JudgeConfig commonStructs.JudgeConfiguration      // Judge Configurations
+    Compiler    provider.CodeCompileProviderInterface // Compiler entity
 
-    Compiler provider.CodeCompileProviderInterface // Compiler entity
+    Logger      *logger.JudgeLogger // Judge Logger
 }
 
 // 保存评测会话
@@ -38,7 +39,7 @@ func (session *JudgeSession) SaveConfiguration(userConfirm bool) error {
         ans := ""
         _, err := fmt.Scanf("%s", &ans)
         if err != nil {
-            return nil          // don't crash at EOF
+            return nil // don't crash at EOF
         }
         if len(ans) > 0 && strings.ToLower(ans[:1]) != "y" {
             return nil
@@ -57,6 +58,7 @@ func (session *JudgeSession) SaveConfiguration(userConfirm bool) error {
 // 创建会话对象
 func NewSession(configFile string) (*JudgeSession, error) {
     session := JudgeSession{}
+    session.Logger = logger.NewJudgeLogger()
     session.SessionRoot = "/tmp"
     session.CodeLangName = "auto"
     session.JudgeConfig.Uid = -1
@@ -86,6 +88,17 @@ func NewSession(configFile string) (*JudgeSession, error) {
         }
     }
     return &session, nil
+}
+
+// 创建一个包含日志的对象
+func NewSessionWithLog(configFile string, print bool, level int) (*JudgeSession, error) {
+    session, err := NewSession(configFile)
+    if err != nil {
+        return nil, err
+    }
+    session.Logger.SetStdoutPrint(print)
+    session.Logger.SetLogLevel(level)
+    return session, nil
 }
 
 // 清理案发现场

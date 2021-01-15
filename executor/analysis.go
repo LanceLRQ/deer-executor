@@ -21,8 +21,10 @@ func (session *JudgeSession) saveExitRusage(rst *commonStructs.TestCaseResult, p
     tu := int(ru.Utime.Sec*1000 + int64(ru.Utime.Usec)/1000 + ru.Stime.Sec*1000 + int64(ru.Stime.Usec)/1000)
     mu := int(ru.Minflt * int64(syscall.Getpagesize()/1024))
 
+    name := "Program"
     // 特判
     if judger {
+        name = "Checker"
         rst.SPJTimeUsed = tu
         rst.SPJMemoryUsed = mu
         rst.SPJReSignum = int(status.Signal())
@@ -31,6 +33,15 @@ func (session *JudgeSession) saveExitRusage(rst *commonStructs.TestCaseResult, p
         rst.MemoryUsed = mu
         rst.ReSignum = int(status.Signal())
     }
+    session.Logger.Infof(
+        "%s exit with code: %d, signum: %d, Time used: %d, Mem used: %d.",
+        name,
+        pinfo.Status.ExitStatus(),
+        rst.SPJReSignum,
+        rst.SPJTimeUsed,
+        rst.SPJMemoryUsed,
+    )
+
 }
 
 // 分析进程退出状态
