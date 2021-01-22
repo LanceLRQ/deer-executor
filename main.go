@@ -2,9 +2,9 @@ package main
 
 import (
     "fmt"
-    "github.com/LanceLRQ/deer-executor/client"
-    "github.com/LanceLRQ/deer-executor/client/generate"
-    "github.com/LanceLRQ/deer-executor/client/run"
+    "github.com/LanceLRQ/deer-executor/v2/client"
+    "github.com/LanceLRQ/deer-executor/v2/client/generate"
+    "github.com/LanceLRQ/deer-executor/v2/client/run"
     "github.com/urfave/cli/v2"
     "log"
     "os"
