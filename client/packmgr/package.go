@@ -5,7 +5,7 @@ import (
     "github.com/LanceLRQ/deer-common/persistence"
     "github.com/LanceLRQ/deer-common/persistence/problems"
     "github.com/LanceLRQ/deer-common/utils"
-    "github.com/LanceLRQ/deer-executor/executor"
+    "github.com/LanceLRQ/deer-executor/v2/executor"
     "github.com/urfave/cli/v2"
     "log"
     "os"
