@@ -82,9 +82,14 @@ var RunFlags = []cli.Flag{
         Usage: "library root for special judge, contains \"testlib.h\" and \"bits/stdc++.h\" etc.",
     },
     &cli.StringFlag{
-        Name:  "log",
+        Name:  "log-level",
         Value: "",
-        Usage: "output logs to stdout and set level (debug|info|warn|error)",
+        Usage: "set logs level (debug|info|warn|error)",
+    },
+    &cli.BoolFlag{
+        Name:  "log",
+        Value: false,
+        Usage: "output logs to stdout",
     },
 }
 

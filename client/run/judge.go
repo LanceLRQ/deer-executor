@@ -19,15 +19,21 @@ import (
 )
 
 // 执行一次完整的评测
-func runOnceJudge(c *cli.Context, configFile string, counter int) (*commonStructs.JudgeResult, *executor.JudgeSession, error) {
+func runOnceJudge(c *cli.Context, configFile, workDir string, counter int) (*commonStructs.JudgeResult, *executor.JudgeSession, error) {
     isBenchmarkMode := c.Int("benchmark") > 1
-    logLevelStr := c.String("log")
-    logLevel, ok := logger.LogLevelStrMapping[logLevelStr]
-    if !ok {
-        logLevel = 0
+    var logLevel int
+    showLog := false
+    if c.Bool("log") {
+        showLog = true
+        var ok bool
+        logLevelStr := c.String("log-level")
+        logLevel, ok = logger.LogLevelStrMapping[logLevelStr]
+        if !ok {
+            logLevel = 0
+        }
     }
     // create session
-    session, err := executor.NewSessionWithLog(configFile, !isBenchmarkMode && logLevel > 0, logLevel)
+    session, err := executor.NewSessionWithLog(configFile, !isBenchmarkMode && showLog, logLevel)
     if err != nil {
         return nil, nil, err
     }
@@ -50,6 +56,14 @@ func runOnceJudge(c *cli.Context, configFile string, counter int) (*commonStruct
         session.LibraryDir = libDir
     }
     // init files
+    if workDir != "" {
+        workDirAbsPath, err := filepath.Abs(workDir)
+        if err != nil {
+            return nil, nil, err
+        }
+        session.ConfigDir = workDirAbsPath
+        session.JudgeConfig.ConfigDir = session.ConfigDir
+    }
     session.CodeFile = c.Args().Get(1)
     session.SessionId = c.String("session-id")
     session.SessionRoot = c.String("session-root")
@@ -76,7 +90,7 @@ func runOnceJudge(c *cli.Context, configFile string, counter int) (*commonStruct
     return &judgeResult, session, nil
 }
 
-func runUserJudge (c *cli.Context, configFile string, ) (*commonStructs.JudgeResult, error) {
+func runUserJudge (c *cli.Context, configFile, workDir string) (*commonStructs.JudgeResult, error) {
     // parse params
     persistenceOn := c.String("persistence") != ""
     digitalSign := c.Bool("sign")
@@ -104,7 +118,7 @@ func runUserJudge (c *cli.Context, configFile string, ) (*commonStructs.JudgeRes
         }
     }
     // Start Judgement
-    judgeResult, judgeSession, err := runOnceJudge(c, configFile, 0)
+    judgeResult, judgeSession, err := runOnceJudge(c, configFile, workDir, 0)
     if err != nil {
         return nil, err
     }

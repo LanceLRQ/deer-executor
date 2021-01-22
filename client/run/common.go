@@ -32,7 +32,7 @@ func loadProblemConfiguration(configFile string, workDir string) (string, bool, 
         return "", false, "", err
     }
     autoRemoveWorkDir := false
-    // 如果是题目包文件，进行解包
+    // 如果是题目包文件，进行解包，并返回解包后的配置文件位置
     if yes {
         if workDir == "" {
             workDir = "/tmp/" + uuid.NewV4().String()
@@ -52,5 +52,6 @@ func loadProblemConfiguration(configFile string, workDir string) (string, bool, 
         }
         configFile = newConfigFile
     }
+    // 如果不是题包文件，返回的是配置文件的路径和工作目录，
     return configFile, autoRemoveWorkDir, workDir, nil
 }
