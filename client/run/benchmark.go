@@ -20,13 +20,15 @@ func runJudgeBenchmark (c *cli.Context, configFile string) error {
     }
     defer rfp.Close()
 
+    workDir := c.String("work-dir")
+
     startTime := time.Now().UnixNano()
     exitCounter := map[int]int{}
     for i := 0; i < times; i++ {
         if i%10 == 0 {
             fmt.Printf("%d / %d\n", i, times)
         }
-        judgeResult, _, err := runOnceJudge(c, configFile, i)
+        judgeResult, _, err := runOnceJudge(c, configFile, workDir, i)
         if err != nil {
             fmt.Printf("break! %s\n", err.Error())
             _, _ = rfp.WriteString(fmt.Sprintf("[%s]: %s\n", strconv.Itoa(i), err.Error()))

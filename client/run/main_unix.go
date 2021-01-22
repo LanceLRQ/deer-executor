@@ -29,7 +29,7 @@ func UserRunJudge(c *cli.Context) error {
     isBenchmarkMode := c.Int("benchmark") > 1
     if !isBenchmarkMode {
         // 普通的运行
-        judgeResult, err := runUserJudge(c, configFile)
+        judgeResult, err := runUserJudge(c, configFile, workDir)
         if err != nil {
             return err
         }
