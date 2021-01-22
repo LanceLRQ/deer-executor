@@ -6,7 +6,7 @@ import (
     "github.com/LanceLRQ/deer-common/provider"
     commonStructs "github.com/LanceLRQ/deer-common/structs"
     "github.com/LanceLRQ/deer-common/utils"
-    "github.com/LanceLRQ/deer-executor/executor"
+    "github.com/LanceLRQ/deer-executor/v2/executor"
     uuid "github.com/satori/go.uuid"
     "os"
     "path"
