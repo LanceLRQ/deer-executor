@@ -32,6 +32,11 @@ var RunFlags = []cli.Flag{
         Value:   "",
         Usage:   "Persistent judge result to file (support: gzip, none)",
     },
+    &cli.BoolFlag{
+        Name:    "save-ac-data",
+        Value:   false,
+        Usage:   "Persistent an ACCEPTED test case's output data, will increase the file size",
+    },
     &cli.StringFlag{
         Name:  "compress",
         Value: "gzip",

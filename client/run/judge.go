@@ -100,6 +100,7 @@ func runUserJudge (c *cli.Context, configFile, workDir string) (*commonStructs.J
     }
     jOption := persistence.JudgeResultPersisOptions{
         CompressorType: compressorType,
+        SaveAcceptedData: c.Bool("save-ac-data"),
     }
     jOption.OutFile = c.String("persistence")
     // 是否要持久化结果
