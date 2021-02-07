@@ -1,7 +1,7 @@
 <h1 align="center">Deer Executor</h1>
 <p align="center">一个基于Go语言实现的代码评测工具</p>
 
-![自动构建](https://github.com/LanceLRQ/deer-executor/workflows/Go/badge.svg?branch=v2)
+![自动构建](https://github.com/LanceLRQ/deer-executor/workflows/Go/badge.svg)
 
 ## ✨ 特性
  - 以CLI方式运行，不需要OJ平台；
