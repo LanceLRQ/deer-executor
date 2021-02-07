@@ -5,7 +5,7 @@ import (
     "github.com/LanceLRQ/deer-common/constants"
     "github.com/LanceLRQ/deer-common/provider"
     "github.com/LanceLRQ/deer-common/structs"
-    "github.com/LanceLRQ/deer-executor/executor"
+    "github.com/LanceLRQ/deer-executor/v2/executor"
     "github.com/urfave/cli/v2"
     "os"
     "path"
