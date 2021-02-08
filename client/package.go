@@ -24,6 +24,12 @@ var PackProblemFlags = []cli.Flag{
         Value:   "",
         Usage:   "GPG private key passphrase",
     },
+    &cli.BoolFlag{
+        Name:    "zip",
+        Aliases: []string{"z"},
+        Value:   false,
+        Usage:   "Package as a zip file",
+    },
 }
 
 var AppPackageSubCommands = cli.Commands{

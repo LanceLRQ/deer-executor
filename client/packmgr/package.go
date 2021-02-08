@@ -52,11 +52,18 @@ func BuildProblemPackage(c *cli.Context) error {
         return err
     }
 
-    err = problems.PackProblems(&session.JudgeConfig, &options)
-    if err != nil {
-        return err
+    fmt.Println(options.ConfigDir)
+    if c.Bool("zip") {
+        err = problems.PackProblemsAsZip(&options)
+        if err != nil {
+            return err
+        }
+    } else {
+        err = problems.PackProblems(&session.JudgeConfig, &options)
+        if err != nil {
+            return err
+        }
     }
-
     return nil
 }
 
