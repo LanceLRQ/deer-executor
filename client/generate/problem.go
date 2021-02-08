@@ -72,7 +72,7 @@ func InitProblemWorkDir(c *cli.Context) error {
     if example != "" {
         packageFile := path.Join("./lib/example", example)
         // 检查题目包是否存在
-        yes, err := problems.IsProblemPackage(packageFile)
+        yes, err := utils.IsProblemPackage(packageFile)
         if err != nil {
             return err
         }

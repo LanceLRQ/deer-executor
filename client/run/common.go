@@ -5,6 +5,7 @@ import (
     "github.com/LanceLRQ/deer-common/constants"
     "github.com/LanceLRQ/deer-common/persistence/problems"
     "github.com/LanceLRQ/deer-common/provider"
+    "github.com/LanceLRQ/deer-common/utils"
     uuid "github.com/satori/go.uuid"
     "os"
 )
@@ -27,7 +28,7 @@ func loadProblemConfiguration(configFile string, workDir string) (string, bool, 
     if err != nil && os.IsNotExist(err) {
         return "", false, "", fmt.Errorf("problem config file (%s) not found", configFile)
     }
-    yes, err := problems.IsProblemPackage(configFile)
+    yes, err := utils.IsProblemPackage(configFile)
     if err != nil {
         return "", false, "", err
     }
