@@ -52,7 +52,6 @@ func BuildProblemPackage(c *cli.Context) error {
         return err
     }
 
-    fmt.Println(options.ConfigDir)
     if c.Bool("zip") {
         err = problems.PackProblemsAsZip(&options)
         if err != nil {
@@ -76,7 +75,7 @@ func UnpackProblemPackage(c *cli.Context) error {
         return fmt.Errorf("work directory (%s) path exisis", workDir)
     }
     // 检查题目包是否存在
-    yes, err := problems.IsProblemPackage(packageFile)
+    yes, err := utils.IsProblemPackage(packageFile)
     if err != nil {
         return err
     }
@@ -101,7 +100,11 @@ func UnpackProblemPackage(c *cli.Context) error {
 // 访问题目包信息
 func ReadProblemInfo(c *cli.Context) error {
     configFile := c.Args().Get(0)
-    yes, err := problems.IsProblemPackage(configFile)
+    yes, err := utils.IsProblemPackage(configFile)
+    if err != nil {
+        return err
+    }
+    zipYes, err := utils.IsZipFile(configFile)
     if err != nil {
         return err
     }
@@ -120,6 +123,12 @@ func ReadProblemInfo(c *cli.Context) error {
             }
             fmt.Println(utils.ObjectToJSONStringFormatted(s))
         }
+    } else if zipYes {
+        g, err := problems.ReadProblemGPGInfoZip(configFile)
+        if err != nil {
+            return err
+        }
+        fmt.Println(g)
     } else {
         return fmt.Errorf("not deer-executor problem package file")
     }
