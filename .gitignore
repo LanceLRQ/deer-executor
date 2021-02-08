@@ -21,3 +21,4 @@ data/problems/**/bin
 data/test_cases/*
 pkg/deer-common
 report.log
+.DS_Store
