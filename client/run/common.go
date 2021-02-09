@@ -28,13 +28,17 @@ func loadProblemConfiguration(configFile string, workDir string) (string, bool, 
     if err != nil && os.IsNotExist(err) {
         return "", false, "", fmt.Errorf("problem config file (%s) not found", configFile)
     }
-    yes, err := utils.IsProblemPackage(configFile)
+    isDeerPack, err := utils.IsProblemPackage(configFile)
+    if err != nil {
+        return "", false, "", err
+    }
+    isZipPack, err := utils.IsZipFile(configFile)
     if err != nil {
         return "", false, "", err
     }
     autoRemoveWorkDir := false
     // 如果是题目包文件，进行解包，并返回解包后的配置文件位置
-    if yes {
+    if isDeerPack || isZipPack {
         if workDir == "" {
             workDir = "/tmp/" + uuid.NewV4().String()
             autoRemoveWorkDir = true
@@ -47,11 +51,15 @@ func loadProblemConfiguration(configFile string, workDir string) (string, bool, 
         } else if !info.IsDir() {
             return "", false, "", fmt.Errorf("work dir path cannot be a file path")
         }
-        _, newConfigFile, err := problems.ReadProblemInfo(configFile, true, true, workDir)
-        if err != nil {
-            return "", false, "", err
+        if isDeerPack {
+            _, configFile, err = problems.ReadProblemInfo(configFile, true, true, workDir)
+            if err != nil {
+                return "", false, "", err
+            }
+        } else {
+            _, configFile, err = problems.ReadProblemInfoZip(configFile, true, true, workDir)
         }
-        configFile = newConfigFile
+
     }
     // 如果不是题包文件，返回的是配置文件的路径和工作目录，
     return configFile, autoRemoveWorkDir, workDir, nil
