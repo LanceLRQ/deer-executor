@@ -9,6 +9,8 @@ import (
     "github.com/urfave/cli/v2"
     "log"
     "os"
+    "path"
+    "strings"
 )
 
 func BuildProblemPackage(c *cli.Context) error {
@@ -19,6 +21,10 @@ func BuildProblemPackage(c *cli.Context) error {
     passphrase := []byte(c.String("passphrase"))
     configFile := c.Args().Get(0)
     outputFile := c.Args().Get(1)
+
+    if c.Bool("zip") && !strings.HasSuffix(configFile, "problem.json") {
+        return fmt.Errorf("config file must named 'problem.json' in zip mode")
+    }
 
     var err error
     var pem *persistence.DigitalSignPEM
@@ -74,14 +80,6 @@ func UnpackProblemPackage(c *cli.Context) error {
     if _, err := os.Stat(workDir); err == nil {
         return fmt.Errorf("work directory (%s) path exisis", workDir)
     }
-    // 检查题目包是否存在
-    yes, err := utils.IsProblemPackage(packageFile)
-    if err != nil {
-        return err
-    }
-    if !yes {
-        return fmt.Errorf("not a problem package")
-    }
     // 创建目录
     if err := os.MkdirAll(workDir, 0775); err != nil {
         return err
@@ -89,9 +87,29 @@ func UnpackProblemPackage(c *cli.Context) error {
     if c.Bool("no-validate") {
         log.Println("[warn] package validation had been disabled!")
     }
-    // 解包
-    if _, _, err := problems.ReadProblemInfo(packageFile, true, !c.Bool("no-validate"), workDir); err != nil {
+    // 检查是否为题目包
+    isDeerPack, err := utils.IsProblemPackage(packageFile)
+    if err != nil {
         return err
+    }
+    isZip, err := utils.IsZipFile(packageFile)
+    if err != nil {
+        return err
+    }
+    // 解包
+    if isDeerPack {
+        if _, _, err := problems.ReadProblemInfo(packageFile, true, !c.Bool("no-validate"), workDir); err != nil {
+            return err
+        }
+    } else if isZip {
+        if _, _, err := problems.ReadProblemInfoZip(packageFile, true, !c.Bool("no-validate"), workDir); err != nil {
+            return err
+        }
+        // clean meta file
+        _ = os.Remove(path.Join(workDir, ".sign"))
+        _ = os.Remove(path.Join(workDir, ".gpg"))
+    } else {
+        return fmt.Errorf("not a deer-executor problem package file")
     }
     fmt.Println("Done.")
     return nil
@@ -99,38 +117,48 @@ func UnpackProblemPackage(c *cli.Context) error {
 
 // 访问题目包信息
 func ReadProblemInfo(c *cli.Context) error {
-    configFile := c.Args().Get(0)
-    yes, err := utils.IsProblemPackage(configFile)
+    packageFile := c.Args().Get(0)
+    isDeerPack, err := utils.IsProblemPackage(packageFile)
     if err != nil {
         return err
     }
-    zipYes, err := utils.IsZipFile(configFile)
+    isZip, err := utils.IsZipFile(packageFile)
     if err != nil {
         return err
     }
     // 如果是题目包文件，进行解包
-    if yes {
-        if c.Bool("sign") {
-            g, err := problems.ReadProblemGPGInfo(configFile)
+    if isDeerPack {
+        if c.Bool("gpg") {
+            g, err := problems.ReadProblemGPGInfo(packageFile)
             if err != nil {
-                return err
+                fmt.Println(err.Error())
+                return nil
             }
             fmt.Println(g)
         } else {
-            s, _, err := problems.ReadProblemInfo(configFile, false, true, "")
+            s, _, err := problems.ReadProblemInfo(packageFile, false, false, "")
             if err != nil {
                 return err
             }
             fmt.Println(utils.ObjectToJSONStringFormatted(s))
         }
-    } else if zipYes {
-        g, err := problems.ReadProblemGPGInfoZip(configFile)
-        if err != nil {
-            return err
+    } else if isZip {
+        if c.Bool("gpg") {
+            g, err := problems.ReadProblemGPGInfoZip(packageFile)
+            if err != nil {
+                fmt.Println(err.Error())
+                return nil
+            }
+            fmt.Println(g)
+        } else {
+            s, _, err := problems.ReadProblemInfoZip(packageFile, false, false, "")
+            if err != nil {
+                return err
+            }
+            fmt.Println(utils.ObjectToJSONStringFormatted(s))
         }
-        fmt.Println(g)
     } else {
-        return fmt.Errorf("not deer-executor problem package file")
+        return fmt.Errorf("not a deer-executor problem package file")
     }
 
     return nil

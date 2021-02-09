@@ -62,7 +62,7 @@ var AppPackageSubCommands = cli.Commands{
         ArgsUsage: "<package_file>",
         Flags: []cli.Flag{
             &cli.BoolFlag{
-                Name:  "sign",
+                Name:  "gpg",
                 Value: false,
                 Usage: "output GPG signature info",
             },
