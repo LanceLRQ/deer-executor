@@ -1,11 +1,11 @@
 package run
 
 import (
-    "fmt"
     "github.com/LanceLRQ/deer-common/constants"
     "github.com/LanceLRQ/deer-common/persistence/problems"
     "github.com/LanceLRQ/deer-common/provider"
     "github.com/LanceLRQ/deer-common/utils"
+    "github.com/pkg/errors"
     uuid "github.com/satori/go.uuid"
     "os"
 )
@@ -26,7 +26,7 @@ func loadSystemConfiguration () error {
 func loadProblemConfiguration(configFile string, workDir string) (string, bool, string, error) {
     _, err := os.Stat(configFile)
     if err != nil && os.IsNotExist(err) {
-        return "", false, "", fmt.Errorf("problem config file (%s) not found", configFile)
+        return "", false, "", errors.Errorf("problem config file (%s) not found", configFile)
     }
     isDeerPack, err := utils.IsProblemPackage(configFile)
     if err != nil {
@@ -49,7 +49,7 @@ func loadProblemConfiguration(configFile string, workDir string) (string, bool, 
                 return "", false, "", err
             }
         } else if !info.IsDir() {
-            return "", false, "", fmt.Errorf("work dir path cannot be a file path")
+            return "", false, "", errors.Errorf("work dir path cannot be a file path")
         }
         if isDeerPack {
             _, configFile, err = problems.ReadProblemInfo(configFile, true, true, workDir)

@@ -7,6 +7,7 @@ import (
     "github.com/LanceLRQ/deer-common/structs"
     "github.com/LanceLRQ/deer-common/utils"
     "github.com/LanceLRQ/deer-executor/v2/executor"
+    "github.com/pkg/errors"
     uuid "github.com/satori/go.uuid"
     "github.com/urfave/cli/v2"
     "io/ioutil"
@@ -53,7 +54,7 @@ func runTestCaseGen(session *executor.JudgeSession, tCase *structs.TestCase, wit
         if err != nil { return err }
         if !rel.Success {
            log.Printf("[generator] run answer code error: %s", rel.Stderr)
-           return fmt.Errorf("[generator] run answer code error: %s", rel.Stderr)
+           return errors.Errorf("[generator] run answer code error: %s", rel.Stderr)
         } else {
             log.Printf("[generator] generate answer done!")
         }
@@ -105,7 +106,7 @@ func initWork(session *executor.JudgeSession, answerCaseIndex uint) error {
     // 编译程序
     success, ceinfo := compiler.Compile()
     if !success {
-        return fmt.Errorf("[generator] compile error:\n%s", ceinfo)
+        return errors.Errorf("[generator] compile error:\n%s", ceinfo)
     }
     // 获取执行指令
     session.Commands = compiler.GetRunArgs()
@@ -118,7 +119,7 @@ func RunTestCaseGenerator(c *cli.Context) error {
     configFile := c.Args().Get(0)
     _, err := os.Stat(configFile)
     if err != nil && os.IsNotExist(err) {
-        return fmt.Errorf("[generator] problem config file (%s) not found", configFile)
+        return errors.Errorf("[generator] problem config file (%s) not found", configFile)
     }
     session, err := executor.NewSession(configFile)
     if err != nil { return err }

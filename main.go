@@ -6,7 +6,6 @@ import (
     "github.com/LanceLRQ/deer-executor/v2/client/generate"
     "github.com/LanceLRQ/deer-executor/v2/client/run"
     "github.com/urfave/cli/v2"
-    "log"
     "os"
 )
 
@@ -79,8 +78,8 @@ func main() {
     }
     err := main.Run(os.Args)
     if err != nil {
-        log.Fatal(err)
-        //_, ok := err.(cli.MultiError)
         //client.NewClientErrorMessage(err, nil).Print(true)
+        fmt.Printf("%+v\n", err)
+        os.Exit(-1)
     }
 }

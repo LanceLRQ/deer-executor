@@ -3,8 +3,8 @@
 package run
 
 import (
-    "fmt"
     "github.com/LanceLRQ/deer-executor/v2/client"
+    "github.com/pkg/errors"
     "github.com/urfave/cli/v2"
     "os"
     "strings"
@@ -13,10 +13,10 @@ import (
 // 执行评测
 func UserRunJudge(c *cli.Context) error {
     if strings.TrimSpace(c.Args().Get(0)) == "" {
-        return fmt.Errorf("no config file path")
+        return errors.Errorf("no config file path")
     }
     if strings.TrimSpace(c.Args().Get(1)) == "" {
-        return fmt.Errorf("no code file path")
+        return errors.Errorf("no code file path")
     }
 
     err := loadSystemConfiguration()

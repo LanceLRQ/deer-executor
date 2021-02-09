@@ -6,6 +6,7 @@ import (
     "github.com/LanceLRQ/deer-common/provider"
     commonStructs "github.com/LanceLRQ/deer-common/structs"
     "github.com/LanceLRQ/deer-common/utils"
+    "github.com/pkg/errors"
     "io/ioutil"
     "os"
     "path"
@@ -38,7 +39,7 @@ _match:
         keyword = strings.Replace(path.Ext(fileName), ".", "", -1)
         goto _match
     }
-    return nil, fmt.Errorf("unsupported language")
+    return nil, errors.Errorf("unsupported language")
 }
 
 // 编译文件
@@ -80,7 +81,7 @@ func (session *JudgeSession) compileTargetProgram(judgeResult *commonStructs.Jud
     if !success {
         judgeResult.JudgeResult = constants.JudgeFlagCE
         judgeResult.CeInfo = ceinfo
-        err = fmt.Errorf("compile error:\n%s", ceinfo)
+        err = errors.Errorf("compile error:\n%s", ceinfo)
         session.Logger.Error(err.Error())
         return err
     }
@@ -115,7 +116,7 @@ func (session *JudgeSession) compileJudgerProgram(judgeResult *commonStructs.Jud
         judgeResult.JudgeResult = constants.JudgeFlagSE
         judgeResult.SeInfo = fmt.Sprintf("checker file not exists")
         session.Logger.Error("checker file not exists")
-        return fmt.Errorf(judgeResult.SeInfo)
+        return errors.Errorf(judgeResult.SeInfo)
     }
 
     // 编译特判程序

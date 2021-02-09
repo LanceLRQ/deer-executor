@@ -1,8 +1,8 @@
 package client
 
 import (
-    "fmt"
     "github.com/LanceLRQ/deer-common/utils"
+    "log"
 )
 
 type CliCommonMessage struct {
@@ -15,7 +15,7 @@ type CliCommonMessage struct {
 }
 
 func (ccm CliCommonMessage) Print (formated bool) {
-    fmt.Println(ccm.ToJson(formated))
+    log.Println(ccm.ToJson(formated))
 }
 
 func (ccm CliCommonMessage) ToJson (formated bool) string {

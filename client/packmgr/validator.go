@@ -3,10 +3,10 @@ package packmgr
 
 import (
     "context"
-    "fmt"
     "github.com/LanceLRQ/deer-common/structs"
     "github.com/LanceLRQ/deer-common/utils"
     "github.com/LanceLRQ/deer-executor/v2/executor"
+    "github.com/pkg/errors"
     "github.com/urfave/cli/v2"
     "io"
     "io/ioutil"
@@ -86,7 +86,7 @@ func isValidatorExists (config *structs.JudgeConfiguration) error {
     if err != nil { return err }
     _, err = os.Stat(validator)
     if os.IsNotExist(err) {
-        return fmt.Errorf("[validator] execuable validator file not exists")
+        return errors.Errorf("[validator] execuable validator file not exists")
     }
     return nil
 }
@@ -158,7 +158,7 @@ func RunTestlibValidators(c *cli.Context) error {
     configFile := c.Args().Get(0)
     _, err := os.Stat(configFile)
     if err != nil && os.IsNotExist(err) {
-        return fmt.Errorf("[validator] problem config file (%s) not found", configFile)
+        return errors.Errorf("[validator] problem config file (%s) not found", configFile)
     }
     session, err := executor.NewSession(configFile)
     if err != nil { return err }
@@ -168,7 +168,7 @@ func RunTestlibValidators(c *cli.Context) error {
 
     LIST := []string{"all", "validator_cases", "test_cases"}
     if !utils.Contains(LIST, mtype) {
-        return fmt.Errorf("[validator] unsupport module type")
+        return errors.Errorf("[validator] unsupport module type")
     }
     err = runTestlibValidators(&session.JudgeConfig, mtype, mCaseIndex)
     if err != nil {

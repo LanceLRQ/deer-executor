@@ -7,6 +7,7 @@ import (
     "github.com/LanceLRQ/deer-common/structs"
     "github.com/LanceLRQ/deer-common/utils"
     "github.com/LanceLRQ/deer-executor/v2/executor"
+    "github.com/pkg/errors"
     "github.com/urfave/cli/v2"
     "io/ioutil"
     "log"
@@ -78,7 +79,7 @@ func isCheckerExists(config *structs.JudgeConfiguration) error {
     if err != nil { return err }
     _, err = os.Stat(cPath)
     if os.IsNotExist(err) {
-        return fmt.Errorf("[checker] execuable checker file not exists")
+        return errors.Errorf("[checker] execuable checker file not exists")
     }
     return nil
 }
@@ -105,13 +106,13 @@ func RunCheckerCases(c *cli.Context) error {
     configFile := c.Args().Get(0)
     _, err := os.Stat(configFile)
     if err != nil && os.IsNotExist(err) {
-        return fmt.Errorf("[checker] problem config file (%s) not found", configFile)
+        return errors.Errorf("[checker] problem config file (%s) not found", configFile)
     }
     session, err := executor.NewSession(configFile)
     if err != nil { return err }
 
     if session.JudgeConfig.SpecialJudge.Mode != 1 {
-        return fmt.Errorf("[checker] only support checker mode")
+        return errors.Errorf("[checker] only support checker mode")
     }
 
     // checker exists?

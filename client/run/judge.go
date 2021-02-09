@@ -3,13 +3,13 @@
 package run
 
 import (
-    "fmt"
     "github.com/LanceLRQ/deer-common/logger"
     "github.com/LanceLRQ/deer-common/persistence"
     "github.com/LanceLRQ/deer-common/persistence/judge_result"
     commonStructs "github.com/LanceLRQ/deer-common/structs"
     "github.com/LanceLRQ/deer-common/utils"
     "github.com/LanceLRQ/deer-executor/v2/executor"
+    "github.com/pkg/errors"
     uuid "github.com/satori/go.uuid"
     "github.com/urfave/cli/v2"
     "log"
@@ -44,13 +44,13 @@ func runOnceJudge(c *cli.Context, configFile, workDir string, counter int) (*com
         // 特判时需要检查library目录
         libDir, err := filepath.Abs(c.String("library"))
         if err != nil {
-            return nil, nil, fmt.Errorf("get library root error: %s", err.Error())
+            return nil, nil, errors.Errorf("get library root error: %s", err.Error())
         }
         if s, err := os.Stat(libDir); err != nil {
-            return nil, nil, fmt.Errorf("library root not exists")
+            return nil, nil, errors.Errorf("library root not exists")
         } else {
             if !s.IsDir() {
-                return nil, nil, fmt.Errorf("library root not a directory")
+                return nil, nil, errors.Errorf("library root not a directory")
             }
         }
         session.LibraryDir = libDir
