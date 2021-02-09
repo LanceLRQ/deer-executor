@@ -4,13 +4,21 @@ package run
 
 import (
     "fmt"
-    "github.com/LanceLRQ/deer-common/utils"
+    "github.com/LanceLRQ/deer-executor/v2/client"
     "github.com/urfave/cli/v2"
     "os"
+    "strings"
 )
 
 // 执行评测
 func UserRunJudge(c *cli.Context) error {
+    if strings.TrimSpace(c.Args().Get(0)) == "" {
+        return fmt.Errorf("no config file path")
+    }
+    if strings.TrimSpace(c.Args().Get(1)) == "" {
+        return fmt.Errorf("no code file path")
+    }
+
     err := loadSystemConfiguration()
     if err != nil {
         return err
@@ -33,7 +41,7 @@ func UserRunJudge(c *cli.Context) error {
         if err != nil {
             return err
         }
-        fmt.Println(utils.ObjectToJSONStringFormatted(judgeResult))
+        client.NewClientSuccessMessage(judgeResult).Print(true)
         os.Exit(judgeResult.JudgeResult)
     } else {
         // 基准测试

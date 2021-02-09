@@ -80,5 +80,7 @@ func main() {
     err := main.Run(os.Args)
     if err != nil {
         log.Fatal(err)
+        //_, ok := err.(cli.MultiError)
+        //client.NewClientErrorMessage(err, nil).Print(true)
     }
 }
