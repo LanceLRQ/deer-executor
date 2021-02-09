@@ -1,8 +1,8 @@
 package client
 
 import (
+    "fmt"
     "github.com/LanceLRQ/deer-common/utils"
-    "log"
 )
 
 type CliCommonMessage struct {
@@ -15,7 +15,7 @@ type CliCommonMessage struct {
 }
 
 func (ccm CliCommonMessage) Print (formated bool) {
-    log.Println(ccm.ToJson(formated))
+    fmt.Println(ccm.ToJson(formated))
 }
 
 func (ccm CliCommonMessage) ToJson (formated bool) string {
@@ -36,14 +36,14 @@ func NewCliCommonMessage (error bool, message string, data interface{}) CliCommo
 
 func NewClientSuccessMessage (data interface{}) CliCommonMessage {
     return CliCommonMessage{
-        Error: true,
+        Error: false,
         Message: "",
         Data: data,
     }
 }
 func NewClientSuccessMessageText (message string) CliCommonMessage {
     return CliCommonMessage{
-        Error: true,
+        Error: false,
         Message: message,
         Data: nil,
     }
@@ -51,7 +51,7 @@ func NewClientSuccessMessageText (message string) CliCommonMessage {
 
 func NewClientErrorMessage (err error, data interface{}) CliCommonMessage {
     return CliCommonMessage{
-        Error: false,
+        Error: true,
         Message: err.Error(),
         Data: data,
     }
