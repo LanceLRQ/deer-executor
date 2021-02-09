@@ -6,6 +6,7 @@ import (
     "github.com/LanceLRQ/deer-executor/v2/client/generate"
     "github.com/LanceLRQ/deer-executor/v2/client/run"
     "github.com/urfave/cli/v2"
+    "log"
     "os"
 )
 
@@ -21,6 +22,7 @@ func main() {
         Name:     "Deer Executor",
         HelpName: "deer-executor",
         Usage:    "An executor for online judge.",
+        Writer:   os.Stderr,
         Action: func(c *cli.Context) error {
             fmt.Println("Deer Executor\n--------------------")
             fmt.Printf("version: %s (built %s)\n", buildVersion, buildTime)
@@ -78,8 +80,6 @@ func main() {
     }
     err := main.Run(os.Args)
     if err != nil {
-        //client.NewClientErrorMessage(err, nil).Print(true)
-        fmt.Printf("%+v\n", err)
-        os.Exit(-1)
+        log.Fatal(err)
     }
 }
