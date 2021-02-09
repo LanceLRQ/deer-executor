@@ -16,7 +16,7 @@ func Test(c *cli.Context) error {
     }
     defer zipReader.Close()
 
-    file, err := problems.FindInZip(zipReader, ".sign")
+    file, _, err := problems.FindInZip(zipReader, ".sign")
     if err != nil {
         return err
     }
