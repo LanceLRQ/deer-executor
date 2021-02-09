@@ -3,9 +3,9 @@
 package executor
 
 import (
-    "fmt"
     "github.com/LanceLRQ/deer-common/constants"
     commonStructs "github.com/LanceLRQ/deer-common/structs"
+    "github.com/pkg/errors"
     "os"
     "path"
     "strconv"
@@ -75,11 +75,11 @@ func (session *JudgeSession) JudgeOnce(judgeResult *commonStructs.TestCaseResult
 func checkTestCaseInputOutput(tcase commonStructs.TestCase, configDir string) error {
     _, err := os.Stat(path.Join(configDir, tcase.Input))
     if os.IsNotExist(err) {
-        return fmt.Errorf("test case (%s) input file (%s) not exists", tcase.Handle, tcase.Input)
+        return errors.Errorf("test case (%s) input file (%s) not exists", tcase.Handle, tcase.Input)
     }
     _, err = os.Stat(path.Join(configDir, tcase.Output))
     if os.IsNotExist(err) {
-        return fmt.Errorf("test case (%s) output file (%s) not exists", tcase.Handle, tcase.Output)
+        return errors.Errorf("test case (%s) output file (%s) not exists", tcase.Handle, tcase.Output)
     }
     return nil
 }

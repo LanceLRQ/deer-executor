@@ -3,9 +3,9 @@
 package executor
 
 import (
-    "fmt"
     "github.com/LanceLRQ/deer-common/constants"
     commonStructs "github.com/LanceLRQ/deer-common/structs"
+    "github.com/pkg/errors"
     "log"
     "os"
     "os/exec"
@@ -103,12 +103,12 @@ func (session *JudgeSession) runSpecialJudge(rst *commonStructs.TestCaseResult) 
 
         fdjudger, err := getPipe()
         if err != nil {
-            return nil, nil, fmt.Errorf("create pipe error: %s", err.Error())
+            return nil, nil, errors.Errorf("create pipe error: %s", err.Error())
         }
 
         fdtarget, err := getPipe()
         if err != nil {
-            return nil, nil, fmt.Errorf("create pipe error: %s", err.Error())
+            return nil, nil, errors.Errorf("create pipe error: %s", err.Error())
         }
 
         targetInfoChan, judgerInfoChan := make(chan *ProcessInfo), make(chan *ProcessInfo)
@@ -126,7 +126,7 @@ func (session *JudgeSession) runSpecialJudge(rst *commonStructs.TestCaseResult) 
         judgerInfo = <-judgerInfoChan
         return targetInfo, judgerInfo, err
     }
-    return nil, nil, fmt.Errorf("unkonw special judge mode")
+    return nil, nil, errors.Errorf("unkonw special judge mode")
 }
 
 // 构建判题程序的命令行参数
@@ -196,7 +196,7 @@ func runProgramProcess(session *JudgeSession, rst *commonStructs.TestCaseResult,
     // Fork a new process
     pid, err = forkProc()
     if err != nil {
-        return 0, fds, fmt.Errorf("fork process error: %s", err.Error())
+        return 0, fds, errors.Errorf("fork process error: %s", err.Error())
     }
 
     if pid == 0 {
@@ -330,7 +330,7 @@ func runProgramProcess(session *JudgeSession, rst *commonStructs.TestCaseResult,
         }
         // it won't be run.
     } else if pid < 0 {
-        return 0, fds, fmt.Errorf("fork process error: pid < 0")
+        return 0, fds, errors.Errorf("fork process error: pid < 0")
     }
     // parent process
     return pid, fds, err

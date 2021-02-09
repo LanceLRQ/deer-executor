@@ -6,6 +6,7 @@ import (
     "github.com/LanceLRQ/deer-common/persistence/problems"
     "github.com/LanceLRQ/deer-common/utils"
     "github.com/LanceLRQ/deer-executor/v2/executor"
+    "github.com/pkg/errors"
     "github.com/urfave/cli/v2"
     "log"
     "os"
@@ -23,7 +24,7 @@ func BuildProblemPackage(c *cli.Context) error {
     outputFile := c.Args().Get(1)
 
     if c.Bool("zip") && !strings.HasSuffix(configFile, "problem.json") {
-        return fmt.Errorf("config file must named 'problem.json' in zip mode")
+        return errors.Errorf("config file must named 'problem.json' in zip mode")
     }
 
     var err error
@@ -31,7 +32,7 @@ func BuildProblemPackage(c *cli.Context) error {
 
     _, err = os.Stat(configFile)
     if err != nil && os.IsNotExist(err) {
-        return fmt.Errorf("problem config file (%s) not found", configFile)
+        return errors.Errorf("problem config file (%s) not found", configFile)
     }
 
     if c.Bool("sign") {
@@ -78,7 +79,7 @@ func UnpackProblemPackage(c *cli.Context) error {
     workDir := c.Args().Get(1)
     // 如果路径存在目录或者文件
     if _, err := os.Stat(workDir); err == nil {
-        return fmt.Errorf("work directory (%s) path exisis", workDir)
+        return errors.Errorf("work directory (%s) path exisis", workDir)
     }
     // 创建目录
     if err := os.MkdirAll(workDir, 0775); err != nil {
@@ -109,7 +110,7 @@ func UnpackProblemPackage(c *cli.Context) error {
         _ = os.Remove(path.Join(workDir, ".sign"))
         _ = os.Remove(path.Join(workDir, ".gpg"))
     } else {
-        return fmt.Errorf("not a deer-executor problem package file")
+        return errors.Errorf("not a deer-executor problem package file")
     }
     fmt.Println("Done.")
     return nil
@@ -158,7 +159,7 @@ func ReadProblemInfo(c *cli.Context) error {
             fmt.Println(utils.ObjectToJSONStringFormatted(s))
         }
     } else {
-        return fmt.Errorf("not a deer-executor problem package file")
+        return errors.Errorf("not a deer-executor problem package file")
     }
 
     return nil

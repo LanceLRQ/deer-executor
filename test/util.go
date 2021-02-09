@@ -77,7 +77,7 @@ func analysisResult(caseName string, result *commonStructs.JudgeResult, expect i
         if !ok {
             ename = "Unknown"
         }
-        return fmt.Errorf("[%s] expect %s, but got %s\n%s", caseName, ename, name, utils.ObjectToJSONStringFormatted(result))
+        return errors.Errorf("[%s] expect %s, but got %s\n%s", caseName, ename, name, utils.ObjectToJSONStringFormatted(result))
     }
     fmt.Printf("[%s] finish with: %s\n", caseName, name)
     return nil

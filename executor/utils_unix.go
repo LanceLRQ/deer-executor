@@ -3,7 +3,7 @@
 package executor
 
 import (
-	"fmt"
+	"github.com/pkg/errors"
 	"math"
 	"os"
 	"runtime"
@@ -54,7 +54,7 @@ func setHardTimer(realTimeLimit int) error {
 	prealt.ItValue.TvUsec = prealt.ItInterval.TvUsec
 	_, _, err := syscall.RawSyscall(syscall.SYS_SETITIMER, ITimerReal, uintptr(unsafe.Pointer(&prealt)), 0)
 	if err != 0 {
-		return fmt.Errorf("system call setitimer() error: %s", err)
+		return errors.Errorf("system call setitimer() error: %s", err)
 	}
 	return nil
 }
@@ -64,7 +64,7 @@ func forkProc() (pid uintptr, err error) {
 	r1, r2, errMsg := syscall.Syscall(syscall.SYS_FORK, 0, 0, 0)
 	darwin := runtime.GOOS == "darwin"
 	if errMsg != 0 {
-		return 0, fmt.Errorf("system call: fork(); error: %s", errMsg)
+		return 0, errors.Errorf("system call: fork(); error: %s", errMsg)
 	}
 	if darwin {
 		if r2 == 1 {
@@ -147,7 +147,7 @@ func setLimit(timeLimit, memoryLimit, realTimeLimit, fileSizeLimit int) error {
 	for _, rlimit := range rlimits {
 		err := syscall.Setrlimit(rlimit.Which, &rlimit.RLim)
 		if err != nil {
-			return fmt.Errorf("setrlimit(%d) error: %s", rlimit.Which, err)
+			return errors.Errorf("setrlimit(%d) error: %s", rlimit.Which, err)
 		}
 	}
 

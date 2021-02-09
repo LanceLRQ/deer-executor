@@ -7,6 +7,7 @@ import (
     "fmt"
     "github.com/LanceLRQ/deer-common/provider"
     commonStructs "github.com/LanceLRQ/deer-common/structs"
+    "github.com/pkg/errors"
     "io/ioutil"
     "os"
     "path"
@@ -37,13 +38,13 @@ type TimeVal struct {
 func OpenFile(filePath string, flag int, perm os.FileMode) (*os.File, error) {
     if _, err := os.Stat(filePath); err != nil {
         if os.IsNotExist(err) {
-            return nil, fmt.Errorf("file (%s) not exists", filePath)
+            return nil, errors.Errorf("file (%s) not exists", filePath)
         } else {
-            return nil, fmt.Errorf("open file (%s) error: %s", filePath, err.Error())
+            return nil, errors.Errorf("open file (%s) error: %s", filePath, err.Error())
         }
     } else {
         if fp, err := os.OpenFile(filePath, flag, perm); err != nil {
-            return nil, fmt.Errorf("open file (%s) error: %s", filePath, err.Error())
+            return nil, errors.Errorf("open file (%s) error: %s", filePath, err.Error())
         } else {
             return fp, nil
         }
@@ -97,7 +98,7 @@ func CheckRequireFilesExists(config *commonStructs.JudgeConfiguration, configDir
     if config.SpecialJudge.Mode != 0 {
         _, err = os.Stat(path.Join(configDir, config.SpecialJudge.Checker))
         if os.IsNotExist(err) {
-            return fmt.Errorf("special judge checker file (%s) not exists",config.SpecialJudge.Checker)
+            return errors.Errorf("special judge checker file (%s) not exists",config.SpecialJudge.Checker)
         }
     }
     // 检查每个测试数据里的文件是否存在
@@ -108,11 +109,11 @@ func CheckRequireFilesExists(config *commonStructs.JudgeConfiguration, configDir
         if !tcase.Enabled || tcase.UseGenerator { continue }
         _, err = os.Stat(path.Join(configDir, tcase.Input))
         if os.IsNotExist(err) {
-            return fmt.Errorf("test case (%s) input file (%s) not exists", tcase.Handle, tcase.Input)
+            return errors.Errorf("test case (%s) input file (%s) not exists", tcase.Handle, tcase.Input)
         }
         _, err = os.Stat(path.Join(configDir, tcase.Output))
         if os.IsNotExist(err) {
-            return fmt.Errorf("test case (%s) output file (%s) not exists", tcase.Handle, tcase.Output)
+            return errors.Errorf("test case (%s) output file (%s) not exists", tcase.Handle, tcase.Output)
         }
     }
     return nil
@@ -125,7 +126,7 @@ func GetOrCreateBinaryRoot(config *commonStructs.JudgeConfiguration) (string, er
     if err != nil && os.IsNotExist(err) {
         err = os.MkdirAll(binRoot, 0775)
         if err != nil {
-            return "", fmt.Errorf("cannot create binary work directory: %s", err.Error())
+            return "", errors.Errorf("cannot create binary work directory: %s", err.Error())
         }
     }
     return binRoot, nil
@@ -137,7 +138,7 @@ func CompileSpecialJudgeCodeFile (source, name, binRoot, configDir, libraryDir, 
     compileTarget := path.Join(binRoot, name)
     _, err := os.Stat(genCodeFile)
     if err != nil && os.IsNotExist(err) {
-        return compileTarget, fmt.Errorf("checker source code file not exists")
+        return compileTarget, errors.Errorf("checker source code file not exists")
     }
     var ok bool
     var ceinfo string
@@ -152,11 +153,11 @@ func CompileSpecialJudgeCodeFile (source, name, binRoot, configDir, libraryDir, 
         compiler := provider.NewGnucppCompileProvider()
         ok, ceinfo = compiler.ManualCompile(genCodeFile, compileTarget, [] string{libraryDir})
     default:
-        return compileTarget, fmt.Errorf("checker must be written by c/c++/golang")
+        return compileTarget, errors.Errorf("checker must be written by c/c++/golang")
     }
     if ok {
         return compileTarget, nil
     } else {
-        return compileTarget, fmt.Errorf("compile error: %s", ceinfo)
+        return compileTarget, errors.Errorf("compile error: %s", ceinfo)
     }
 }

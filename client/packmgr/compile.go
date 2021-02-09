@@ -6,6 +6,7 @@ import (
     "github.com/LanceLRQ/deer-common/provider"
     "github.com/LanceLRQ/deer-common/structs"
     "github.com/LanceLRQ/deer-executor/v2/executor"
+    "github.com/pkg/errors"
     "github.com/urfave/cli/v2"
     "os"
     "path"
@@ -21,7 +22,7 @@ func compileTestlibCodeFile (source, name, binRoot, configDir, libraryDir, typeN
     compileTarget := path.Join(binRoot, prefix + name)
     _, err := os.Stat(genCodeFile)
     if err != nil && os.IsNotExist(err) {
-        return fmt.Errorf("cannot find %s's source code", typeName)
+        return errors.Errorf("cannot find %s's source code", typeName)
     }
     compiler := provider.NewGnucppCompileProvider()
     ok, ceinfo := compiler.ManualCompile(genCodeFile, compileTarget, [] string{libraryDir})
@@ -59,10 +60,10 @@ func compileWorkCodeFiles(config structs.JudgeConfiguration, libraryDir string) 
     // Checker
     if config.SpecialJudge.Mode > 0 {
         if config.SpecialJudge.Name == "" {
-            return fmt.Errorf("please setup special judge checker name")
+            return errors.Errorf("please setup special judge checker name")
         }
         if config.SpecialJudge.Checker == "" {
-            return fmt.Errorf("please setup special judge checker")
+            return errors.Errorf("please setup special judge checker")
         }
         checkerType := "checker"
         if config.SpecialJudge.Mode == 2 {
@@ -92,7 +93,7 @@ func compileWorkCodeFiles(config structs.JudgeConfiguration, libraryDir string) 
             )
             if err != nil {
                 fmt.Printf("Error!\n%s", err.Error())
-                return fmt.Errorf("compile error")
+                return errors.Errorf("compile error")
             } else {
                 fmt.Println("Ok!")
             }
@@ -106,19 +107,19 @@ func CompileProblemWorkDirSourceCodes(c *cli.Context) error {
     configFile := c.Args().Get(0)
     _, err := os.Stat(configFile)
     if err != nil && os.IsNotExist(err) {
-        return fmt.Errorf("problem config file (%s) not found", configFile)
+        return errors.Errorf("problem config file (%s) not found", configFile)
     }
     session, err := executor.NewSession(configFile)
     if err != nil { return err }
     libDir, err := filepath.Abs(c.String("library"))
     if err != nil {
-        return fmt.Errorf("get library root error: %s", err.Error())
+        return errors.Errorf("get library root error: %s", err.Error())
     }
     if s, err := os.Stat(libDir); err != nil {
-        return fmt.Errorf("library root not exists")
+        return errors.Errorf("library root not exists")
     } else {
         if !s.IsDir() {
-            return fmt.Errorf("library root not a directory")
+            return errors.Errorf("library root not a directory")
         }
     }
     err = compileWorkCodeFiles(session.JudgeConfig, libDir)

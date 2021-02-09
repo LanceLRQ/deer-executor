@@ -6,6 +6,7 @@ import (
     commonStructs "github.com/LanceLRQ/deer-common/structs"
     "github.com/LanceLRQ/deer-common/utils"
     "github.com/LanceLRQ/deer-executor/v2/executor"
+    "github.com/pkg/errors"
     "github.com/urfave/cli/v2"
     "io/ioutil"
     "os"
@@ -40,11 +41,11 @@ func MakeProblemConfigFile(c *cli.Context) error {
     if output != "" {
         s, err := os.Stat(output)
         if s != nil || os.IsExist(err) {
-            return fmt.Errorf("output file exists")
+            return errors.Errorf("output file exists")
         }
         fp, err := os.OpenFile(output, os.O_WRONLY|os.O_CREATE, 0644)
         if err != nil {
-            return fmt.Errorf("open output file error: %s\n", err.Error())
+            return errors.Errorf("open output file error: %s\n", err.Error())
         }
         defer fp.Close()
         _, err = fp.WriteString(utils.ObjectToJSONStringFormatted(config))
@@ -62,7 +63,7 @@ func InitProblemWorkDir(c *cli.Context) error {
     workDir := c.Args().Get(0)
     // 如果路径存在目录或者文件
     if _, err := os.Stat(workDir); err == nil {
-        return fmt.Errorf("work directory (%s) path exisis", workDir)
+        return errors.Errorf("work directory (%s) path exisis", workDir)
     }
     // 创建目录
     if err := os.MkdirAll(workDir, 0775); err != nil {
@@ -77,7 +78,7 @@ func InitProblemWorkDir(c *cli.Context) error {
             return err
         }
         if !yes {
-            return fmt.Errorf("not a problem package")
+            return errors.Errorf("not a problem package")
         }
         // 如果指定了对应的模板
         if _, _, err := problems.ReadProblemInfo(packageFile, true, true, workDir); err != nil {
