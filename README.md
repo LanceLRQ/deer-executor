@@ -23,9 +23,10 @@
  - ✅ Testlib 支持
  - ✅ 编写文档
  - ✅ 评测日志
- - ➡ 兼容V1评测
+ - ✅ 题目数据包支持ZIP
+ - 🔲 Windows评测支持
+ - 🔲 Deer-Executor GUI
  - 🔲 安全沙箱
- - 🔲 评测结果查看工具
  
 ## 📦 文档
 
@@ -55,7 +56,7 @@
 * [VOJ](https://github.com/hzxie/voj)
 * [QDUOJ-Judger](https://github.com/QingdaoU/Judger)
 
-...
+等等
 
 
 ## 🔗 相关链接
@@ -75,3 +76,5 @@
 [https://oj.bnuz.edu.cn](https://oj.bnuz.edu.cn)
 
 **本项目基于GPLv3协议开源，欢迎各位开发者以非商业目的使用和开发本程序，使用过程中如果遇到什么问题，请发Issue一起讨论哦！**
+
+**如果你正在使用本判题机的开发OJ网站，欢迎通过ISSUE告知，我会将链接挂在这里哦！**
