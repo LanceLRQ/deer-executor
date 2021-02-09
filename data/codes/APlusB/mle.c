@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #define N 100000000
 
 int arr[N];
