@@ -160,29 +160,6 @@ func getSpecialJudgeArgs(session *JudgeSession, rst *commonStructs.TestCaseResul
     return args
 }
 
-// 获取资源限制的参数列表
-func getLimitation(session *JudgeSession) (int, int, int, int, int) {
-    langName := session.Compiler.GetName()
-    memoryLimitExtend := 0
-    jitMem, ok := constants.MemorySizeForJIT[langName]
-    if ok {
-        memoryLimitExtend = jitMem
-    }
-    limitation, ok := session.JudgeConfig.Limitation[langName]
-    if ok {
-        return limitation.TimeLimit,
-            limitation.MemoryLimit + memoryLimitExtend,
-            limitation.RealTimeLimit,
-            limitation.FileSizeLimit,
-            memoryLimitExtend
-    }
-    return session.JudgeConfig.TimeLimit,
-        session.JudgeConfig.MemoryLimit + memoryLimitExtend,
-        session.JudgeConfig.RealTimeLimit,
-        session.JudgeConfig.FileSizeLimit,
-        memoryLimitExtend
-}
-
 // 目标程序子进程
 func runProgramProcess(session *JudgeSession, rst *commonStructs.TestCaseResult, judger bool, pipeMode bool, pipeStd []int) (uintptr, []int, error) {
     var (
@@ -300,8 +277,12 @@ func runProgramProcess(session *JudgeSession, rst *commonStructs.TestCaseResult,
                 session.JudgeConfig.FileSizeLimit,
             )
         } else {
-            tl, ml, rtl, fsl, _ := getLimitation(session)
-            err = setLimit(tl, ml, rtl, fsl)
+            err = setLimit(
+                session.JudgeConfig.TimeLimit,
+                session.JudgeConfig.MemoryLimit,
+                session.JudgeConfig.RealTimeLimit,
+                session.JudgeConfig.FileSizeLimit,
+            )
         }
         if err != nil {
             return 0, fds, err

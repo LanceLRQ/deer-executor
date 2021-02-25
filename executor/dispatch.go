@@ -142,6 +142,9 @@ func (session *JudgeSession) RunJudge() commonStructs.JudgeResult {
         }
     }
 
+    // 资源限制信息更新
+    updateLimitation(session)
+
     session.Logger.Info("Ready for judgement")
     // Init exit code
     exitCodes := make([]int, 0, 1)
@@ -200,4 +203,23 @@ func (session *JudgeSession) RunJudge() commonStructs.JudgeResult {
     judgeResult.JudgeLogs = session.Logger.GetLogs()
     // return
     return judgeResult
+}
+
+// 从资源限制的参数列表里按语言获取相关信息，并作为当前的资源限制参数。
+func updateLimitation(session *JudgeSession) {
+    langName := session.Compiler.GetName()
+    memoryLimitExtend := 0
+    jitMem, ok := constants.MemorySizeForJIT[langName]
+    if ok {
+        memoryLimitExtend = jitMem
+    }
+    limitation, ok := session.JudgeConfig.Limitation[langName]
+    if ok {
+        session.JudgeConfig.TimeLimit = limitation.TimeLimit
+        session.JudgeConfig.MemoryLimit = limitation.MemoryLimit + memoryLimitExtend
+        session.JudgeConfig.RealTimeLimit = limitation.RealTimeLimit
+        session.JudgeConfig.FileSizeLimit = limitation.FileSizeLimit
+        return
+    }
+    session.JudgeConfig.MemoryLimit = limitation.MemoryLimit + memoryLimitExtend
 }
