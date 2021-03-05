@@ -9,6 +9,7 @@ import (
     "github.com/LanceLRQ/deer-common/utils"
     "io/ioutil"
     "path"
+    "runtime"
     "strconv"
     "syscall"
 )
@@ -19,7 +20,11 @@ func (session *JudgeSession) saveExitRusage(rst *commonStructs.TestCaseResult, p
     status := pinfo.Status
 
     tu := int(ru.Utime.Sec*1000 + int64(ru.Utime.Usec)/1000 + ru.Stime.Sec*1000 + int64(ru.Stime.Usec)/1000)
-    mu := int(ru.Minflt * int64(syscall.Getpagesize()/1024))
+    maxrss := ru.Maxrss
+    if runtime.GOOS == "darwin" {
+        maxrss = maxrss / 1024
+    }
+    mu := int(Max(maxrss, ru.Minflt * int64(syscall.Getpagesize()/1024)))
 
     // 特判
     if judger {
