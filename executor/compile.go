@@ -105,24 +105,39 @@ func (session *JudgeSession) compileJudgerProgram(judgeResult *commonStructs.Jud
     cPath, err := utils.GetCompiledBinaryFileAbsPath(cType, session.JudgeConfig.SpecialJudge.Name, session.ConfigDir)
     // 如果有已经编译好的裁判程序，则直接返回这个程序
     if err == nil {
-        if _, err := os.Stat(cPath); err == nil {
+        if s, err := os.Stat(cPath); err == nil && !s.IsDir() {
             session.JudgeConfig.SpecialJudge.Checker = cPath
             return nil
         }
     }
+
     // 如果没有，则检查checker是否被设置
-    _, err = os.Stat(path.Join(session.ConfigDir, session.JudgeConfig.SpecialJudge.Checker))
-    if os.IsNotExist(err) {
+    jCodeOrExec := path.Join(session.ConfigDir, session.JudgeConfig.SpecialJudge.Checker)
+    s, err := os.Stat(jCodeOrExec)
+    if os.IsNotExist(err) || s.IsDir() {
         judgeResult.JudgeResult = constants.JudgeFlagSE
         judgeResult.SeInfo = fmt.Sprintf("checker file not exists")
         session.Logger.Error("checker file not exists")
         return errors.Errorf(judgeResult.SeInfo)
     }
 
+    yes, err := utils.IsExecutableFile(jCodeOrExec)
+    if err != nil {
+        judgeResult.JudgeResult = constants.JudgeFlagSE
+        judgeResult.SeInfo = fmt.Sprintf("read checker file error")
+        session.Logger.Error(err.Error())
+        return err
+    } else if yes { // 如果是可执行程序，直接执行
+        return nil
+    }
+
+
     // 编译特判程序
     config := session.JudgeConfig
     binRoot, err := GetOrCreateBinaryRoot(&config)
     if err != nil {
+        judgeResult.JudgeResult = constants.JudgeFlagSE
+        judgeResult.SeInfo = fmt.Sprintf("create checker bin root error")
         session.Logger.Error(err.Error())
         return err
     }
@@ -136,6 +151,8 @@ func (session *JudgeSession) compileJudgerProgram(judgeResult *commonStructs.Jud
         config.SpecialJudge.CheckerLang,
     )
     if err != nil {
+        judgeResult.JudgeResult = constants.JudgeFlagSE
+        judgeResult.SeInfo = fmt.Sprintf("compile checker file error")
         session.Logger.Error(err.Error())
         return err
     }
