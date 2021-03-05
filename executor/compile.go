@@ -128,6 +128,7 @@ func (session *JudgeSession) compileJudgerProgram(judgeResult *commonStructs.Jud
         session.Logger.Error(err.Error())
         return err
     } else if yes { // 如果是可执行程序，直接执行
+        session.JudgeConfig.SpecialJudge.Checker = jCodeOrExec
         return nil
     }
 
