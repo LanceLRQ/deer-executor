@@ -92,13 +92,24 @@ func (session *JudgeSession) runNormalJudge(rst *commonStructs.TestCaseResult) (
 
 // 运行特殊评测
 func (session *JudgeSession) runSpecialJudge(rst *commonStructs.TestCaseResult) (*ProcessInfo, *ProcessInfo, error) {
+    targetInfoChan, judgerInfoChan := make(chan *ProcessInfo, 1), make(chan *ProcessInfo, 1)
+    var targetInfo, judgerInfo *ProcessInfo
+
     if session.JudgeConfig.SpecialJudge.Mode == constants.SpecialJudgeModeChecker {
-        targetInfo, err := session.runProgramCommon(rst, false, false, nil)
+
+        err := session.runProgramAsync(rst, false, false, nil, targetInfoChan)
         if err != nil {
-            return targetInfo, nil, err
+            return nil, nil, err
         }
-        judgerInfo, err := session.runProgramCommon(rst, true, false, nil)
+        targetInfo = <-targetInfoChan
+        err = session.runProgramAsync(rst, true, false, nil, judgerInfoChan)
+        if err != nil {
+            return nil, nil, err
+        }
+        judgerInfo = <-judgerInfoChan
+
         return targetInfo, judgerInfo, err
+
     } else if session.JudgeConfig.SpecialJudge.Mode == constants.SpecialJudgeModeInteractive {
 
         fdjudger, err := getPipe()
@@ -111,9 +122,6 @@ func (session *JudgeSession) runSpecialJudge(rst *commonStructs.TestCaseResult) 
             return nil, nil, errors.Errorf("create pipe error: %s", err.Error())
         }
 
-        targetInfoChan, judgerInfoChan := make(chan *ProcessInfo), make(chan *ProcessInfo)
-        var targetInfo, judgerInfo *ProcessInfo
-
         err = session.runProgramAsync(rst, false, true, []int{fdtarget[0], fdjudger[1]}, targetInfoChan)
         if err != nil {
             return nil, nil, err
@@ -124,7 +132,9 @@ func (session *JudgeSession) runSpecialJudge(rst *commonStructs.TestCaseResult) 
         }
         targetInfo = <-targetInfoChan
         judgerInfo = <-judgerInfoChan
+
         return targetInfo, judgerInfo, err
+
     }
     return nil, nil, errors.Errorf("unkonw special judge mode")
 }

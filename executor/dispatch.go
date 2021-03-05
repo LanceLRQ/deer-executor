@@ -221,5 +221,5 @@ func updateLimitation(session *JudgeSession) {
         session.JudgeConfig.FileSizeLimit = limitation.FileSizeLimit
         return
     }
-    session.JudgeConfig.MemoryLimit = limitation.MemoryLimit + memoryLimitExtend
+    session.JudgeConfig.MemoryLimit = session.JudgeConfig.MemoryLimit + memoryLimitExtend
 }
