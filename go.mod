@@ -1,6 +1,6 @@
 module github.com/LanceLRQ/deer-executor/v2
 
-go 1.14
+go 1.16
 
 require (
 	github.com/LanceLRQ/deer-common v0.0.6
