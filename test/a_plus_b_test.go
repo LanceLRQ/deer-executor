@@ -2,6 +2,7 @@ package test
 
 import (
     "github.com/LanceLRQ/deer-common/constants"
+    "runtime"
     "testing"
 )
 
@@ -112,7 +113,11 @@ func TestAPlusBProblemMLE(t *testing.T) {
         t.Fatal(err)
         return
     }
-    result, err := runAPlusB("./data/codes/APlusB/mle.c", "")
+    p := "./data/codes/APlusB/mle.c"
+    if runtime.GOOS == "darwin" {
+        p = "./data/codes/APlusB/mle_darwin.c"
+    }
+    result, err := runAPlusB(p, "")
     if err != nil {
         t.Fatal(err)
         return
