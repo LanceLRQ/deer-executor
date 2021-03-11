@@ -80,7 +80,7 @@ func (session *JudgeSession) analysisExitStatus(rst *commonStructs.TestCaseResul
             rst.SPJExitCode = exitcode
             if session.JudgeConfig.SpecialJudge.UseTestlib {
                 // 如果是Testlib的checker，则退出代码要按照他们的规则去判定
-                msg, err := ioutil.ReadFile(path.Join(session.SessionDir, rst.JudgerReport))
+                msg, err := ioutil.ReadFile(path.Join(session.SessionDir, rst.CheckerReport))
                 if err != nil {
                     rst.JudgeResult = constants.JudgeFlagSpecialJudgeError
                     rst.SPJMsg = fmt.Sprintf("read checker report file error: %s", err.Error())

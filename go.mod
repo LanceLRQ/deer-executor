@@ -3,7 +3,7 @@ module github.com/LanceLRQ/deer-executor/v2
 go 1.14
 
 require (
-	github.com/LanceLRQ/deer-common v0.0.3
+	github.com/LanceLRQ/deer-common v0.0.6
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/satori/go.uuid v1.2.0

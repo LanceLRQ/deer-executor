@@ -14,43 +14,6 @@ import (
     "syscall"
 )
 
-// 定义ITimer的常量，命名规则遵循Linux的原始设定
-const (
-    ITimerReal    = 0
-    ITimerVirtual = 1
-    ITimerVProf   = 2
-)
-
-// 定义公共环境变量
-var CommonEnvs = []string{"PYTHONIOENCODING=utf-8"}
-
-type ITimerVal struct {
-    ItInterval TimeVal
-    ItValue    TimeVal
-}
-
-type TimeVal struct {
-    TvSec  uint64
-    TvUsec uint64
-}
-
-// 打开文件并获取描述符 (强制文件检查)
-func OpenFile(filePath string, flag int, perm os.FileMode) (*os.File, error) {
-    if _, err := os.Stat(filePath); err != nil {
-        if os.IsNotExist(err) {
-            return nil, errors.Errorf("file (%s) not exists", filePath)
-        } else {
-            return nil, errors.Errorf("open file (%s) error: %s", filePath, err.Error())
-        }
-    } else {
-        if fp, err := os.OpenFile(filePath, flag, perm); err != nil {
-            return nil, errors.Errorf("open file (%s) error: %s", filePath, err.Error())
-        } else {
-            return fp, nil
-        }
-    }
-}
-
 func Max(x, y int64) int64 {
     if x > y {
         return x
@@ -72,7 +35,7 @@ func readFileWithTry(filePath string, name string, tryOnFailed int) ([]byte, str
     errCnt, errText := 0, ""
     var err error
     for errCnt < tryOnFailed {
-        fp, err := OpenFile(filePath, os.O_RDONLY|syscall.O_NONBLOCK, 0)
+        fp, err := os.OpenFile(filePath, os.O_RDONLY|syscall.O_NONBLOCK, 0)
         if err != nil {
             errText = err.Error()
             errCnt++

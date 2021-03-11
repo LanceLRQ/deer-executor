@@ -3,7 +3,10 @@
 package executor
 
 import (
+    "context"
     "github.com/LanceLRQ/deer-common/constants"
+    "github.com/LanceLRQ/deer-common/sandbox/forkexec"
+    "github.com/LanceLRQ/deer-common/sandbox/process"
     commonStructs "github.com/LanceLRQ/deer-common/structs"
     "github.com/pkg/errors"
     "log"
@@ -12,131 +15,292 @@ import (
     "path"
     "path/filepath"
     "syscall"
+    "time"
 )
 
-// 运行评测进程
-func (session *JudgeSession) runProgramCommon(rst *commonStructs.TestCaseResult, judger bool, pipeMode bool, pipeStd []int) (*ProcessInfo, error) {
-    pinfo := ProcessInfo{}
-    pid, fds, err := runProgramProcess(session, rst, judger, pipeMode, pipeStd)
-    if err != nil {
-        log.Println(err.Error())
-        if pid <= 0 {
-            // 如果是子进程错误了，输出到程序的error去
-            panic(err)
-        }
-        session.Logger.Error(err.Error())
-        return nil, err
-    }
-    pinfo.Pid = pid
-    // before wait4, do something~
+// 额外需要被注入的环境变量
+var ExtraEnviron = []string{"PYTHONIOENCODING=utf-8"}
 
-    // Wait4
-    _, err = syscall.Wait4(int(pid), &pinfo.Status, syscall.WUNTRACED, &pinfo.Rusage)
-    if err != nil {
-        session.Logger.Error(err.Error())
-        return nil, err
-    }
-
-    if !pipeMode {
-        // Close Files
-        for _, fd := range fds {
-            if fd > 0 {
-                _ = syscall.Close(fd)
-            }
-        }
-    }
-
-    return &pinfo, err
-}
-
-// 运行交互评测进程
-func (session *JudgeSession) runProgramAsync(rst *commonStructs.TestCaseResult, judger bool, pipeMode bool, pipeStd []int, info chan *ProcessInfo) error {
-    tpid, fds, err := runProgramProcess(session, rst, judger, pipeMode, pipeStd)
-    if err != nil {
-        if tpid == 0 {
-            // 如果是子进程错误了(没能正确执行到目标程序里)，输出到程序的error去
-            panic(err)
-        }
-        session.Logger.Error(err.Error())
-        return err
-    }
-
-    go func(pid uintptr) {
-        pinfo := ProcessInfo{}
-        pinfo.Pid = pid
-        // Wait4
-        _, err = syscall.Wait4(int(pid), &pinfo.Status, syscall.WUNTRACED, &pinfo.Rusage)
-        if err != nil {
-            info <- &pinfo
-            return
-        }
-
-        // Close Files
-        if !pipeMode {
-            for _, fd := range fds {
-                if fd > 0 {
-                    _ = syscall.Close(fd)
-                }
-            }
-        }
-        info <- &pinfo
-    }(tpid)
-
-    return nil
-}
 
 // 运行目标程序
 func (session *JudgeSession) runNormalJudge(rst *commonStructs.TestCaseResult) (*ProcessInfo, error) {
-    return session.runProgramCommon(rst, false, false, nil)
+    ctx, cancel := context.WithTimeout(context.Background(), time.Duration(session.Timeout) * time.Second)
+    defer cancel()
+    return session.runAsync(rst, false, ctx)
 }
 
 // 运行特殊评测
 func (session *JudgeSession) runSpecialJudge(rst *commonStructs.TestCaseResult) (*ProcessInfo, *ProcessInfo, error) {
-    targetInfoChan, judgerInfoChan := make(chan *ProcessInfo, 1), make(chan *ProcessInfo, 1)
-    var targetInfo, judgerInfo *ProcessInfo
-
     if session.JudgeConfig.SpecialJudge.Mode == constants.SpecialJudgeModeChecker {
-
-        err := session.runProgramAsync(rst, false, false, nil, targetInfoChan)
+        // checker模式，用runAsync依次运行
+        ctx1, cancel1 := context.WithTimeout(context.Background(), time.Duration(session.Timeout) * time.Second)
+        defer cancel1()
+        answer, err := session.runAsync(rst, false, ctx1)
         if err != nil {
             return nil, nil, err
         }
-        targetInfo = <-targetInfoChan
-        err = session.runProgramAsync(rst, true, false, nil, judgerInfoChan)
+        ctx2, cancel2 := context.WithTimeout(context.Background(), time.Duration(session.Timeout) * time.Second)
+        defer cancel2()
+        checker, err := session.runAsync(rst, true, ctx2)
         if err != nil {
             return nil, nil, err
         }
-        judgerInfo = <-judgerInfoChan
-
-        return targetInfo, judgerInfo, err
-
-    } else if session.JudgeConfig.SpecialJudge.Mode == constants.SpecialJudgeModeInteractive {
-
-        fdjudger, err := getPipe()
-        if err != nil {
-            return nil, nil, errors.Errorf("create pipe error: %s", err.Error())
-        }
-
-        fdtarget, err := getPipe()
-        if err != nil {
-            return nil, nil, errors.Errorf("create pipe error: %s", err.Error())
-        }
-
-        err = session.runProgramAsync(rst, false, true, []int{fdtarget[0], fdjudger[1]}, targetInfoChan)
-        if err != nil {
-            return nil, nil, err
-        }
-        err = session.runProgramAsync(rst, true, true, []int{fdjudger[0], fdtarget[1]}, judgerInfoChan)
-        if err != nil {
-            return nil, nil, err
-        }
-        targetInfo = <-targetInfoChan
-        judgerInfo = <-judgerInfoChan
-
-        return targetInfo, judgerInfo, err
-
+        return answer, checker, nil
+    }  else if session.JudgeConfig.SpecialJudge.Mode == constants.SpecialJudgeModeInteractive {
+        // 交互模式
+        ctx, cancel := context.WithTimeout(context.Background(), time.Duration(session.Timeout) * time.Second)
+        defer cancel()
+        return session.runInteractiveAsync(rst, ctx)
     }
     return nil, nil, errors.Errorf("unkonw special judge mode")
+}
+
+// 运行目标程序
+func (session *JudgeSession) runAsync(rst *commonStructs.TestCaseResult, isChecker bool, ctx context.Context) (*ProcessInfo, error) {
+    runSuccess := make(chan bool, 1)
+    pid := 0
+    var pinfo *ProcessInfo
+    var err error
+    go func() {
+        var pstate *process.ProcessState
+        // create process
+        pinfo, err = startProcess(session, rst, isChecker, false, nil)
+        if err != nil {
+            runSuccess <- false
+            return
+        }
+        pid = pinfo.Pid
+        log.Printf("Start process (%d)...\n", pinfo.Pid)
+        // Wait for exit.
+        pstate, err = pinfo.Process.Wait()
+        if err != nil {
+            runSuccess <- false
+            return
+        }
+        log.Printf("Process (%d) exited.\n", pinfo.Pid)
+        pinfo.Status = pstate.Sys().(syscall.WaitStatus)
+        pinfo.Rusage = pstate.SysUsage().(syscall.Rusage)
+
+        runSuccess <- true
+    }()
+
+    select {
+        case ok := <- runSuccess:
+            if ok {
+                return pinfo, nil
+            } else {
+                return nil, err
+            }
+        case <- ctx.Done(): // 触发超时
+            if pid > 0 {
+                _ = syscall.Kill(pid, syscall.SIGKILL)
+            }
+            log.Println("Child process timeout!")
+            return nil, errors.Errorf("Child process timeout!")
+    }
+}
+
+// 运行交互评测
+func (session *JudgeSession) runInteractiveAsync(rst *commonStructs.TestCaseResult, ctx context.Context) (*ProcessInfo, *ProcessInfo, error) {
+    var answer, checker *ProcessInfo
+    var answerErr, checkerErr, gErr error
+
+    fdChecker, err := forkexec.GetPipe()
+    if err != nil {
+        return nil, nil, errors.Errorf("create pipe error: %s", err.Error())
+    }
+
+    fdAnswer, err := forkexec.GetPipe()
+    if err != nil {
+        return nil, nil, errors.Errorf("create pipe error: %s", err.Error())
+    }
+
+    answerSuccess := make(chan bool, 1)
+    checkerSuccess := make(chan bool, 1)
+    answerPid := 0
+    checkerPid := 0
+    exitCounter := 0
+
+    go func() {
+        var pstate *process.ProcessState
+        // create process
+        answer, answerErr = startProcess(session, rst, false, true, []uintptr{ fdAnswer[0], fdChecker[1] })
+        if answerErr != nil {
+            answerSuccess <- false
+            return
+        }
+        answerPid = answer.Pid
+        log.Printf("[Interactive]Start answer process (%d)...\n", answer.Pid)
+        // Wait for exit.
+        pstate, answerErr = answer.Process.Wait()
+        if answerErr != nil {
+            answerSuccess <- false
+            return
+        }
+        log.Printf("Process (%d) exited.\n", answer.Pid)
+        answer.Status = pstate.Sys().(syscall.WaitStatus)
+        answer.Rusage = pstate.SysUsage().(syscall.Rusage)
+
+        answerSuccess <- true
+    }()
+
+    go func() {
+        var pstate *process.ProcessState
+        // create process
+        checker, checkerErr = startProcess(session, rst, true, true, []uintptr{ fdChecker[0], fdAnswer[1] })
+        if checkerErr != nil {
+            checkerSuccess <- false
+            return
+        }
+        checkerPid = checker.Pid
+        log.Printf("[Interactive]Start checker process (%d)...\n", checker.Pid)
+        // Wait for exit.
+        pstate, checkerErr = checker.Process.Wait()
+        if checkerErr != nil {
+            checkerSuccess <- false
+            return
+        }
+        log.Printf("Process (%d) exited.\n", checker.Pid)
+        checker.Status = pstate.Sys().(syscall.WaitStatus)
+        checker.Rusage = pstate.SysUsage().(syscall.Rusage)
+
+        checkerSuccess <- true
+    }()
+
+    select {
+        case ok := <- answerSuccess:
+            if ok {
+                exitCounter++
+                if exitCounter >= 2 {
+                   goto finish
+                }
+            } else {
+                gErr = answerErr
+                goto doClean
+            }
+        case ok := <- checkerSuccess:
+            if ok {
+                exitCounter++
+                if exitCounter >= 2 {
+                   goto finish
+                }
+            } else {
+                gErr = checkerErr
+                goto doClean
+            }
+        case <- ctx.Done(): // 触发超时
+            log.Println("Child process timeout!")
+            gErr = errors.Errorf("Child process timeout!")
+            goto doClean
+    }
+
+doClean:
+    if answerPid > 0 {
+        _ = syscall.Kill(answerPid, syscall.SIGKILL)
+    }
+    if checkerPid > 0 {
+        _ = syscall.Kill(checkerPid, syscall.SIGKILL)
+    }
+finish:
+    if gErr != nil {
+        return nil, nil, gErr
+    } else {
+        return answer, checker, nil
+    }
+}
+
+
+// 运行一个新的进程
+func startProcess(session *JudgeSession, rst *commonStructs.TestCaseResult, isChecker, pipeMode bool, pipeFd []uintptr) (*ProcessInfo, error) {
+    var err error
+    // Get shell commands
+    commands := session.Commands
+    // 参考exec.Command，从环境变量获取编译器/VM真实的地址
+    programPath := commands[0]
+    if filepath.Base(programPath) == programPath {
+        if programPath, err = exec.LookPath(programPath); err != nil {
+            return nil, err
+        }
+    }
+    var infile, outfile, errfile string
+    var rlimit forkexec.ExecRLimit
+    var args []string
+    var files []interface{}
+    if isChecker {
+        // 如果不使用TestLib，可以开启把程序的Answer发送到Checker的Stdin，兼容以前的判题程序用。
+        if !session.JudgeConfig.SpecialJudge.UseTestlib {
+            if session.JudgeConfig.SpecialJudge.RedirectProgramOut {
+                infile = path.Join(session.SessionDir, rst.ProgramOut)
+            }
+        }
+
+        outfile = path.Join(session.SessionDir, rst.CheckerOut)
+        errfile = path.Join(session.SessionDir, rst.CheckerError)
+        rlimit = forkexec.ExecRLimit{
+            TimeLimit: session.JudgeConfig.SpecialJudge.TimeLimit,
+            MemoryLimit: session.JudgeConfig.SpecialJudge.MemoryLimit,
+            StackLimit: session.JudgeConfig.SpecialJudge.MemoryLimit,
+            RealTimeLimit: session.JudgeConfig.RealTimeLimit,
+            FileSizeLimit: session.JudgeConfig.FileSizeLimit,
+        }
+        args = getSpecialJudgeArgs(session, rst)
+    } else {
+        infile = path.Join(session.ConfigDir, rst.Input)
+        outfile = path.Join(session.SessionDir, rst.ProgramOut)
+        errfile = path.Join(session.SessionDir, rst.ProgramError)
+        rlimit = forkexec.ExecRLimit{
+            TimeLimit: session.JudgeConfig.TimeLimit,
+            MemoryLimit: session.JudgeConfig.MemoryLimit,
+            StackLimit: session.JudgeConfig.MemoryLimit,
+            RealTimeLimit: session.JudgeConfig.RealTimeLimit,
+            FileSizeLimit: session.JudgeConfig.FileSizeLimit,
+        }
+        args = commands
+    }
+
+    if pipeMode {
+        // Open err file
+        stderr, err := os.OpenFile(errfile, os.O_RDWR|os.O_CREATE, 0644)
+        if err != nil {
+            return nil, err
+        }
+        files = []interface{}{ pipeFd[0], pipeFd[1], stderr }
+    } else {
+        // Open in file
+        stdin, err := os.OpenFile(infile, os.O_WRONLY, 0)
+        if err != nil {
+            return nil, err
+        }
+        // Open out file
+        stdout, err := os.OpenFile(outfile, os.O_RDWR|os.O_CREATE, 0644)
+        if err != nil {
+            return nil, err
+        }
+        // Open err file
+        stderr, err := os.OpenFile(errfile, os.O_RDWR|os.O_CREATE, 0644)
+        if err != nil {
+            return nil, err
+        }
+        files = []interface{}{ stdin, stdout, stderr }
+    }
+
+    // Start process
+    proc, err := process.StartProcess(programPath, args, &process.ProcAttr{
+        Dir: session.SessionDir,
+        Env: append(os.Environ(), ExtraEnviron...),
+        Files: files,
+        Sys: &forkexec.SysProcAttr{
+            Rlimit: rlimit,
+        },
+    })
+    if err != nil {
+        return nil, err
+    }
+    // Collect process info
+    pinfo := ProcessInfo{}
+    pinfo.Process = proc
+    pinfo.Pid = proc.Pid
+    return &pinfo, nil
 }
 
 // 构建判题程序的命令行参数
@@ -153,10 +317,13 @@ func getSpecialJudgeArgs(session *JudgeSession, rst *commonStructs.TestCaseResul
     if err == nil {
         po = path.Join(session.SessionDir, rst.ProgramOut)
     }
-    jr, err := filepath.Abs(path.Join(session.SessionDir, rst.JudgerReport))
+    jr, err := filepath.Abs(path.Join(session.SessionDir, rst.CheckerReport))
     if err == nil {
-        jr = path.Join(session.SessionDir, rst.JudgerReport)
+        jr = path.Join(session.SessionDir, rst.CheckerReport)
     }
+    // Run Judger (Testlib compatible)
+    // -appes prop will allow checker export result as xml.
+    // ./checker <input-file> <output-file> <answer-file> <report-file> [-appes]
     args := []string{
         session.JudgeConfig.SpecialJudge.Checker,       // 程序
         tci,                                            // 输入文件流
@@ -168,161 +335,4 @@ func getSpecialJudgeArgs(session *JudgeSession, rst *commonStructs.TestCaseResul
         args = append(args, "-appes")
     }
     return args
-}
-
-// 目标程序子进程
-func runProgramProcess(session *JudgeSession, rst *commonStructs.TestCaseResult, judger bool, pipeMode bool, pipeStd []int) (uintptr, []int, error) {
-    var (
-        err error
-        pid uintptr
-        fds []int
-    )
-
-    fds = make([]int, 3)
-
-    // Fork a new process
-    pid, err = forkProc()
-    if err != nil {
-        return 0, fds, errors.Errorf("fork process error: %s", err.Error())
-    }
-
-    if pid == 0 {
-        if pipeMode {
-            // Direct Pipe[Read] to Stdin
-            err = syscall.Dup2(pipeStd[0], syscall.Stdin)
-            if err != nil {
-                return 0, fds, err
-            }
-            // Direct Pipe[Write] to Stdout
-            err = syscall.Dup2(pipeStd[1], syscall.Stdout)
-            if err != nil {
-                return 0, fds, err
-            }
-        } else {
-            // Redirect test-case input to STDIN
-            if judger {
-                if !session.JudgeConfig.SpecialJudge.UseTestlib {
-                    if session.JudgeConfig.SpecialJudge.RedirectProgramOut {
-                        fds[0], err = redirectFileDescriptor(
-                            syscall.Stdout,
-                            path.Join(session.SessionDir, rst.ProgramOut),
-                            os.O_RDONLY,
-                            0,
-                        )
-                    } else {
-                        fds[0], err = redirectFileDescriptor(
-                            syscall.Stdin,
-                            path.Join(session.ConfigDir, rst.Input),
-                            os.O_RDONLY,
-                            0,
-                        )
-                    }
-                }
-            } else {
-                fds[0], err = redirectFileDescriptor(
-                    syscall.Stdin,
-                    path.Join(session.ConfigDir, rst.Input),
-                    os.O_RDONLY,
-                    0,
-                )
-            }
-            if err != nil {
-                return 0, fds, err
-            }
-
-            // Redirect userOut to STDOUT
-            if judger {
-                fds[1], err = redirectFileDescriptor(
-                    syscall.Stdout,
-                    path.Join(session.SessionDir, rst.JudgerOut),
-                    os.O_WRONLY|os.O_CREATE, 0644,
-                )
-            } else {
-                fds[1], err = redirectFileDescriptor(
-                    syscall.Stdout,
-                    path.Join(session.SessionDir, rst.ProgramOut),
-                    os.O_WRONLY|os.O_CREATE,
-                    0644,
-                )
-            }
-            if err != nil {
-                return 0, fds, err
-            }
-        }
-
-        // Redirect programError to STDERR
-        if judger {
-            fds[2], err = redirectFileDescriptor(
-                syscall.Stderr,
-                path.Join(session.SessionDir, rst.JudgerError),
-                os.O_WRONLY|os.O_CREATE,
-                0644,
-            )
-        } else {
-            fds[2], err = redirectFileDescriptor(
-                syscall.Stderr,
-                path.Join(session.SessionDir, rst.ProgramError),
-                os.O_WRONLY|os.O_CREATE,
-                0644,
-            )
-        }
-        if err != nil {
-            return 0, fds, err
-        }
-
-        // Set UID
-        if session.JudgeConfig.Uid > -1 {
-            err = syscall.Setuid(session.JudgeConfig.Uid)
-            if err != nil {
-                return 0, fds, err
-            }
-        }
-
-        // Set Resource Limit
-        if judger {
-            err = setLimit(
-                session.JudgeConfig.SpecialJudge.TimeLimit,
-                session.JudgeConfig.SpecialJudge.MemoryLimit,
-                session.JudgeConfig.RealTimeLimit,
-                session.JudgeConfig.FileSizeLimit,
-            )
-        } else {
-            err = setLimit(
-                session.JudgeConfig.TimeLimit,
-                session.JudgeConfig.MemoryLimit,
-                session.JudgeConfig.RealTimeLimit,
-                session.JudgeConfig.FileSizeLimit,
-            )
-        }
-        if err != nil {
-            return 0, fds, err
-        }
-
-        if judger {
-            // Run Judger (Testlib compatible)
-            // ./checker <input-file> <output-file> <answer-file> <report-file>
-            args := getSpecialJudgeArgs(session, rst)
-            _ = syscall.Exec(session.JudgeConfig.SpecialJudge.Checker, args, nil)
-        } else {
-            // Run Program
-            commands := session.Commands
-            // 参考exec.Command，从环境变量获取编译器/VM真实的地址
-            programPath := commands[0]
-            if filepath.Base(programPath) == programPath {
-                if programPath, err = exec.LookPath(programPath); err != nil {
-                    return 0, fds, err
-                }
-            }
-            if len(commands) > 1 {
-                err = syscall.Exec(programPath, commands[1:], CommonEnvs)
-            } else {
-                err = syscall.Exec(programPath, nil, CommonEnvs)
-            }
-        }
-        // it won't be run.
-    } else if pid < 0 {
-        return 0, fds, errors.Errorf("fork process error: pid < 0")
-    }
-    // parent process
-    return pid, fds, err
 }
