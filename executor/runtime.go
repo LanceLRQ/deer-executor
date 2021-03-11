@@ -305,7 +305,6 @@ func getProcessOptions(session *JudgeSession, rst *commonStructs.TestCaseResult,
         rlimit = forkexec.ExecRLimit{
             TimeLimit: session.JudgeConfig.SpecialJudge.TimeLimit,
             MemoryLimit: session.JudgeConfig.SpecialJudge.MemoryLimit,
-            StackLimit: session.JudgeConfig.SpecialJudge.MemoryLimit,
             RealTimeLimit: session.JudgeConfig.RealTimeLimit,
             FileSizeLimit: session.JudgeConfig.FileSizeLimit,
         }
@@ -318,7 +317,6 @@ func getProcessOptions(session *JudgeSession, rst *commonStructs.TestCaseResult,
         rlimit = forkexec.ExecRLimit{
             TimeLimit: session.JudgeConfig.TimeLimit,
             MemoryLimit: session.JudgeConfig.MemoryLimit,
-            StackLimit: session.JudgeConfig.MemoryLimit,
             RealTimeLimit: session.JudgeConfig.RealTimeLimit,
             FileSizeLimit: session.JudgeConfig.FileSizeLimit,
         }
