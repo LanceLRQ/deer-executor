@@ -18,6 +18,12 @@ import (
     "time"
 )
 
+type PArgs struct {
+    Name string
+    Args []string
+    Attr process.ProcAttr
+}
+
 // 额外需要被注入的环境变量
 var ExtraEnviron = []string{"PYTHONIOENCODING=utf-8"}
 
@@ -57,37 +63,54 @@ func (session *JudgeSession) runSpecialJudge(rst *commonStructs.TestCaseResult) 
 
 // 运行目标程序
 func (session *JudgeSession) runAsync(rst *commonStructs.TestCaseResult, isChecker bool, ctx context.Context) (*ProcessInfo, error) {
+    var err error
+
     runSuccess := make(chan bool, 1)
     pid := 0
-    var pinfo *ProcessInfo
-    var err error
+    pinfo := ProcessInfo{}
+
     go func() {
         var pstate *process.ProcessState
-        // create process
-        pinfo, err = startProcess(session, rst, isChecker, false, nil)
+        var pArgs *PArgs
+        var proc *process.Process
+        // Get process options
+        pArgs, err = getProcessOptions(session, rst, isChecker, false, nil)
         if err != nil {
             runSuccess <- false
             return
         }
-        pid = pinfo.Pid
+        // Start process
+        proc, err = process.StartProcess(pArgs.Name, pArgs.Args, &pArgs.Attr)
+        if err != nil {
+            runSuccess <- false
+            return
+        }
+        // Collect process info
+        pinfo.Process = proc
+        pinfo.Pid = proc.Pid
+        pid = proc.Pid
         log.Printf("Start process (%d)...\n", pinfo.Pid)
         // Wait for exit.
-        pstate, err = pinfo.Process.Wait()
+        pstate, err = proc.Wait()
         if err != nil {
             runSuccess <- false
             return
         }
         log.Printf("Process (%d) exited.\n", pinfo.Pid)
         pinfo.Status = pstate.Sys().(syscall.WaitStatus)
-        pinfo.Rusage = pstate.SysUsage().(syscall.Rusage)
-
+        pinfo.Rusage = pstate.SysUsage().(*syscall.Rusage)
+        if pinfo.Rusage == nil {
+            err = errors.Errorf("get rusage failed")
+            runSuccess <- false
+            return
+        }
         runSuccess <- true
     }()
 
     select {
         case ok := <- runSuccess:
             if ok {
-                return pinfo, nil
+                return &pinfo, nil
             } else {
                 return nil, err
             }
@@ -102,7 +125,6 @@ func (session *JudgeSession) runAsync(rst *commonStructs.TestCaseResult, isCheck
 
 // 运行交互评测
 func (session *JudgeSession) runInteractiveAsync(rst *commonStructs.TestCaseResult, ctx context.Context) (*ProcessInfo, *ProcessInfo, error) {
-    var answer, checker *ProcessInfo
     var answerErr, checkerErr, gErr error
 
     fdChecker, err := forkexec.GetPipe()
@@ -115,6 +137,8 @@ func (session *JudgeSession) runInteractiveAsync(rst *commonStructs.TestCaseResu
         return nil, nil, errors.Errorf("create pipe error: %s", err.Error())
     }
 
+    answer := ProcessInfo{}
+    checker := ProcessInfo{}
     answerSuccess := make(chan bool, 1)
     checkerSuccess := make(chan bool, 1)
     answerPid := 0
@@ -123,13 +147,24 @@ func (session *JudgeSession) runInteractiveAsync(rst *commonStructs.TestCaseResu
 
     go func() {
         var pstate *process.ProcessState
-        // create process
-        answer, answerErr = startProcess(session, rst, false, true, []uintptr{ fdAnswer[0], fdChecker[1] })
-        if answerErr != nil {
+        var pArgs *PArgs
+        var proc *process.Process
+        // Get process options
+        pArgs, err = getProcessOptions(session, rst, false, true, []uintptr{ fdAnswer[0], fdChecker[1] })
+        if err != nil {
             answerSuccess <- false
             return
         }
-        answerPid = answer.Pid
+        // Start process
+        proc, err = process.StartProcess(pArgs.Name, pArgs.Args, &pArgs.Attr)
+        if err != nil {
+            answerSuccess <- false
+            return
+        }
+        // Collect process info
+        answer.Process = proc
+        answer.Pid = proc.Pid
+        answerPid = proc.Pid
         log.Printf("[Interactive]Start answer process (%d)...\n", answer.Pid)
         // Wait for exit.
         pstate, answerErr = answer.Process.Wait()
@@ -139,20 +174,35 @@ func (session *JudgeSession) runInteractiveAsync(rst *commonStructs.TestCaseResu
         }
         log.Printf("Process (%d) exited.\n", answer.Pid)
         answer.Status = pstate.Sys().(syscall.WaitStatus)
-        answer.Rusage = pstate.SysUsage().(syscall.Rusage)
-
+        answer.Rusage = pstate.SysUsage().(*syscall.Rusage)
+        if answer.Rusage == nil {
+            err = errors.Errorf("get rusage failed")
+            answerSuccess <- false
+            return
+        }
         answerSuccess <- true
     }()
 
     go func() {
         var pstate *process.ProcessState
-        // create process
-        checker, checkerErr = startProcess(session, rst, true, true, []uintptr{ fdChecker[0], fdAnswer[1] })
-        if checkerErr != nil {
+        var pArgs *PArgs
+        var proc *process.Process
+        // Get process options
+        pArgs, err = getProcessOptions(session, rst, true, true, []uintptr{ fdChecker[0], fdAnswer[1] })
+        if err != nil {
             checkerSuccess <- false
             return
         }
-        checkerPid = checker.Pid
+        // Start process
+        proc, err = process.StartProcess(pArgs.Name, pArgs.Args, &pArgs.Attr)
+        if err != nil {
+            checkerSuccess <- false
+            return
+        }
+        // Collect process info
+        checker.Process = proc
+        checker.Pid = proc.Pid
+        checkerPid = proc.Pid
         log.Printf("[Interactive]Start checker process (%d)...\n", checker.Pid)
         // Wait for exit.
         pstate, checkerErr = checker.Process.Wait()
@@ -162,8 +212,12 @@ func (session *JudgeSession) runInteractiveAsync(rst *commonStructs.TestCaseResu
         }
         log.Printf("Process (%d) exited.\n", checker.Pid)
         checker.Status = pstate.Sys().(syscall.WaitStatus)
-        checker.Rusage = pstate.SysUsage().(syscall.Rusage)
-
+        checker.Rusage = pstate.SysUsage().(*syscall.Rusage)
+        if checker.Rusage == nil {
+            err = errors.Errorf("get rusage failed")
+            checkerSuccess <- false
+            return
+        }
         checkerSuccess <- true
     }()
 
@@ -205,13 +259,13 @@ finish:
     if gErr != nil {
         return nil, nil, gErr
     } else {
-        return answer, checker, nil
+        return &answer, &checker, nil
     }
 }
 
 
 // 运行一个新的进程
-func startProcess(session *JudgeSession, rst *commonStructs.TestCaseResult, isChecker, pipeMode bool, pipeFd []uintptr) (*ProcessInfo, error) {
+func getProcessOptions(session *JudgeSession, rst *commonStructs.TestCaseResult, isChecker, pipeMode bool, pipeFd []uintptr) (*PArgs, error) {
     var err error
     // Get shell commands
     commands := session.Commands
@@ -257,7 +311,7 @@ func startProcess(session *JudgeSession, rst *commonStructs.TestCaseResult, isCh
         }
         args = commands
     }
-
+    g
     if pipeMode {
         // Open err file
         stderr, err := os.OpenFile(errfile, os.O_RDWR|os.O_CREATE, 0644)
@@ -284,23 +338,18 @@ func startProcess(session *JudgeSession, rst *commonStructs.TestCaseResult, isCh
         files = []interface{}{ stdin, stdout, stderr }
     }
 
-    // Start process
-    proc, err := process.StartProcess(programPath, args, &process.ProcAttr{
-        Dir: session.SessionDir,
-        Env: append(os.Environ(), ExtraEnviron...),
-        Files: files,
-        Sys: &forkexec.SysProcAttr{
-            Rlimit: rlimit,
+    return &PArgs{
+        Name: programPath,
+        Args: args,
+        Attr: process.ProcAttr{
+            Dir: session.SessionDir,
+            Env: append(os.Environ(), ExtraEnviron...),
+            Files: files,
+            Sys: &forkexec.SysProcAttr{
+                Rlimit: rlimit,
+            },
         },
-    })
-    if err != nil {
-        return nil, err
-    }
-    // Collect process info
-    pinfo := ProcessInfo{}
-    pinfo.Process = proc
-    pinfo.Pid = proc.Pid
-    return &pinfo, nil
+    }, nil
 }
 
 // 构建判题程序的命令行参数
