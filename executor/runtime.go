@@ -105,13 +105,7 @@ func runAsync(session *JudgeSession, rst *commonStructs.TestCaseResult, isChecke
             runSuccess <- false
             return
         }
-        for _, f := range pArgs.Attr.Files {
-            if fi, ok := f.(*os.File); ok {
-                fi.Close()
-            } else if fd, ok := f.(uintptr); ok {
-                _ = syscall.Close(int(fd))
-            }
-        }
+        closeFiles(pArgs.Attr.Files)
         runSuccess <- true
     }()
     for {
@@ -192,6 +186,7 @@ func runInteractiveAsync(session *JudgeSession, rst *commonStructs.TestCaseResul
             answerSuccess <- false
             return
         }
+        closeFiles(pArgs.Attr.Files)
         answerSuccess <- true
     }()
 
@@ -230,6 +225,7 @@ func runInteractiveAsync(session *JudgeSession, rst *commonStructs.TestCaseResul
             checkerSuccess <- false
             return
         }
+        closeFiles(pArgs.Attr.Files)
         checkerSuccess <- true
     }()
     for {
@@ -291,6 +287,7 @@ func getProcessOptions(session *JudgeSession, rst *commonStructs.TestCaseResult,
     var args []string
     var files []interface{}
     var execProgram string
+    infile = path.Join(session.ConfigDir, rst.Input)
     if isChecker {
         execProgram = session.JudgeConfig.SpecialJudge.Checker
         // 如果不使用TestLib，可以开启把程序的Answer发送到Checker的Stdin，兼容以前的判题程序用。
@@ -299,7 +296,6 @@ func getProcessOptions(session *JudgeSession, rst *commonStructs.TestCaseResult,
                 infile = path.Join(session.SessionDir, rst.ProgramOut)
             }
         }
-
         outfile = path.Join(session.SessionDir, rst.CheckerOut)
         errfile = path.Join(session.SessionDir, rst.CheckerError)
         rlimit = forkexec.ExecRLimit{
@@ -311,7 +307,6 @@ func getProcessOptions(session *JudgeSession, rst *commonStructs.TestCaseResult,
         args = getSpecialJudgeArgs(session, rst)
     } else {
         execProgram = programPath
-        infile = path.Join(session.ConfigDir, rst.Input)
         outfile = path.Join(session.SessionDir, rst.ProgramOut)
         errfile = path.Join(session.SessionDir, rst.ProgramError)
         rlimit = forkexec.ExecRLimit{
@@ -351,7 +346,7 @@ func getProcessOptions(session *JudgeSession, rst *commonStructs.TestCaseResult,
         Name: execProgram,
         Args: args,
         Attr: &process.ProcAttr{
-            //Dir: session.SessionDir,
+            Dir: session.SessionDir,
             Env: append(os.Environ(), ExtraEnviron...),
             Files: files,
             Sys: &forkexec.SysProcAttr{
@@ -393,4 +388,14 @@ func getSpecialJudgeArgs(session *JudgeSession, rst *commonStructs.TestCaseResul
         args = append(args, "-appes")
     }
     return args
+}
+
+func closeFiles (files []interface{}) {
+    for _, f := range files {
+        if fi, ok := f.(*os.File); ok {
+            fi.Close()
+        } else if fd, ok := f.(uintptr); ok {
+            _ = syscall.Close(int(fd))
+        }
+    }
 }
