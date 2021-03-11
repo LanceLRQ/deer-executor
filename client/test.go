@@ -11,15 +11,20 @@ import (
     "time"
 )
 
-func Play() error {
+func Play(i int) error {
     var err error
     pid := 0
     ok := make(chan bool, 1)
     go func () {
-        var infile *os.File
+        var infile, outfile *os.File
         var p *process.Process
         var ps *process.ProcessState
         infile, err = os.OpenFile("/Users/yiyiwukeji/github/deer-executor/data/problems/APlusB/0.in", os.O_RDONLY, 0)
+        if err != nil {
+            ok <- false
+            return
+        }
+        outfile, err = os.OpenFile(fmt.Sprintf("./ans/%d.ans", i), os.O_WRONLY | os.O_CREATE, 0644)
         if err != nil {
             ok <- false
             return
@@ -29,7 +34,7 @@ func Play() error {
         }, &process.ProcAttr{
             Dir: "/tmp/1dc8b300-821a-11eb-abb1-787b8ab7e6fa",
             Env:   os.Environ(),
-            Files: []interface{}{infile,  os.Stdout,  os.Stderr},
+            Files: []interface{}{infile,  outfile,  os.Stderr},
             Sys: &forkexec.SysProcAttr {
                 Rlimit: forkexec.ExecRLimit {
                     TimeLimit: 1000,
@@ -66,9 +71,7 @@ func Play() error {
 
 func Test(c *cli.Context) error {
     for i := 0; i < 10; i++ {
-        go func() {
-            Play()
-        }()
+        _ = Play(i)
     }
     time.Sleep(time.Second * 10)
     return nil
