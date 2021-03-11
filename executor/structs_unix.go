@@ -12,5 +12,5 @@ type ProcessInfo struct {
     Pid     int                `json:"pid"`
     Process *process.Process   `json:"-"`
     Status  syscall.WaitStatus `json:"status"`
-    Rusage  syscall.Rusage     `json:"rusage"`
+    Rusage  *syscall.Rusage     `json:"rusage"`
 }
