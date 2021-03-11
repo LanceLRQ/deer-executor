@@ -27,7 +27,6 @@ type PArgs struct {
 // 额外需要被注入的环境变量
 var ExtraEnviron = []string{"PYTHONIOENCODING=utf-8"}
 
-
 // 运行目标程序
 func (session *JudgeSession) runNormalJudge(rst *commonStructs.TestCaseResult) (*ProcessInfo, error) {
     ctx, cancel := context.WithTimeout(context.Background(), time.Duration(session.Timeout) * time.Second)
@@ -106,20 +105,21 @@ func runAsync(session *JudgeSession, rst *commonStructs.TestCaseResult, isChecke
         }
         runSuccess <- true
     }()
-
-    select {
-        case ok := <- runSuccess:
+    for {
+        select {
+        case ok := <-runSuccess:
             if ok {
                 return &pinfo, nil
             } else {
                 return nil, err
             }
-        case <- ctx.Done(): // 触发超时
+        case <-ctx.Done(): // 触发超时
             if pid > 0 {
                 _ = syscall.Kill(pid, syscall.SIGKILL)
             }
             log.Println("Child process timeout!")
             return nil, errors.Errorf("Child process timeout!")
+        }
     }
 }
 
@@ -150,14 +150,14 @@ func runInteractiveAsync(session *JudgeSession, rst *commonStructs.TestCaseResul
         var pArgs *PArgs
         var proc *process.Process
         // Get process options
-        pArgs, err = getProcessOptions(session, rst, false, true, []uintptr{ fdAnswer[0], fdChecker[1] })
-        if err != nil {
+        pArgs, answerErr = getProcessOptions(session, rst, false, true, []uintptr{ fdAnswer[0], fdChecker[1] })
+        if answerErr != nil {
             answerSuccess <- false
             return
         }
         // Start process
-        proc, err = process.StartProcess(pArgs.Name, pArgs.Args, pArgs.Attr)
-        if err != nil {
+        proc, answerErr = process.StartProcess(pArgs.Name, pArgs.Args, pArgs.Attr)
+        if answerErr != nil {
             answerSuccess <- false
             return
         }
@@ -176,7 +176,7 @@ func runInteractiveAsync(session *JudgeSession, rst *commonStructs.TestCaseResul
         answer.Status = pstate.Sys().(syscall.WaitStatus)
         answer.Rusage = pstate.SysUsage().(*syscall.Rusage)
         if answer.Rusage == nil {
-            err = errors.Errorf("get rusage failed")
+            answerErr = errors.Errorf("get rusage failed")
             answerSuccess <- false
             return
         }
@@ -188,14 +188,14 @@ func runInteractiveAsync(session *JudgeSession, rst *commonStructs.TestCaseResul
         var pArgs *PArgs
         var proc *process.Process
         // Get process options
-        pArgs, err = getProcessOptions(session, rst, true, true, []uintptr{ fdChecker[0], fdAnswer[1] })
-        if err != nil {
+        pArgs, checkerErr = getProcessOptions(session, rst, true, true, []uintptr{ fdChecker[0], fdAnswer[1] })
+        if checkerErr != nil {
             checkerSuccess <- false
             return
         }
         // Start process
-        proc, err = process.StartProcess(pArgs.Name, pArgs.Args, pArgs.Attr)
-        if err != nil {
+        proc, checkerErr = process.StartProcess(pArgs.Name, pArgs.Args, pArgs.Attr)
+        if checkerErr != nil {
             checkerSuccess <- false
             return
         }
@@ -214,40 +214,38 @@ func runInteractiveAsync(session *JudgeSession, rst *commonStructs.TestCaseResul
         checker.Status = pstate.Sys().(syscall.WaitStatus)
         checker.Rusage = pstate.SysUsage().(*syscall.Rusage)
         if checker.Rusage == nil {
-            err = errors.Errorf("get rusage failed")
+            checkerErr = errors.Errorf("get rusage failed")
             checkerSuccess <- false
             return
         }
         checkerSuccess <- true
     }()
-
-    select {
-        case ok := <- answerSuccess:
-            if ok {
-                exitCounter++
-                if exitCounter >= 2 {
-                   goto finish
-                }
-            } else {
+    for {
+        select {
+        case _ = <-answerSuccess:
+            exitCounter++
+            if answerErr != nil {
                 gErr = answerErr
                 goto doClean
             }
-        case ok := <- checkerSuccess:
-            if ok {
-                exitCounter++
-                if exitCounter >= 2 {
-                   goto finish
-                }
-            } else {
+            if exitCounter >= 2 {
+                goto finish
+            }
+        case _ = <-checkerSuccess:
+            exitCounter++
+            if checkerErr != nil {
                 gErr = checkerErr
                 goto doClean
             }
-        case <- ctx.Done(): // 触发超时
+            if exitCounter >= 2 {
+                goto finish
+            }
+        case <-ctx.Done(): // 触发超时
             log.Println("Child process timeout!")
             gErr = errors.Errorf("Child process timeout!")
             goto doClean
+        }
     }
-
 doClean:
     if answerPid > 0 {
         _ = syscall.Kill(answerPid, syscall.SIGKILL)
@@ -313,7 +311,7 @@ func getProcessOptions(session *JudgeSession, rst *commonStructs.TestCaseResult,
     }
     if pipeMode {
         // Open err file
-        stderr, err := os.OpenFile(errfile, os.O_RDWR|os.O_CREATE, 0755)
+        stderr, err := os.OpenFile(errfile, os.O_WRONLY|os.O_CREATE, 0644)
         if err != nil {
            return nil, err
         }
@@ -325,24 +323,23 @@ func getProcessOptions(session *JudgeSession, rst *commonStructs.TestCaseResult,
             return nil, err
         }
         // Open out file
-        stdout, err := os.OpenFile(outfile, os.O_RDWR|os.O_CREATE, 0755)
+        stdout, err := os.OpenFile(outfile, os.O_WRONLY|os.O_CREATE, 0644)
         if err != nil {
             return nil, err
         }
         // Open err file
-        stderr, err := os.OpenFile(errfile, os.O_RDWR|os.O_CREATE, 0755)
+        stderr, err := os.OpenFile(errfile, os.O_WRONLY|os.O_CREATE, 0644)
         if err != nil {
            return nil, err
         }
         files = []interface{}{ stdin, stdout, stderr }
     }
-
     return &PArgs{
         Name: programPath,
         Args: args,
         Attr: &process.ProcAttr{
-            Dir: session.SessionDir,
-            Env: append(os.Environ(), ExtraEnviron...),
+            //Dir: session.SessionDir,
+            //Env: append(os.Environ(), ExtraEnviron...),
             Files: files,
             Sys: &forkexec.SysProcAttr{
                 Rlimit: rlimit,
