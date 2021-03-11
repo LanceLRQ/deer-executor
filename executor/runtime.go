@@ -37,6 +37,7 @@ func (session *JudgeSession) runNormalJudge(rst *commonStructs.TestCaseResult) (
 // 运行特殊评测
 func (session *JudgeSession) runSpecialJudge(rst *commonStructs.TestCaseResult) (*ProcessInfo, *ProcessInfo, error) {
     if session.JudgeConfig.SpecialJudge.Mode == constants.SpecialJudgeModeChecker {
+
         // checker模式，用runAsync依次运行
         ctx1, cancel1 := context.WithTimeout(context.Background(), time.Duration(session.Timeout) * time.Second)
         defer cancel1()
@@ -51,6 +52,7 @@ func (session *JudgeSession) runSpecialJudge(rst *commonStructs.TestCaseResult) 
             return nil, nil, err
         }
         return answer, checker, nil
+
     }  else if session.JudgeConfig.SpecialJudge.Mode == constants.SpecialJudgeModeInteractive {
         // 交互模式
         ctx, cancel := context.WithTimeout(context.Background(), time.Duration(session.Timeout) * time.Second)
@@ -103,24 +105,34 @@ func runAsync(session *JudgeSession, rst *commonStructs.TestCaseResult, isChecke
             runSuccess <- false
             return
         }
+        for _, f := range pArgs.Attr.Files {
+            if fi, ok := f.(*os.File); ok {
+                fi.Close()
+            } else if fd, ok := f.(uintptr); ok {
+                _ = syscall.Close(int(fd))
+            }
+        }
         runSuccess <- true
     }()
     for {
         select {
-        case ok := <-runSuccess:
-            if ok {
-                return &pinfo, nil
-            } else {
-                return nil, err
-            }
+        case  <-runSuccess:
+            goto finish
         case <-ctx.Done(): // 触发超时
-            if pid > 0 {
-                _ = syscall.Kill(pid, syscall.SIGKILL)
-            }
             log.Println("Child process timeout!")
-            return nil, errors.Errorf("Child process timeout!")
+            err = errors.Errorf("Child process timeout!")
+            goto doClean
         }
     }
+doClean:
+    if pid > 0 {
+        _ = syscall.Kill(pid, syscall.SIGKILL)
+    }
+finish:
+    if err != nil {
+        return nil, err
+    }
+    return &pinfo, nil
 }
 
 // 运行交互评测
@@ -278,7 +290,9 @@ func getProcessOptions(session *JudgeSession, rst *commonStructs.TestCaseResult,
     var rlimit forkexec.ExecRLimit
     var args []string
     var files []interface{}
+    var execProgram string
     if isChecker {
+        execProgram = session.JudgeConfig.SpecialJudge.Checker
         // 如果不使用TestLib，可以开启把程序的Answer发送到Checker的Stdin，兼容以前的判题程序用。
         if !session.JudgeConfig.SpecialJudge.UseTestlib {
             if session.JudgeConfig.SpecialJudge.RedirectProgramOut {
@@ -297,6 +311,7 @@ func getProcessOptions(session *JudgeSession, rst *commonStructs.TestCaseResult,
         }
         args = getSpecialJudgeArgs(session, rst)
     } else {
+        execProgram = programPath
         infile = path.Join(session.ConfigDir, rst.Input)
         outfile = path.Join(session.SessionDir, rst.ProgramOut)
         errfile = path.Join(session.SessionDir, rst.ProgramError)
@@ -335,11 +350,11 @@ func getProcessOptions(session *JudgeSession, rst *commonStructs.TestCaseResult,
         files = []interface{}{ stdin, stdout, stderr }
     }
     return &PArgs{
-        Name: programPath,
+        Name: execProgram,
         Args: args,
         Attr: &process.ProcAttr{
             //Dir: session.SessionDir,
-            //Env: append(os.Environ(), ExtraEnviron...),
+            Env: append(os.Environ(), ExtraEnviron...),
             Files: files,
             Sys: &forkexec.SysProcAttr{
                 Rlimit: rlimit,
