@@ -30,6 +30,7 @@ type JudgeSession struct {
     Compiler    provider.CodeCompileProviderInterface // Compiler entity
 
     Logger      *logger.JudgeLogger // Judge Logger
+    Timeout     int                 // Process timeout (s)
 }
 
 // 保存评测会话
@@ -59,6 +60,7 @@ func (session *JudgeSession) SaveConfiguration(userConfirm bool) error {
 func NewSession(configFile string) (*JudgeSession, error) {
     session := JudgeSession{}
     session.Logger = logger.NewJudgeLogger()
+    session.Timeout = 30        // 默认30秒超时
     session.SessionRoot = "/tmp"
     session.CodeLangName = "auto"
     session.JudgeConfig.Uid = -1

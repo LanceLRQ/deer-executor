@@ -97,9 +97,9 @@ func (session *JudgeSession) runOneCase(config *commonStructs.JudgeConfiguration
     tcResult.Output = tc.Output
     tcResult.ProgramOut = Id + "_program.out"
     tcResult.ProgramError = Id + "_program.err"
-    tcResult.JudgerOut = Id + "_judger.out"
-    tcResult.JudgerError = Id + "_judger.err"
-    tcResult.JudgerReport = Id + "_judger.report"
+    tcResult.CheckerOut = Id + "_checker.out"
+    tcResult.CheckerError = Id + "_checker.err"
+    tcResult.CheckerReport = Id + "_checker.report"
 
     // 检查测试数据的输入输出文件是否存在
     err = checkTestCaseInputOutput(tc, config.ConfigDir)
