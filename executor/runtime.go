@@ -311,7 +311,7 @@ func getProcessOptions(session *JudgeSession, rst *commonStructs.TestCaseResult,
         }
         args = commands
     }
-    g
+
     if pipeMode {
         // Open err file
         stderr, err := os.OpenFile(errfile, os.O_RDWR|os.O_CREATE, 0644)
