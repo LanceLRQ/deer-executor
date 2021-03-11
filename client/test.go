@@ -8,9 +8,10 @@ import (
     "log"
     "os"
     "syscall"
+    "time"
 )
 
-func Test(c *cli.Context) error {
+func Play() error {
     var err error
     pid := 0
     ok := make(chan bool, 1)
@@ -55,10 +56,20 @@ func Test(c *cli.Context) error {
         ok <- true
     }()
     select {
-        case rel := <- ok:
-            if rel {
-                fmt.Println("OK")
-            }
+    case rel := <- ok:
+        if rel {
+            fmt.Println("OK")
+        }
     }
     return err
+}
+
+func Test(c *cli.Context) error {
+    for i := 0; i < 10; i++ {
+        go func() {
+            Play()
+        }()
+    }
+    time.Sleep(time.Second * 10)
+    return nil
 }

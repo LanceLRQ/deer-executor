@@ -21,7 +21,7 @@ import (
 type PArgs struct {
     Name string
     Args []string
-    Attr process.ProcAttr
+    Attr *process.ProcAttr
 }
 
 // 额外需要被注入的环境变量
@@ -32,7 +32,7 @@ var ExtraEnviron = []string{"PYTHONIOENCODING=utf-8"}
 func (session *JudgeSession) runNormalJudge(rst *commonStructs.TestCaseResult) (*ProcessInfo, error) {
     ctx, cancel := context.WithTimeout(context.Background(), time.Duration(session.Timeout) * time.Second)
     defer cancel()
-    return session.runAsync(rst, false, ctx)
+    return runAsync(session, rst, false, ctx)
 }
 
 // 运行特殊评测
@@ -41,13 +41,13 @@ func (session *JudgeSession) runSpecialJudge(rst *commonStructs.TestCaseResult) 
         // checker模式，用runAsync依次运行
         ctx1, cancel1 := context.WithTimeout(context.Background(), time.Duration(session.Timeout) * time.Second)
         defer cancel1()
-        answer, err := session.runAsync(rst, false, ctx1)
+        answer, err := runAsync(session, rst, false, ctx1)
         if err != nil {
             return nil, nil, err
         }
         ctx2, cancel2 := context.WithTimeout(context.Background(), time.Duration(session.Timeout) * time.Second)
         defer cancel2()
-        checker, err := session.runAsync(rst, true, ctx2)
+        checker, err := runAsync(session, rst, true, ctx2)
         if err != nil {
             return nil, nil, err
         }
@@ -56,13 +56,13 @@ func (session *JudgeSession) runSpecialJudge(rst *commonStructs.TestCaseResult) 
         // 交互模式
         ctx, cancel := context.WithTimeout(context.Background(), time.Duration(session.Timeout) * time.Second)
         defer cancel()
-        return session.runInteractiveAsync(rst, ctx)
+        return runInteractiveAsync(session, rst, ctx)
     }
     return nil, nil, errors.Errorf("unkonw special judge mode")
 }
 
 // 运行目标程序
-func (session *JudgeSession) runAsync(rst *commonStructs.TestCaseResult, isChecker bool, ctx context.Context) (*ProcessInfo, error) {
+func runAsync(session *JudgeSession, rst *commonStructs.TestCaseResult, isChecker bool, ctx context.Context) (*ProcessInfo, error) {
     var err error
 
     runSuccess := make(chan bool, 1)
@@ -80,7 +80,7 @@ func (session *JudgeSession) runAsync(rst *commonStructs.TestCaseResult, isCheck
             return
         }
         // Start process
-        proc, err = process.StartProcess(pArgs.Name, pArgs.Args, &pArgs.Attr)
+        proc, err = process.StartProcess(pArgs.Name, pArgs.Args, pArgs.Attr)
         if err != nil {
             runSuccess <- false
             return
@@ -89,14 +89,14 @@ func (session *JudgeSession) runAsync(rst *commonStructs.TestCaseResult, isCheck
         pinfo.Process = proc
         pinfo.Pid = proc.Pid
         pid = proc.Pid
-        log.Printf("Start process (%d)...\n", pinfo.Pid)
+        //log.Printf("Start process (%d)...\n", pinfo.Pid)
         // Wait for exit.
         pstate, err = proc.Wait()
         if err != nil {
             runSuccess <- false
             return
         }
-        log.Printf("Process (%d) exited.\n", pinfo.Pid)
+        //log.Printf("Process (%d) exited.\n", pinfo.Pid)
         pinfo.Status = pstate.Sys().(syscall.WaitStatus)
         pinfo.Rusage = pstate.SysUsage().(*syscall.Rusage)
         if pinfo.Rusage == nil {
@@ -124,7 +124,7 @@ func (session *JudgeSession) runAsync(rst *commonStructs.TestCaseResult, isCheck
 }
 
 // 运行交互评测
-func (session *JudgeSession) runInteractiveAsync(rst *commonStructs.TestCaseResult, ctx context.Context) (*ProcessInfo, *ProcessInfo, error) {
+func runInteractiveAsync(session *JudgeSession, rst *commonStructs.TestCaseResult, ctx context.Context) (*ProcessInfo, *ProcessInfo, error) {
     var answerErr, checkerErr, gErr error
 
     fdChecker, err := forkexec.GetPipe()
@@ -156,7 +156,7 @@ func (session *JudgeSession) runInteractiveAsync(rst *commonStructs.TestCaseResu
             return
         }
         // Start process
-        proc, err = process.StartProcess(pArgs.Name, pArgs.Args, &pArgs.Attr)
+        proc, err = process.StartProcess(pArgs.Name, pArgs.Args, pArgs.Attr)
         if err != nil {
             answerSuccess <- false
             return
@@ -194,7 +194,7 @@ func (session *JudgeSession) runInteractiveAsync(rst *commonStructs.TestCaseResu
             return
         }
         // Start process
-        proc, err = process.StartProcess(pArgs.Name, pArgs.Args, &pArgs.Attr)
+        proc, err = process.StartProcess(pArgs.Name, pArgs.Args, pArgs.Attr)
         if err != nil {
             checkerSuccess <- false
             return
@@ -311,29 +311,28 @@ func getProcessOptions(session *JudgeSession, rst *commonStructs.TestCaseResult,
         }
         args = commands
     }
-
     if pipeMode {
         // Open err file
-        stderr, err := os.OpenFile(errfile, os.O_RDWR|os.O_CREATE, 0644)
+        stderr, err := os.OpenFile(errfile, os.O_RDWR|os.O_CREATE, 0755)
         if err != nil {
-            return nil, err
+           return nil, err
         }
         files = []interface{}{ pipeFd[0], pipeFd[1], stderr }
     } else {
         // Open in file
-        stdin, err := os.OpenFile(infile, os.O_WRONLY, 0)
+        stdin, err := os.OpenFile(infile, os.O_RDONLY, 0)
         if err != nil {
             return nil, err
         }
         // Open out file
-        stdout, err := os.OpenFile(outfile, os.O_RDWR|os.O_CREATE, 0644)
+        stdout, err := os.OpenFile(outfile, os.O_RDWR|os.O_CREATE, 0755)
         if err != nil {
             return nil, err
         }
         // Open err file
-        stderr, err := os.OpenFile(errfile, os.O_RDWR|os.O_CREATE, 0644)
+        stderr, err := os.OpenFile(errfile, os.O_RDWR|os.O_CREATE, 0755)
         if err != nil {
-            return nil, err
+           return nil, err
         }
         files = []interface{}{ stdin, stdout, stderr }
     }
@@ -341,7 +340,7 @@ func getProcessOptions(session *JudgeSession, rst *commonStructs.TestCaseResult,
     return &PArgs{
         Name: programPath,
         Args: args,
-        Attr: process.ProcAttr{
+        Attr: &process.ProcAttr{
             Dir: session.SessionDir,
             Env: append(os.Environ(), ExtraEnviron...),
             Files: files,
