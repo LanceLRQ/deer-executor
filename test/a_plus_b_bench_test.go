@@ -25,7 +25,7 @@ func runJudgeBenchmark(codeFiles []CodeCases, b *testing.B) error {
     }
     rand.Seed(time.Now().UnixNano())
     errFlag := false
-    times := 100
+    times := int(100 + rand.Int31n(1000))
     b.N = times
 
     fmt.Printf("%d tests.\n", times)
@@ -58,6 +58,7 @@ func runJudgeBenchmark(codeFiles []CodeCases, b *testing.B) error {
             expName = "Unknown"
         }
         if judgeResult.JudgeResult != expect {
+            fmt.Println(judgeResult.MemoryUsed)
             log.Printf("unexpected! [%s] expect %s, got %s.\n", strconv.Itoa(i), expName, name)
             errFlag = true
             icExitCounter[judgeResult.JudgeResult]++
