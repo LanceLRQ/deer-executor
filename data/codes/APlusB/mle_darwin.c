@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #define N 1008016
-#define M 6000004
+#define M 7000004
 
 int a[1004][1004];
 int b[1004][1004];
