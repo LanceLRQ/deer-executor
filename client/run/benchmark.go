@@ -33,14 +33,27 @@ func runJudgeBenchmark(c *cli.Context, configFile string) error {
     defer rfp.Close()
 
     workDir := c.String("work-dir")
+    // 构建运行选项
+    rOptions := &RunOption{
+        Clean: true,
+        ShowLog: false,
+        LogLevel: 0,
+        WorkDir: workDir,
+        ConfigFile: configFile,
+        Language: c.String("language"),
+        LibraryDir: c.String("library"),
+        CodePath: c.Args().Get(1),
+        SessionId: "",
+        SessionRoot: "",
+    }
 
     startTime := time.Now().UnixNano()
     exitCounter := map[int]int{}
     for i := 0; i < times; i++ {
-        if i%10 == 0 {
+        if i % 10 == 0 {
             log.Printf("[%d / %d]\n", i, times)
         }
-        judgeResult, _, err := runOnceJudge(c, configFile, workDir, i)
+        judgeResult, _, err := runOnceJudge(rOptions)
         if err != nil {
             rel.Message = fmt.Sprintf("break! %s\n", err.Error())
             log.Print(rel.Message)

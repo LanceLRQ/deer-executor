@@ -5,7 +5,6 @@ package run
 import (
     "github.com/LanceLRQ/deer-common/logger"
     "github.com/LanceLRQ/deer-common/persistence"
-    "github.com/LanceLRQ/deer-common/persistence/judge_result"
     commonStructs "github.com/LanceLRQ/deer-common/structs"
     "github.com/LanceLRQ/deer-common/utils"
     "github.com/LanceLRQ/deer-executor/v2/executor"
@@ -15,34 +14,21 @@ import (
     "log"
     "os"
     "path/filepath"
-    "strconv"
 )
 
 // 执行一次完整的评测
-func runOnceJudge(c *cli.Context, configFile, workDir string, counter int) (*commonStructs.JudgeResult, *executor.JudgeSession, error) {
-    isBenchmarkMode := c.Int("benchmark") > 1
-    var logLevel int
-    showLog := false
-    if c.Bool("log") {
-        showLog = true
-        var ok bool
-        logLevelStr := c.String("log-level")
-        logLevel, ok = logger.LogLevelStrMapping[logLevelStr]
-        if !ok {
-            logLevel = 0
-        }
-    }
+func runOnceJudge(options *RunOption) (*commonStructs.JudgeResult, *executor.JudgeSession, error) {
     // create session
-    session, err := executor.NewSessionWithLog(configFile, !isBenchmarkMode && showLog, logLevel)
+    session, err := executor.NewSessionWithLog(options.ConfigFile, options.ShowLog, options.LogLevel)
     if err != nil {
         return nil, nil, err
     }
-    if c.String("language") != "" {
-        session.CodeLangName = c.String("language")
+    if options.Language != "" {
+        session.CodeLangName = options.Language
     }
     if session.JudgeConfig.SpecialJudge.Mode > 0 {
         // 特判时需要检查library目录
-        libDir, err := filepath.Abs(c.String("library"))
+        libDir, err := filepath.Abs(options.LibraryDir)
         if err != nil {
             return nil, nil, errors.Errorf("get library root error: %s", err.Error())
         }
@@ -56,24 +42,20 @@ func runOnceJudge(c *cli.Context, configFile, workDir string, counter int) (*com
         session.LibraryDir = libDir
     }
     // init files
-    if workDir != "" {
-        workDirAbsPath, err := filepath.Abs(workDir)
+    if options.WorkDir != "" {
+        workDirAbsPath, err := filepath.Abs(options.WorkDir)
         if err != nil {
             return nil, nil, err
         }
         session.ConfigDir = workDirAbsPath
         session.JudgeConfig.ConfigDir = session.ConfigDir
     }
-    session.CodeFile = c.Args().Get(1)
-    session.SessionId = c.String("session-id")
-    session.SessionRoot = c.String("session-root")
+    session.CodeFile = options.CodePath
+    session.SessionId = options.SessionId
+    session.SessionRoot = options.SessionRoot
     // create session info
-    if isBenchmarkMode {
-        session.SessionId = uuid.NewV1().String() + strconv.Itoa(counter)
-    } else {
-        if session.SessionId == "" {
-            session.SessionId = uuid.NewV1().String()
-        }
+    if session.SessionId == "" {
+        session.SessionId = uuid.NewV1().String()
     }
     if session.SessionRoot == "" {
         session.SessionRoot = "/tmp"
@@ -90,6 +72,7 @@ func runOnceJudge(c *cli.Context, configFile, workDir string, counter int) (*com
     return &judgeResult, session, nil
 }
 
+// 执行CLI的评测
 func runUserJudge (c *cli.Context, configFile, workDir string) (*commonStructs.JudgeResult, error) {
     // parse params
     persistenceOn := c.String("persistence") != ""
@@ -118,27 +101,51 @@ func runUserJudge (c *cli.Context, configFile, workDir string) (*commonStructs.J
             jOption.DigitalPEM = pem
         }
     }
-    // Start Judgement
-    judgeResult, judgeSession, err := runOnceJudge(c, configFile, workDir, 0)
+
+    isBenchmarkMode := c.Int("benchmark") > 1
+
+    // 获取log等级
+    var logLevel int
+    showLog := false
+    if c.Bool("log") {
+        showLog = true
+        var ok bool
+        logLevelStr := c.String("log-level")
+        logLevel, ok = logger.LogLevelStrMapping[logLevelStr]
+        if !ok {
+            logLevel = 0
+        }
+    }
+    showLog = !isBenchmarkMode && showLog
+
+    // 构建运行选项
+    rOptions := &RunOption{
+        Clean: !c.Bool("no-clean"),
+        ShowLog: showLog,
+        LogLevel: logLevel,
+        WorkDir: workDir,
+        ConfigFile: configFile,
+        Language: c.String("language"),
+        LibraryDir: c.String("library"),
+        CodePath: c.Args().Get(1),
+        SessionId: c.String("session-id"),
+        SessionRoot: c.String("session-root"),
+    }
+
+    if persistenceOn {
+        rOptions.Persistence = &jOption
+    }
+
+    // 执行评测
+    _, judgeResult, err := StartJudgement(rOptions)
     if err != nil {
         return nil, err
     }
-    // Do clean (or benchmark on)
-    if !c.Bool("no-clean") {
-        defer judgeSession.Clean()
-    }
 
-    // persistence
-    jOption.SessionDir = judgeSession.SessionDir
-    if persistenceOn {
-        err = judge_result.PersistentJudgeResult(judgeResult, &jOption)
-        if err != nil {
-            return nil, err
-        }
-    }
     if !c.Bool("detail") {
         judgeResult.TestCases = nil
         judgeResult.JudgeLogs = nil
     }
+
     return judgeResult, nil
 }
