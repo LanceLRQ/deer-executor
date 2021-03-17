@@ -22,3 +22,5 @@ data/test_cases/*
 pkg/deer-common
 report.log
 .DS_Store
+compilers.json
+jit_memory.json
