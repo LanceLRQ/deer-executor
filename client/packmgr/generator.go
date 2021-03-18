@@ -21,9 +21,10 @@ import (
 
 // 运行测试数据生成
 func runTestCaseGen(session *executor.JudgeSession, tCase *structs.TestCase, withAnswer bool) error {
-    ctx, _ := context.WithTimeout(context.Background(), 3 * time.Second)
     // 如果是generator脚本
     if tCase.UseGenerator {
+        ctx, cancel := context.WithTimeout(context.Background(), 3 * time.Second)
+        defer cancel()
         inbytes, err := utils.CallGenerator(ctx, tCase, session.ConfigDir)
         if err != nil {
             return err
@@ -37,10 +38,11 @@ func runTestCaseGen(session *executor.JudgeSession, tCase *structs.TestCase, wit
     }
     if withAnswer {
         fin, err := os.Open(path.Join(session.ConfigDir, tCase.Input))
-        if err != nil { return nil }
+        if err != nil { return err }
         fout, err := os.Create(path.Join(session.ConfigDir, tCase.Output))
-        if err != nil { return nil }
-        ctx, _ := context.WithTimeout(context.Background(), 5 * time.Second)
+        if err != nil { return err }
+        ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
+        defer cancel()
         rel, err := utils.RunUnixShell(&structs.ShellOptions{
             Context:   ctx,
             Name:      session.Commands[0],
