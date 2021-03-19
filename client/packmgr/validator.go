@@ -2,8 +2,8 @@ package packmgr
 
 import (
 	"context"
-	"github.com/LanceLRQ/deer-common/structs"
-	"github.com/LanceLRQ/deer-common/utils"
+	"github.com/LanceLRQ/deer-executor/v2/common/structs"
+	"github.com/LanceLRQ/deer-executor/v2/common/utils"
 	"github.com/LanceLRQ/deer-executor/v2/executor"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"

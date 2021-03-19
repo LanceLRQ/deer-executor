@@ -2,8 +2,8 @@ package test
 
 import (
 	"fmt"
-	"github.com/LanceLRQ/deer-common/constants"
-	"github.com/LanceLRQ/deer-common/utils"
+	"github.com/LanceLRQ/deer-executor/v2/common/constants"
+	"github.com/LanceLRQ/deer-executor/v2/common/utils"
 	"log"
 	"math/rand"
 	"runtime"

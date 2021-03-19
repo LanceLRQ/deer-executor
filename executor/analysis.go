@@ -4,9 +4,9 @@ package executor
 
 import (
 	"fmt"
-	"github.com/LanceLRQ/deer-common/constants"
-	commonStructs "github.com/LanceLRQ/deer-common/structs"
-	"github.com/LanceLRQ/deer-common/utils"
+	"github.com/LanceLRQ/deer-executor/v2/common/constants"
+	commonStructs "github.com/LanceLRQ/deer-executor/v2/common/structs"
+	"github.com/LanceLRQ/deer-executor/v2/common/utils"
 	"io/ioutil"
 	"path"
 	"strconv"

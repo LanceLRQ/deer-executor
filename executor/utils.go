@@ -2,8 +2,8 @@ package executor
 
 import (
 	"fmt"
-	"github.com/LanceLRQ/deer-common/provider"
-	commonStructs "github.com/LanceLRQ/deer-common/structs"
+	"github.com/LanceLRQ/deer-executor/v2/common/provider"
+	commonStructs "github.com/LanceLRQ/deer-executor/v2/common/structs"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"

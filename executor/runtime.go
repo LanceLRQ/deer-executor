@@ -4,10 +4,10 @@ package executor
 
 import (
 	"context"
-	"github.com/LanceLRQ/deer-common/constants"
-	"github.com/LanceLRQ/deer-common/sandbox/forkexec"
-	"github.com/LanceLRQ/deer-common/sandbox/process"
-	commonStructs "github.com/LanceLRQ/deer-common/structs"
+	"github.com/LanceLRQ/deer-executor/v2/common/constants"
+	"github.com/LanceLRQ/deer-executor/v2/common/sandbox/forkexec"
+	"github.com/LanceLRQ/deer-executor/v2/common/sandbox/process"
+	commonStructs "github.com/LanceLRQ/deer-executor/v2/common/structs"
 	"github.com/pkg/errors"
 	"log"
 	"os"

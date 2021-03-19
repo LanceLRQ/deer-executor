@@ -3,7 +3,7 @@
 package executor
 
 import (
-	"github.com/LanceLRQ/deer-common/sandbox/process"
+	"github.com/LanceLRQ/deer-executor/v2/common/sandbox/process"
 	"syscall"
 )
 

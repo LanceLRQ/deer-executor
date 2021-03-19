@@ -2,9 +2,9 @@ package packmgr
 
 import (
 	"fmt"
-	"github.com/LanceLRQ/deer-common/persistence"
-	"github.com/LanceLRQ/deer-common/persistence/problems"
-	"github.com/LanceLRQ/deer-common/utils"
+	"github.com/LanceLRQ/deer-executor/v2/common/persistence"
+	"github.com/LanceLRQ/deer-executor/v2/common/persistence/problems"
+	"github.com/LanceLRQ/deer-executor/v2/common/utils"
 	"github.com/LanceLRQ/deer-executor/v2/executor"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"

@@ -2,9 +2,9 @@ package generate
 
 import (
 	"fmt"
-	"github.com/LanceLRQ/deer-common/persistence/problems"
-	commonStructs "github.com/LanceLRQ/deer-common/structs"
-	"github.com/LanceLRQ/deer-common/utils"
+	"github.com/LanceLRQ/deer-executor/v2/common/persistence/problems"
+	commonStructs "github.com/LanceLRQ/deer-executor/v2/common/structs"
+	"github.com/LanceLRQ/deer-executor/v2/common/utils"
 	"github.com/LanceLRQ/deer-executor/v2/executor"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"

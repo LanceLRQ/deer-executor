@@ -1,8 +1,8 @@
 package run
 
 import (
-	"github.com/LanceLRQ/deer-common/persistence/judge_result"
-	commonStructs "github.com/LanceLRQ/deer-common/structs"
+	"github.com/LanceLRQ/deer-executor/v2/common/persistence/judge_result"
+	commonStructs "github.com/LanceLRQ/deer-executor/v2/common/structs"
 	"github.com/LanceLRQ/deer-executor/v2/executor"
 )
 

@@ -3,10 +3,10 @@
 package run
 
 import (
-	"github.com/LanceLRQ/deer-common/logger"
-	"github.com/LanceLRQ/deer-common/persistence"
-	commonStructs "github.com/LanceLRQ/deer-common/structs"
-	"github.com/LanceLRQ/deer-common/utils"
+	"github.com/LanceLRQ/deer-executor/v2/common/logger"
+	"github.com/LanceLRQ/deer-executor/v2/common/persistence"
+	commonStructs "github.com/LanceLRQ/deer-executor/v2/common/structs"
+	"github.com/LanceLRQ/deer-executor/v2/common/utils"
 	"github.com/LanceLRQ/deer-executor/v2/executor"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"

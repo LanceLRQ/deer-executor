@@ -2,10 +2,10 @@ package test
 
 import (
 	"fmt"
-	"github.com/LanceLRQ/deer-common/constants"
-	"github.com/LanceLRQ/deer-common/provider"
-	commonStructs "github.com/LanceLRQ/deer-common/structs"
-	"github.com/LanceLRQ/deer-common/utils"
+	"github.com/LanceLRQ/deer-executor/v2/common/constants"
+	"github.com/LanceLRQ/deer-executor/v2/common/provider"
+	commonStructs "github.com/LanceLRQ/deer-executor/v2/common/structs"
+	"github.com/LanceLRQ/deer-executor/v2/common/utils"
 	"github.com/LanceLRQ/deer-executor/v2/executor"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"

@@ -2,7 +2,7 @@ package test
 
 import (
 	"flag"
-	"github.com/LanceLRQ/deer-common/constants"
+	"github.com/LanceLRQ/deer-executor/v2/common/constants"
 	"testing"
 )
 

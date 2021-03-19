@@ -5,8 +5,8 @@ package executor
 import (
 	"bufio"
 	"fmt"
-	"github.com/LanceLRQ/deer-common/constants"
-	commonStructs "github.com/LanceLRQ/deer-common/structs"
+	"github.com/LanceLRQ/deer-executor/v2/common/constants"
+	commonStructs "github.com/LanceLRQ/deer-executor/v2/common/structs"
 	"os"
 	"path"
 	"strings"

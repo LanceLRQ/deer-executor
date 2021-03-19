@@ -4,9 +4,9 @@ package run
 
 import (
 	"fmt"
-	"github.com/LanceLRQ/deer-common/constants"
-	"github.com/LanceLRQ/deer-common/utils"
 	"github.com/LanceLRQ/deer-executor/v2/client"
+	"github.com/LanceLRQ/deer-executor/v2/common/constants"
+	"github.com/LanceLRQ/deer-executor/v2/common/utils"
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"
@@ -65,7 +65,7 @@ func runJudgeBenchmark(c *cli.Context, configFile string) error {
 		if !ok {
 			name = "Unknown"
 		}
-		_, _ = rfp.WriteString(fmt.Sprintf("[%s]: %s\n", judgeResult.SessionId, name))
+		_, _ = rfp.WriteString(fmt.Sprintf("[%s]: %s\n", judgeResult.SessionID, name))
 		if judgeResult.JudgeResult != constants.JudgeFlagAC {
 			_, _ = rfp.WriteString(utils.ObjectToJSONStringFormatted(judgeResult) + "\n")
 		}

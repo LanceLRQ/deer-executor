@@ -3,8 +3,8 @@
 package executor
 
 import (
-	"github.com/LanceLRQ/deer-common/constants"
-	commonStructs "github.com/LanceLRQ/deer-common/structs"
+	"github.com/LanceLRQ/deer-executor/v2/common/constants"
+	commonStructs "github.com/LanceLRQ/deer-executor/v2/common/structs"
 	"github.com/pkg/errors"
 	"os"
 	"path"
@@ -122,7 +122,7 @@ func (session *JudgeSession) RunJudge() commonStructs.JudgeResult {
 
 	// make judge result
 	judgeResult := commonStructs.JudgeResult{}
-	judgeResult.SessionId = session.SessionID
+	judgeResult.SessionID = session.SessionID
 
 	// compile code
 	err := session.compileTargetProgram(&judgeResult)
