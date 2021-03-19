@@ -1,4 +1,3 @@
-// 数据校验
 package packmgr
 
 import (
@@ -118,7 +117,7 @@ func runTestlibValidators(config *structs.JudgeConfiguration, moduleName string,
 	return nil
 }
 
-// 运行validator cases的校验
+// RunTestlibValidatorCases 运行validator cases的校验
 // caseIndex < 0 表示校验全部
 func RunTestlibValidatorCases(config *structs.JudgeConfiguration, caseIndex int) error {
 	validator, err := utils.GetCompiledBinaryFileAbsPath("validator", config.TestLib.ValidatorName, config.ConfigDir)
@@ -144,7 +143,7 @@ func RunTestlibValidatorCases(config *structs.JudgeConfiguration, caseIndex int)
 	return nil
 }
 
-// 运行test cases的校验
+// RunTestCasesInputValidation 运行test cases的校验
 // caseIndex < 0 表示校验全部
 func RunTestCasesInputValidation(config *structs.JudgeConfiguration, caseIndex int) error {
 	validator, err := utils.GetCompiledBinaryFileAbsPath("validator", config.TestLib.ValidatorName, config.ConfigDir)
@@ -170,7 +169,7 @@ func RunTestCasesInputValidation(config *structs.JudgeConfiguration, caseIndex i
 	return nil
 }
 
-// 运行Testlib的validator校验 (APP入口)
+// RunTestlibValidators 运行Testlib的validator校验 (APP入口)
 func RunTestlibValidators(c *cli.Context) error {
 	configFile := c.Args().Get(0)
 	_, err := os.Stat(configFile)

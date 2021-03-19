@@ -4,6 +4,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+// RunFlags for cli command 'run'
 var RunFlags = []cli.Flag{
 	&cli.BoolFlag{
 		Name:  "no-clean",

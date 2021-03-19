@@ -10,7 +10,7 @@ import (
 	"os"
 )
 
-// 生成编译器配置(程序使用)
+// MakeCompileConfigFile 生成编译器配置(程序使用)
 func MakeCompileConfigFile(c *cli.Context) error {
 	config := provider.CompileCommands
 	output := c.String("output")
@@ -35,7 +35,7 @@ func MakeCompileConfigFile(c *cli.Context) error {
 	return nil
 }
 
-// 生成JIT内存宽限配置
+// MakeJITMemoryConfigFile 生成JIT内存宽限配置
 func MakeJITMemoryConfigFile(c *cli.Context) error {
 	config := constants.MemorySizeForJIT
 	output := c.String("output")

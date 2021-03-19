@@ -6,8 +6,8 @@ import (
 	"github.com/LanceLRQ/deer-executor/v2/executor"
 )
 
-// Start Judgement
-func StartJudgement(options *RunOption) (*executor.JudgeSession, *commonStructs.JudgeResult, error) {
+// StartJudgement to run a judge work.
+func StartJudgement(options *JudgementRunOption) (*executor.JudgeSession, *commonStructs.JudgeResult, error) {
 	judgeResult, judgeSession, err := runOnceJudge(options)
 	if err != nil {
 		return nil, nil, err

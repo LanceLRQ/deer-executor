@@ -1,5 +1,6 @@
 package test
 
+// JudgementBenchmark judgement benchmark args
 type JudgementBenchmark struct {
 	TimeUsed         float64        `json:"time_used"`
 	CurrectCounter   map[string]int `json:"currect_counter"`

@@ -5,6 +5,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+// AppGeneratorSubCommands for commands 'gen'
 var AppGeneratorSubCommands = cli.Commands{
 	{
 		Name:     "config",

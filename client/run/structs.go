@@ -2,7 +2,8 @@ package run
 
 import "github.com/LanceLRQ/deer-common/persistence"
 
-type RunOption struct {
+// JudgementRunOption options for StartJudgement
+type JudgementRunOption struct {
 	Persistence *persistence.JudgeResultPersisOptions
 	Clean       bool
 	ConfigFile  string
@@ -12,6 +13,6 @@ type RunOption struct {
 	Language    string
 	LibraryDir  string
 	CodePath    string
-	SessionId   string
+	SessionID   string
 	SessionRoot string
 }

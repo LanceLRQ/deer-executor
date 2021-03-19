@@ -17,7 +17,7 @@ import (
 )
 
 // 执行一次完整的评测
-func runOnceJudge(options *RunOption) (*commonStructs.JudgeResult, *executor.JudgeSession, error) {
+func runOnceJudge(options *JudgementRunOption) (*commonStructs.JudgeResult, *executor.JudgeSession, error) {
 	// create session
 	session, err := executor.NewSessionWithLog(options.ConfigFile, options.ShowLog, options.LogLevel)
 	if err != nil {
@@ -32,12 +32,12 @@ func runOnceJudge(options *RunOption) (*commonStructs.JudgeResult, *executor.Jud
 		if err != nil {
 			return nil, nil, errors.Errorf("get library root error: %s", err.Error())
 		}
-		if s, err := os.Stat(libDir); err != nil {
+		s, err := os.Stat(libDir)
+		if err != nil {
 			return nil, nil, errors.Errorf("library root not exists")
-		} else {
-			if !s.IsDir() {
-				return nil, nil, errors.Errorf("library root not a directory")
-			}
+		}
+		if !s.IsDir() {
+			return nil, nil, errors.Errorf("library root not a directory")
 		}
 		session.LibraryDir = libDir
 	}
@@ -51,17 +51,17 @@ func runOnceJudge(options *RunOption) (*commonStructs.JudgeResult, *executor.Jud
 		session.JudgeConfig.ConfigDir = session.ConfigDir
 	}
 	session.CodeFile = options.CodePath
-	session.SessionId = options.SessionId
+	session.SessionID = options.SessionID
 	session.SessionRoot = options.SessionRoot
 	// create session info
-	if session.SessionId == "" {
-		session.SessionId = uuid.NewV1().String()
+	if session.SessionID == "" {
+		session.SessionID = uuid.NewV1().String()
 	}
 	if session.SessionRoot == "" {
 		session.SessionRoot = "/tmp"
 	}
 	// 初始化session dir
-	sessionDir, err := utils.GetSessionDir(session.SessionRoot, session.SessionId)
+	sessionDir, err := utils.GetSessionDir(session.SessionRoot, session.SessionID)
 	if err != nil {
 		log.Fatal(err)
 		return nil, nil, err
@@ -119,7 +119,7 @@ func runUserJudge(c *cli.Context, configFile, workDir string) (*commonStructs.Ju
 	showLog = !isBenchmarkMode && showLog
 
 	// 构建运行选项
-	rOptions := &RunOption{
+	rOptions := &JudgementRunOption{
 		Clean:       !c.Bool("no-clean"),
 		ShowLog:     showLog,
 		LogLevel:    logLevel,
@@ -128,7 +128,7 @@ func runUserJudge(c *cli.Context, configFile, workDir string) (*commonStructs.Ju
 		Language:    c.String("language"),
 		LibraryDir:  c.String("library"),
 		CodePath:    c.Args().Get(1),
-		SessionId:   c.String("session-id"),
+		SessionID:   c.String("session-id"),
 		SessionRoot: c.String("session-root"),
 	}
 

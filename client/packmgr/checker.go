@@ -109,7 +109,7 @@ func runCheckerCases(session *executor.JudgeSession, caseIndex int) error {
 	return nil
 }
 
-// 运行特殊评测的checker (APP入口)
+// RunCheckerCases 运行特殊评测的checker (APP入口)
 func RunCheckerCases(c *cli.Context) error {
 	configFile := c.Args().Get(0)
 	_, err := os.Stat(configFile)

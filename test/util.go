@@ -44,8 +44,8 @@ func runJudge(conf, codeFile, codeLang string) (*commonStructs.JudgeResult, erro
 	session.CodeFile = codeFile
 	session.CodeLangName = codeLang
 	session.SessionRoot = "/tmp"
-	session.SessionId = uuid.NewV1().String()
-	sessionDir, err := utils.GetSessionDir(session.SessionRoot, session.SessionId)
+	session.SessionID = uuid.NewV1().String()
+	sessionDir, err := utils.GetSessionDir(session.SessionRoot, session.SessionID)
 	if err != nil {
 		return nil, err
 	}

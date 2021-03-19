@@ -18,20 +18,21 @@ import (
 	"time"
 )
 
+// PArgs Start Process Arguments
 type PArgs struct {
 	Name string
 	Args []string
 	Attr *process.ProcAttr
 }
 
-// 额外需要被注入的环境变量
+// ExtraEnviron 额外需要被注入的环境变量
 var ExtraEnviron = []string{"PYTHONIOENCODING=utf-8"}
 
 // 运行目标程序
 func (session *JudgeSession) runNormalJudge(rst *commonStructs.TestCaseResult) (*ProcessInfo, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(session.Timeout)*time.Second)
 	defer cancel()
-	return runAsync(session, rst, false, ctx)
+	return runAsync(ctx, session, rst, false)
 }
 
 // 运行特殊评测
@@ -41,13 +42,13 @@ func (session *JudgeSession) runSpecialJudge(rst *commonStructs.TestCaseResult) 
 		// checker模式，用runAsync依次运行
 		ctx1, cancel1 := context.WithTimeout(context.Background(), time.Duration(session.Timeout)*time.Second)
 		defer cancel1()
-		answer, err := runAsync(session, rst, false, ctx1)
+		answer, err := runAsync(ctx1, session, rst, false)
 		if err != nil {
 			return nil, nil, err
 		}
 		ctx2, cancel2 := context.WithTimeout(context.Background(), time.Duration(session.Timeout)*time.Second)
 		defer cancel2()
-		checker, err := runAsync(session, rst, true, ctx2)
+		checker, err := runAsync(ctx2, session, rst, true)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -57,13 +58,13 @@ func (session *JudgeSession) runSpecialJudge(rst *commonStructs.TestCaseResult) 
 		// 交互模式
 		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(session.Timeout)*time.Second)
 		defer cancel()
-		return runInteractiveAsync(session, rst, ctx)
+		return runInteractiveAsync(ctx, session, rst)
 	}
 	return nil, nil, errors.Errorf("unkonw special judge mode")
 }
 
 // 运行目标程序
-func runAsync(session *JudgeSession, rst *commonStructs.TestCaseResult, isChecker bool, ctx context.Context) (*ProcessInfo, error) {
+func runAsync(ctx context.Context, session *JudgeSession, rst *commonStructs.TestCaseResult, isChecker bool) (*ProcessInfo, error) {
 	var err error
 
 	runSuccess := make(chan bool, 1)
@@ -130,7 +131,7 @@ finish:
 }
 
 // 运行交互评测
-func runInteractiveAsync(session *JudgeSession, rst *commonStructs.TestCaseResult, ctx context.Context) (*ProcessInfo, *ProcessInfo, error) {
+func runInteractiveAsync(ctx context.Context, session *JudgeSession, rst *commonStructs.TestCaseResult) (*ProcessInfo, *ProcessInfo, error) {
 	var answerErr, checkerErr, gErr error
 
 	fdChecker, err := forkexec.GetPipe()
@@ -264,9 +265,8 @@ doClean:
 finish:
 	if gErr != nil {
 		return nil, nil, gErr
-	} else {
-		return &answer, &checker, nil
 	}
+	return &answer, &checker, nil
 }
 
 // 运行一个新的进程

@@ -95,15 +95,14 @@ func compileWorkCodeFiles(config structs.JudgeConfiguration, libraryDir string) 
 			if err != nil {
 				fmt.Printf("Error!\n%s", err.Error())
 				return errors.Errorf("compile error")
-			} else {
-				fmt.Println("Ok!")
 			}
+			fmt.Println("Ok!")
 		}
 	}
 	return nil
 }
 
-// 编译作业代码(APP入口)
+// CompileProblemWorkDirSourceCodes 编译作业代码(APP入口)
 func CompileProblemWorkDirSourceCodes(c *cli.Context) error {
 	configFile := c.Args().Get(0)
 	_, err := os.Stat(configFile)
@@ -118,12 +117,12 @@ func CompileProblemWorkDirSourceCodes(c *cli.Context) error {
 	if err != nil {
 		return errors.Errorf("get library root error: %s", err.Error())
 	}
-	if s, err := os.Stat(libDir); err != nil {
+	s, err := os.Stat(libDir)
+	if err != nil {
 		return errors.Errorf("library root not exists")
-	} else {
-		if !s.IsDir() {
-			return errors.Errorf("library root not a directory")
-		}
+	}
+	if !s.IsDir() {
+		return errors.Errorf("library root not a directory")
 	}
 	err = compileWorkCodeFiles(session.JudgeConfig, libDir)
 	return err

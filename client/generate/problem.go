@@ -35,7 +35,7 @@ func makeProblmConfig() (*commonStructs.JudgeConfiguration, error) {
 	return &config, nil
 }
 
-// 生成评测配置文件
+// MakeProblemConfigFile 生成评测配置文件
 func MakeProblemConfigFile(c *cli.Context) error {
 	config, err := makeProblmConfig()
 	if err != nil {
@@ -62,7 +62,7 @@ func MakeProblemConfigFile(c *cli.Context) error {
 	return nil
 }
 
-// 创建一个题目工作目录
+// InitProblemWorkDir 创建一个题目工作目录
 func InitProblemWorkDir(c *cli.Context) error {
 	workDir := c.Args().Get(0)
 	// 如果路径存在目录或者文件

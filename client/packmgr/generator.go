@@ -1,4 +1,3 @@
-// 生成数据
 package packmgr
 
 import (
@@ -62,9 +61,8 @@ func runTestCaseGen(session *executor.JudgeSession, tCase *structs.TestCase, wit
 		if !rel.Success {
 			log.Printf("[generator] run answer code error: %s", rel.Stderr)
 			return errors.Errorf("[generator] run answer code error: %s", rel.Stderr)
-		} else {
-			log.Printf("[generator] generate answer done!")
 		}
+		log.Printf("[generator] generate answer done!")
 	}
 	return nil
 }
@@ -94,10 +92,10 @@ func runTestCaseGenerator(session *executor.JudgeSession, caseIndex int, withAns
 func initWork(session *executor.JudgeSession, answerCaseIndex uint) error {
 
 	// 强制设定工作目录
-	session.SessionId = uuid.NewV4().String()
+	session.SessionID = uuid.NewV4().String()
 	session.SessionRoot = "/tmp"
 	// 初始化session dir
-	sessionDir, err := utils.GetSessionDir(session.SessionRoot, session.SessionId)
+	sessionDir, err := utils.GetSessionDir(session.SessionRoot, session.SessionID)
 	if err != nil {
 		return err
 	}
@@ -125,7 +123,7 @@ func initWork(session *executor.JudgeSession, answerCaseIndex uint) error {
 	return nil
 }
 
-// 运行测试数据生成器 (APP入口)
+// RunTestCaseGenerator 运行测试数据生成器 (APP入口)
 func RunTestCaseGenerator(c *cli.Context) error {
 	configFile := c.Args().Get(0)
 	_, err := os.Stat(configFile)

@@ -5,6 +5,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+// AppProblemSubCommands for cli command 'problem'
 var AppProblemSubCommands = cli.Commands{
 	{
 		Name:      "build",

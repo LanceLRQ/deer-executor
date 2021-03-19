@@ -7,7 +7,7 @@ import (
 	"syscall"
 )
 
-// 进程信息
+// ProcessInfo 进程信息
 type ProcessInfo struct {
 	Pid     int                `json:"pid"`
 	Process *process.Process   `json:"-"`

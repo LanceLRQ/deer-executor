@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-// 基于JudgeOptions进行评测调度
+// JudgeOnce 基于JudgeOptions进行评测调度
 func (session *JudgeSession) JudgeOnce(judgeResult *commonStructs.TestCaseResult) {
 	switch session.JudgeConfig.SpecialJudge.Mode {
 	case constants.SpecialJudgeModeDisabled:
@@ -85,21 +85,21 @@ func checkTestCaseInputOutput(tcase commonStructs.TestCase, configDir string) er
 }
 
 // 对一组测试数据运行一次评测
-func (session *JudgeSession) runOneCase(config *commonStructs.JudgeConfiguration, tc commonStructs.TestCase, Id string) *commonStructs.TestCaseResult {
-	session.Logger.Infof("Run test case: %s", Id)
+func (session *JudgeSession) runOneCase(config *commonStructs.JudgeConfiguration, tc commonStructs.TestCase, id string) *commonStructs.TestCaseResult {
+	session.Logger.Infof("Run test case: %s", id)
 
 	var err error
 
 	tcResult := commonStructs.TestCaseResult{}
-	tcResult.Handle = Id
+	tcResult.Handle = id
 	// 创建相关的文件路径
 	tcResult.Input = tc.Input
 	tcResult.Output = tc.Output
-	tcResult.ProgramOut = Id + "_program.out"
-	tcResult.ProgramError = Id + "_program.err"
-	tcResult.CheckerOut = Id + "_checker.out"
-	tcResult.CheckerError = Id + "_checker.err"
-	tcResult.CheckerReport = Id + "_checker.report"
+	tcResult.ProgramOut = id + "_program.out"
+	tcResult.ProgramError = id + "_program.err"
+	tcResult.CheckerOut = id + "_checker.out"
+	tcResult.CheckerError = id + "_checker.err"
+	tcResult.CheckerReport = id + "_checker.report"
 
 	// 检查测试数据的输入输出文件是否存在
 	err = checkTestCaseInputOutput(tc, config.ConfigDir)
@@ -116,13 +116,13 @@ func (session *JudgeSession) runOneCase(config *commonStructs.JudgeConfiguration
 	return &tcResult
 }
 
-// 执行评测
+// RunJudge 执行评测
 func (session *JudgeSession) RunJudge() commonStructs.JudgeResult {
 	session.Logger.Info("Start Judgement")
 
 	// make judge result
 	judgeResult := commonStructs.JudgeResult{}
-	judgeResult.SessionId = session.SessionId
+	judgeResult.SessionId = session.SessionID
 
 	// compile code
 	err := session.compileTargetProgram(&judgeResult)

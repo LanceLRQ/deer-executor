@@ -14,9 +14,9 @@ import (
 	"strings"
 )
 
-// 评测会话类
+// JudgeSession 评测会话类
 type JudgeSession struct {
-	SessionId    string   // Judge Session Id
+	SessionID    string   // Judge Session Id
 	SessionRoot  string   // Session Root Directory
 	SessionDir   string   // Session Directory
 	ConfigFile   string   // Config file
@@ -33,7 +33,7 @@ type JudgeSession struct {
 	Timeout int                 // Process timeout (s)
 }
 
-// 保存评测会话
+// SaveConfiguration 保存评测会话
 func (session *JudgeSession) SaveConfiguration(userConfirm bool) error {
 	if userConfirm {
 		fmt.Print("Save all the changed to config file? [y/N] ")
@@ -56,7 +56,7 @@ func (session *JudgeSession) SaveConfiguration(userConfirm bool) error {
 	return nil
 }
 
-// 创建会话对象
+// NewSession 创建会话对象
 func NewSession(configFile string) (*JudgeSession, error) {
 	session := JudgeSession{}
 	session.Logger = logger.NewJudgeLogger()
@@ -92,7 +92,7 @@ func NewSession(configFile string) (*JudgeSession, error) {
 	return &session, nil
 }
 
-// 创建一个包含日志的对象
+// NewSessionWithLog 创建一个包含日志的对象
 func NewSessionWithLog(configFile string, print bool, level int) (*JudgeSession, error) {
 	session, err := NewSession(configFile)
 	if err != nil {
@@ -103,7 +103,7 @@ func NewSessionWithLog(configFile string, print bool, level int) (*JudgeSession,
 	return session, nil
 }
 
-// 清理案发现场
+// Clean 清理会话工作目录
 func (session *JudgeSession) Clean() {
 	_ = os.RemoveAll(session.SessionDir)
 }

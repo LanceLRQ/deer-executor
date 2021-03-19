@@ -1,6 +1,3 @@
-/* Deer executor
- * (C) 2019-Now LanceLRQ
- */
 package executor
 
 import (
@@ -14,6 +11,7 @@ import (
 	"syscall"
 )
 
+// Max find max between x & y
 func Max(x, y int64) int64 {
 	if x > y {
 		return x
@@ -21,12 +19,12 @@ func Max(x, y int64) int64 {
 	return y
 }
 
+// Max32 find max between a & b
 func Max32(a, b int) int {
 	if a > b {
 		return a
-	} else {
-		return b
 	}
+	return b
 }
 
 // 文件读写(有重试次数，checker专用)
@@ -53,7 +51,7 @@ func readFileWithTry(filePath string, name string, tryOnFailed int) ([]byte, str
 	return nil, errText, err
 }
 
-// 检查配置文件里的所有文件是否存在
+// CheckRequireFilesExists 检查配置文件里的所有文件是否存在
 func CheckRequireFilesExists(config *commonStructs.JudgeConfiguration, configDir string) error {
 	var err error
 	// 检查特判程序是否存在
@@ -83,7 +81,7 @@ func CheckRequireFilesExists(config *commonStructs.JudgeConfiguration, configDir
 	return nil
 }
 
-// 获取二进制文件的目录
+// GetOrCreateBinaryRoot 获取二进制文件的目录
 func GetOrCreateBinaryRoot(config *commonStructs.JudgeConfiguration) (string, error) {
 	binRoot := path.Join(config.ConfigDir, "bin")
 	_, err := os.Stat(binRoot)
@@ -96,7 +94,7 @@ func GetOrCreateBinaryRoot(config *commonStructs.JudgeConfiguration) (string, er
 	return binRoot, nil
 }
 
-// 普通特殊评测的编译方法
+// CompileSpecialJudgeCodeFile 普通特殊评测的编译方法
 func CompileSpecialJudgeCodeFile(source, name, binRoot, configDir, libraryDir, lang string) (string, error) {
 	genCodeFile := path.Join(configDir, source)
 	compileTarget := path.Join(binRoot, name)
@@ -121,7 +119,6 @@ func CompileSpecialJudgeCodeFile(source, name, binRoot, configDir, libraryDir, l
 	}
 	if ok {
 		return compileTarget, nil
-	} else {
-		return compileTarget, errors.Errorf("compile error: %s", ceinfo)
 	}
+	return compileTarget, errors.Errorf("compile error: %s", ceinfo)
 }

@@ -5,6 +5,7 @@ import (
 	"github.com/LanceLRQ/deer-common/utils"
 )
 
+// CliCommonMessage is a client comment message
 type CliCommonMessage struct {
 	// 是否错误
 	Error bool `json:"error"`
@@ -14,18 +15,20 @@ type CliCommonMessage struct {
 	Data interface{} `json:"data"`
 }
 
+// Print print log to stdout
 func (ccm CliCommonMessage) Print(formated bool) {
-	fmt.Println(ccm.ToJson(formated))
+	fmt.Println(ccm.ToJSON(formated))
 }
 
-func (ccm CliCommonMessage) ToJson(formated bool) string {
+// ToJSON convert log record to json
+func (ccm CliCommonMessage) ToJSON(formated bool) string {
 	if formated {
 		return utils.ObjectToJSONStringFormatted(ccm)
-	} else {
-		return utils.ObjectToJSONString(ccm)
 	}
+	return utils.ObjectToJSONString(ccm)
 }
 
+// NewCliCommonMessage to create a client comment message
 func NewCliCommonMessage(error bool, message string, data interface{}) CliCommonMessage {
 	return CliCommonMessage{
 		Error:   error,
@@ -34,6 +37,7 @@ func NewCliCommonMessage(error bool, message string, data interface{}) CliCommon
 	}
 }
 
+// NewClientSuccessMessage to create a client success message
 func NewClientSuccessMessage(data interface{}) CliCommonMessage {
 	return CliCommonMessage{
 		Error:   false,
@@ -41,6 +45,8 @@ func NewClientSuccessMessage(data interface{}) CliCommonMessage {
 		Data:    data,
 	}
 }
+
+// NewClientSuccessMessageText to create a new client message with text
 func NewClientSuccessMessageText(message string) CliCommonMessage {
 	return CliCommonMessage{
 		Error:   false,
@@ -49,6 +55,7 @@ func NewClientSuccessMessageText(message string) CliCommonMessage {
 	}
 }
 
+// NewClientErrorMessage to create a client error message
 func NewClientErrorMessage(err error, data interface{}) CliCommonMessage {
 	return CliCommonMessage{
 		Error:   true,

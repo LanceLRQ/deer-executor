@@ -14,6 +14,7 @@ import (
 	"time"
 )
 
+// JudgementBenchmark judgement benchmark args
 type JudgementBenchmark struct {
 	TimeUsed float64        `json:"time_used"`
 	Counter  map[string]int `json:"counter"`
@@ -34,7 +35,7 @@ func runJudgeBenchmark(c *cli.Context, configFile string) error {
 
 	workDir := c.String("work-dir")
 	// 构建运行选项
-	rOptions := &RunOption{
+	rOptions := &JudgementRunOption{
 		Clean:       true,
 		ShowLog:     false,
 		LogLevel:    0,
@@ -43,7 +44,7 @@ func runJudgeBenchmark(c *cli.Context, configFile string) error {
 		Language:    c.String("language"),
 		LibraryDir:  c.String("library"),
 		CodePath:    c.Args().Get(1),
-		SessionId:   "",
+		SessionID:   "",
 		SessionRoot: "",
 	}
 

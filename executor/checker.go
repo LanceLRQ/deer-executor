@@ -1,8 +1,5 @@
 // +build linux darwin
 
-/* Deer executor
- * (C) 2019 LanceLRQ
- */
 package executor
 
 import (
@@ -183,19 +180,18 @@ func charDiffIoUtil(useroutBuffer, answerBuffer []byte, useroutLen, answerLen in
 	// if left cursor's position equals right cursor's, means Accepted.
 	if leftPos == rightPos {
 		return constants.JudgeFlagAC, "AC!"
-	} else {
-		return constants.JudgeFlagPE, fmt.Sprintf(
-			"PE: leftPos=%d, rightPos=%d, leftLen=%d, rightLen=%d",
-			leftPos,
-			rightPos,
-			useroutLen,
-			answerLen,
-		)
 	}
+	return constants.JudgeFlagPE, fmt.Sprintf(
+		"PE: leftPos=%d, rightPos=%d, leftLen=%d, rightLen=%d",
+		leftPos,
+		rightPos,
+		useroutLen,
+		answerLen,
+	)
 }
 
+// DiffText Compare the text
 // 进行文本比较
-// Compare the text
 func (session *JudgeSession) DiffText(result *commonStructs.TestCaseResult) error {
 	answerInfo, err := os.Stat(path.Join(session.ConfigDir, result.Output))
 	if err != nil {
@@ -244,10 +240,9 @@ func (session *JudgeSession) DiffText(result *commonStructs.TestCaseResult) erro
 			if useroutLen > int64(session.JudgeConfig.FileSizeLimit) {
 				result.TextDiffLog = sizeText + "; WA: larger then limitation."
 				return nil
-			} else {
-				result.TextDiffLog = sizeText + "; WA: larger then 2 times."
-				return nil
 			}
+			result.TextDiffLog = sizeText + "; WA: larger then 2 times."
+			return nil
 		}
 	} else {
 		// WTF?

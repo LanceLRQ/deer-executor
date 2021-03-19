@@ -20,7 +20,7 @@ func checkRunArgs(c *cli.Context) error {
 	return nil
 }
 
-// 执行评测
+// UserRunJudge 执行评测
 func UserRunJudge(c *cli.Context) error {
 	err := checkRunArgs(c)
 	if err != nil {

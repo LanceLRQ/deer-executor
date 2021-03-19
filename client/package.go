@@ -5,6 +5,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+// PackProblemFlags for cli command 'pack'
 var PackProblemFlags = []cli.Flag{
 	&cli.BoolFlag{
 		Name:    "sign",
@@ -32,6 +33,7 @@ var PackProblemFlags = []cli.Flag{
 	},
 }
 
+// AppPackageSubCommands for cli command 'pack'
 var AppPackageSubCommands = cli.Commands{
 	{
 		Name:      "build",

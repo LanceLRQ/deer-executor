@@ -14,6 +14,7 @@ import (
 	"strings"
 )
 
+// BuildProblemPackage  创建题目数据包
 func BuildProblemPackage(c *cli.Context) error {
 
 	if c.String("passphrase") != "" {
@@ -73,7 +74,7 @@ func BuildProblemPackage(c *cli.Context) error {
 	return nil
 }
 
-// 题目包解包
+// UnpackProblemPackage 题目包解包
 func UnpackProblemPackage(c *cli.Context) error {
 	packageFile := c.Args().Get(0)
 	workDir := c.Args().Get(1)
@@ -116,7 +117,7 @@ func UnpackProblemPackage(c *cli.Context) error {
 	return nil
 }
 
-// 访问题目包信息
+// ReadProblemInfo 访问题目包信息
 func ReadProblemInfo(c *cli.Context) error {
 	packageFile := c.Args().Get(0)
 	isDeerPack, err := utils.IsProblemPackage(packageFile)
