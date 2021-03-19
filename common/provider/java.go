@@ -1,9 +1,6 @@
-/* Java Compiler Provider
- * (C) 2019 LanceLRQ
- *
- * This code is licenced under the GPLv3.
- */
 package provider
+
+// Java Compiler Provider
 
 import (
 	"fmt"
@@ -11,11 +8,13 @@ import (
 	"regexp"
 )
 
+// JavaCompileProvider java语言编译提供程序
 type JavaCompileProvider struct {
 	CodeCompileProvider
 	javaClassName string
 }
 
+// NewJavaCompileProvider 创建一个java语言编译提供程序
 func NewJavaCompileProvider() *JavaCompileProvider {
 	java := JavaCompileProvider{
 		javaClassName: "",
@@ -39,6 +38,7 @@ func getJavaClassName(code string) (className string, err error) {
 	return
 }
 
+// Init 初始化
 func (prov *JavaCompileProvider) Init(code string, workDir string) error {
 	prov.isReady = false
 	prov.realTime = false
@@ -70,6 +70,7 @@ func (prov *JavaCompileProvider) initFiles(codeExt string, programExt string) er
 	return err
 }
 
+// Compile 编译程序
 func (prov *JavaCompileProvider) Compile() (result bool, errmsg string) {
 	result, errmsg = prov.shell(fmt.Sprintf(CompileCommands.Java, prov.codeFilePath, path.Dir(prov.programFilePath)))
 	if result {
@@ -78,6 +79,7 @@ func (prov *JavaCompileProvider) Compile() (result bool, errmsg string) {
 	return
 }
 
+// GetRunArgs 获取运行参数
 func (prov *JavaCompileProvider) GetRunArgs() (args []string) {
 	args = []string{
 		"/usr/bin/java", "-client", "-Dfile.encoding=utf-8",
@@ -86,6 +88,7 @@ func (prov *JavaCompileProvider) GetRunArgs() (args []string) {
 	return
 }
 
+// IsCompileError 是否编译错误
 func (prov *JavaCompileProvider) IsCompileError(remsg string) bool {
 	return false
 }

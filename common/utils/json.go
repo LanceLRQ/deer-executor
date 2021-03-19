@@ -6,6 +6,7 @@ import (
 	"fmt"
 )
 
+// ObjectToJSONStringFormatted 将对象转换成JSON字符串并格式化
 func ObjectToJSONStringFormatted(conf interface{}) string {
 	b, err := json.Marshal(conf)
 	if err != nil {
@@ -19,6 +20,7 @@ func ObjectToJSONStringFormatted(conf interface{}) string {
 	return out.String()
 }
 
+// ObjectToJSONByte 将对象转换成JSON字节数组
 func ObjectToJSONByte(obj interface{}) []byte {
 	b, err := json.Marshal(obj)
 	if err != nil {
@@ -27,24 +29,22 @@ func ObjectToJSONByte(obj interface{}) []byte {
 	return b
 }
 
+// ObjectToJSONString 将对象转换成JSON字符串
 func ObjectToJSONString(obj interface{}) string {
 	b, err := json.Marshal(obj)
 	if err != nil {
 		return "{}"
-	} else {
-		return string(b)
 	}
+	return string(b)
 }
 
+// JSONStringObject 解析JSON字符串
 func JSONStringObject(jsonStr string, obj interface{}) bool {
 	return JSONBytesObject([]byte(jsonStr), obj)
 }
 
+// JSONBytesObject 解析JSON字节数组
 func JSONBytesObject(jsonBytes []byte, obj interface{}) bool {
 	err := json.Unmarshal(jsonBytes, &obj)
-	if err != nil {
-		return false
-	} else {
-		return true
-	}
+	return err == nil
 }

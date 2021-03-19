@@ -3,14 +3,14 @@
 package executor
 
 import (
-	"github.com/LanceLRQ/deer-executor/v2/common/sandbox/process"
+	"github.com/LanceLRQ/deer-executor/v2/common/sandbox/cmd"
 	"syscall"
 )
 
 // ProcessInfo 进程信息
 type ProcessInfo struct {
 	Pid     int                `json:"pid"`
-	Process *process.Process   `json:"-"`
+	Process *cmd.Process       `json:"-"`
 	Status  syscall.WaitStatus `json:"status"`
 	Rusage  *syscall.Rusage    `json:"rusage"`
 }

@@ -66,7 +66,7 @@ func packZipFile(rootPath string, targetPath string) error {
 	return err
 }
 
-// 执行题目数据表打包操作（打包成zip版本)
+// PackProblemsAsZip 执行题目数据表打包操作（打包成zip版本)
 func PackProblemsAsZip(options *persistence.ProblemPackageOptions) error {
 	// 这边没法支持所有内容的校验了，只能给config签名。
 	if options.DigitalSign {

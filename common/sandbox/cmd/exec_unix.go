@@ -4,7 +4,7 @@
 
 // +build aix darwin dragonfly freebsd js,wasm linux netbsd openbsd solaris
 
-package process
+package cmd
 
 import (
 	"errors"

@@ -150,13 +150,12 @@ func doProblemPackageValidation(pack *ProblemPackage, validate bool) error {
 	// 如果出错并且现在必须要验证错误，则抛出
 	if errmsg != nil && validate {
 		return errmsg
-	} else {
-		fmt.Println("Warning! Package signature validation failed.")
 	}
+	fmt.Println("Warning! Package signature validation failed.")
 	return nil
 }
 
-// 读取题目信息
+// ReadProblemInfo 读取题目信息
 func ReadProblemInfo(problemFile string, unpack, validate bool, workDir string) (*commonStructs.JudgeConfiguration, string, error) {
 	pack, err := readProblemPackage(problemFile, unpack)
 	if err != nil {
@@ -197,7 +196,7 @@ func ReadProblemInfo(problemFile string, unpack, validate bool, workDir string) 
 	return &config, "", nil
 }
 
-// 读取题目携带的GPG信息
+// ReadProblemGPGInfo 读取题目携带的GPG信息
 func ReadProblemGPGInfo(problemFile string) (string, error) {
 	pack, err := readProblemPackage(problemFile, false)
 	if err != nil {
@@ -211,18 +210,17 @@ func ReadProblemGPGInfo(problemFile string) (string, error) {
 
 	if pack.CertSize == 0 {
 		return "no GPG public key", nil
-	} else {
-		elist, err := openpgp.ReadArmoredKeyRing(bytes.NewReader(pack.Certificate))
-		if err != nil {
-			return "", err
-		}
-		if len(elist) < 1 {
-			return "", errors.Errorf("GPG key error")
-		}
-		rel := ""
-		for _, identify := range elist[0].Identities {
-			rel += identify.Name + "\n"
-		}
-		return rel, nil
 	}
+	elist, err := openpgp.ReadArmoredKeyRing(bytes.NewReader(pack.Certificate))
+	if err != nil {
+		return "", err
+	}
+	if len(elist) < 1 {
+		return "", errors.Errorf("GPG key error")
+	}
+	rel := ""
+	for _, identify := range elist[0].Identities {
+		rel += identify.Name + "\n"
+	}
+	return rel, nil
 }

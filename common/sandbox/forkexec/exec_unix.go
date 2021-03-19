@@ -141,7 +141,7 @@ error:
 	return 0, err
 }
 
-// Combination of fork and exec, careful to be thread safe.
+// ForkExec Combination of fork and exec, careful to be thread safe.
 func ForkExec(argv0 string, argv []string, attr *ProcAttr) (pid int, err error) {
 	return forkExec(argv0, argv, attr)
 }

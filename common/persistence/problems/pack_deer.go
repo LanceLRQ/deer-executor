@@ -125,7 +125,7 @@ func writeFileHeader(writer io.Writer, pack ProblemPackage) error {
 	return nil
 }
 
-// 执行题目数据表打包操作
+// PackProblems 执行题目数据表打包操作
 func PackProblems(
 	configuration *commonStructs.JudgeConfiguration,
 	options *persistence.ProblemPackageOptions,

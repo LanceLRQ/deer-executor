@@ -6,7 +6,7 @@ import (
 	"path"
 )
 
-// create and get session directory
+// GetSessionDir get or create a session directory
 func GetSessionDir(workDir string, SessionID string) (string, error) {
 	_, err := os.Stat(workDir)
 	if os.IsNotExist(err) {

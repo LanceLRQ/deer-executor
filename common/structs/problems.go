@@ -1,12 +1,12 @@
 package structs
 
-// 题目Input/Output样例信息
+// ProblemIOSample 题目Input/Output样例信息
 type ProblemIOSample struct {
 	Input  string `json:"input"`  // Input sample
 	Output string `json:"output"` // Output sample
 }
 
-// 题目正文信息  (for oj)
+// ProblemContent 题目正文信息  (for oj)
 type ProblemContent struct {
 	Author      string                   `json:"author"`       // Problem author
 	Source      string                   `json:"source"`       // Problem source
@@ -19,7 +19,7 @@ type ProblemContent struct {
 	DemoCases   map[string]JudgeDemoCase `json:"demo_cases"`   // 代码填空样例数据
 }
 
-// 代码填空样例 (for oj)
+// JudgeDemoCase 代码填空样例 (for oj)
 type JudgeDemoCase struct {
 	Handle  string            `json:"handle"`  // handle
 	Name    string            `json:"name"`    // 代码区域名称

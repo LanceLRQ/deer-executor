@@ -63,7 +63,7 @@ func NewSession(configFile string) (*JudgeSession, error) {
 	session.Timeout = 30 // 默认30秒超时
 	session.SessionRoot = "/tmp"
 	session.CodeLangName = "auto"
-	session.JudgeConfig.Uid = -1
+	session.JudgeConfig.UID = -1
 	session.JudgeConfig.TimeLimit = 1000
 	session.JudgeConfig.MemoryLimit = 65535
 	session.JudgeConfig.StrictMode = true

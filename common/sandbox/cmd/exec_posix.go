@@ -4,11 +4,11 @@
 
 // +build aix darwin dragonfly freebsd js,wasm linux netbsd openbsd solaris windows
 
-package process
+package cmd
 
 import (
+	"github.com/LanceLRQ/deer-executor/v2/common/sandbox/cmd/execenv"
 	"github.com/LanceLRQ/deer-executor/v2/common/sandbox/forkexec"
-	"github.com/LanceLRQ/deer-executor/v2/common/sandbox/process/execenv"
 	"github.com/pkg/errors"
 	"os"
 	"runtime"
@@ -16,8 +16,8 @@ import (
 )
 
 // The only signal values guaranteed to be present in the os package on all
-// systems are os.Interrupt (send the process an interrupt) and os.Kill (force
-// the process to exit). On Windows, sending os.Interrupt to a process with
+// systems are cmd.Interrupt (send the process an interrupt) and cmd.Kill (force
+// the process to exit). On Windows, sending cmd.Interrupt to a process with
 // os.Process.Signal is not implemented; it will return an error instead of
 // sending a signal.
 var (

@@ -18,6 +18,7 @@ func funcPC(f func()) uintptr {
 	return **(**uintptr)(unsafe.Pointer(&f))
 }
 
+// SysProcAttr sys proc attr
 type SysProcAttr struct {
 	Chroot     string              // Chroot.
 	Credential *syscall.Credential // Credential.
@@ -266,7 +267,7 @@ func forkAndExecInChild(argv0 *byte, argv, envv []*byte, chroot, dir *byte, attr
 
 	// Set real time limitation
 	if sys.Rlimit.RealTimeLimit > 0 {
-		_, _, err1 = syscall.RawSyscall(syscall.SYS_SETITIMER, ITIMER_REAL, uintptr(unsafe.Pointer(&rlimitOptions.ITimerValue)), 0)
+		_, _, err1 = syscall.RawSyscall(syscall.SYS_SETITIMER, ITimerReal, uintptr(unsafe.Pointer(&rlimitOptions.ITimerValue)), 0)
 		if err1 != 0 {
 			goto childerror
 		}

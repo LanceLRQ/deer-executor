@@ -1,4 +1,4 @@
-package judge_result
+package result
 
 import (
 	"bytes"
@@ -126,6 +126,7 @@ func writeFileHeaderAndResult(writer io.Writer, pack JudgeResultPackage) error {
 	return nil
 }
 
+// PersistentJudgeResult 持久化评测记录
 func PersistentJudgeResult(
 	judgeResult *commonStructs.JudgeResult,
 	options *persistence.JudgeResultPersisOptions,

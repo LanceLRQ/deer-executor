@@ -5,6 +5,7 @@ import (
 	"io"
 )
 
+// ShellResult  shell result for exec.Command
 type ShellResult struct {
 	Success      bool
 	Stdout       string
@@ -14,12 +15,14 @@ type ShellResult struct {
 	ErrorMessage string
 }
 
+// ShellWriters defind shell result writers
 type ShellWriters struct {
 	Input  io.Reader
 	Output io.Writer
 	Error  io.Writer
 }
 
+// ShellOptions defind shell options for exec.Command
 type ShellOptions struct {
 	Context   context.Context
 	Name      string

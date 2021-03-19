@@ -8,23 +8,28 @@ import (
 	"path/filepath"
 )
 
+// FileNotFoundError file not found error
 type FileNotFoundError struct {
 	FileName string
 }
 
+// Error get error string
 func (e FileNotFoundError) Error() string {
 	return fmt.Sprintf("file (%s) not found", e.FileName)
 }
 
+// IsFileNotFoundError check is file not found error
 func IsFileNotFoundError(e error) bool {
 	_, ok := e.(FileNotFoundError)
 	return ok
 }
 
+// NewFileNotFoundError new a file not found error
 func NewFileNotFoundError(fileName string) error {
 	return FileNotFoundError{FileName: fileName}
 }
 
+// UnZip do unzip
 func UnZip(zipArchive *zip.ReadCloser, destDir string) error {
 	return WalkZip(zipArchive, func(f *zip.File) error {
 		fpath := filepath.Join(destDir, f.Name)
@@ -56,6 +61,7 @@ func UnZip(zipArchive *zip.ReadCloser, destDir string) error {
 	})
 }
 
+// WalkZip walk in zip
 func WalkZip(zipArchive *zip.ReadCloser, walkFunc func(file *zip.File) error) error {
 	for _, f := range zipArchive.File {
 		err := walkFunc(f)
@@ -66,7 +72,7 @@ func WalkZip(zipArchive *zip.ReadCloser, walkFunc func(file *zip.File) error) er
 	return nil
 }
 
-// 搜索zip内的文件并打开(精确匹配)
+// FindInZip 搜索zip内的文件并打开(精确匹配)
 func FindInZip(zipArchive *zip.ReadCloser, fileName string) (*io.ReadCloser, *zip.File, error) {
 	var fileResult io.ReadCloser
 	finded := false

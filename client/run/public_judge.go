@@ -1,7 +1,7 @@
 package run
 
 import (
-	"github.com/LanceLRQ/deer-executor/v2/common/persistence/judge_result"
+	"github.com/LanceLRQ/deer-executor/v2/common/persistence/result"
 	commonStructs "github.com/LanceLRQ/deer-executor/v2/common/structs"
 	"github.com/LanceLRQ/deer-executor/v2/executor"
 )
@@ -20,7 +20,7 @@ func StartJudgement(options *JudgementRunOption) (*executor.JudgeSession, *commo
 	// persistence
 	if options.Persistence != nil {
 		options.Persistence.SessionDir = judgeSession.SessionDir
-		err = judge_result.PersistentJudgeResult(judgeResult, options.Persistence)
+		err = result.PersistentJudgeResult(judgeResult, options.Persistence)
 		if err != nil {
 			return nil, nil, err
 		}

@@ -1,9 +1,6 @@
-/* Compiler Provider Base
- * (C) 2019 LanceLRQ
- *
- * This code is licenced under the GPLv3.
- */
 package provider
+
+// Compiler Provider Base
 
 import (
 	"context"
@@ -20,6 +17,7 @@ import (
 	"time"
 )
 
+// CompileCommandsStruct 编译命令集
 type CompileCommandsStruct struct {
 	GNUC    string `json:"gcc"`
 	GNUCPP  string `json:"g++"`
@@ -33,6 +31,7 @@ type CompileCommandsStruct struct {
 	Rust    string `json:"rust"`
 }
 
+// CompileCommands 定义默认的编译命令集
 var CompileCommands = CompileCommandsStruct{
 	GNUC:    "gcc %s -o %s -ansi -fno-asm -Wall -std=c11 -lm",
 	GNUCPP:  "g++ %s -o %s -ansi -fno-asm -Wall -lm -std=c++11",
@@ -46,6 +45,7 @@ var CompileCommands = CompileCommandsStruct{
 	Rust:    "rustc %s -o %s",
 }
 
+// CodeCompileProviderInterface 代码编译提供程序接口定义
 type CodeCompileProviderInterface interface {
 	// 初始化
 	Init(code string, workDir string) error
@@ -69,10 +69,11 @@ type CodeCompileProviderInterface interface {
 	saveCode() error
 	// 检查工作目录是否存在
 	checkWorkDir() error
-	// 获取名称
+	// 获取提供程序的名称
 	GetName() string
 }
 
+// CodeCompileProvider 代码编译提供程序公共结构定义
 type CodeCompileProvider struct {
 	CodeCompileProviderInterface
 	Name                             string // 编译器提供程序名称
@@ -84,6 +85,7 @@ type CodeCompileProvider struct {
 	workDir                          string // 工作目录
 }
 
+// PlaceCompilerCommands 替换编译命令集
 func PlaceCompilerCommands(configFile string) error {
 	if configFile != "" {
 		_, err := os.Stat(configFile)
@@ -103,6 +105,7 @@ func PlaceCompilerCommands(configFile string) error {
 	return nil
 }
 
+// 初始化文件
 func (prov *CodeCompileProvider) initFiles(codeExt string, programExt string) error {
 	prov.codeFileName = fmt.Sprintf("%s%s", uuid.NewV4().String(), codeExt)
 	prov.programFileName = fmt.Sprintf("%s%s", uuid.NewV4().String(), programExt)
@@ -113,15 +116,18 @@ func (prov *CodeCompileProvider) initFiles(codeExt string, programExt string) er
 	return err
 }
 
+// GetName 获取提供程序的名称
 func (prov *CodeCompileProvider) GetName() string {
 	return prov.Name
 }
 
+// Clean 清理代码
 func (prov *CodeCompileProvider) Clean() {
 	_ = os.Remove(prov.codeFilePath)
 	_ = os.Remove(prov.programFilePath)
 }
 
+// 执行shell
 func (prov *CodeCompileProvider) shell(commands string) (success bool, errout string) {
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	cmdArgs := strings.Split(commands, " ")
@@ -144,6 +150,7 @@ func (prov *CodeCompileProvider) shell(commands string) (success bool, errout st
 	return true, ""
 }
 
+// 存储代码到文件
 func (prov *CodeCompileProvider) saveCode() error {
 	file, err := os.OpenFile(prov.codeFilePath, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
@@ -154,6 +161,7 @@ func (prov *CodeCompileProvider) saveCode() error {
 	return err
 }
 
+// 检查工作目录
 func (prov *CodeCompileProvider) checkWorkDir() error {
 	_, err := os.Stat(prov.workDir)
 	if err != nil {
@@ -165,10 +173,12 @@ func (prov *CodeCompileProvider) checkWorkDir() error {
 	return nil
 }
 
+// IsRealTime 返回是否是实时评测语言
 func (prov *CodeCompileProvider) IsRealTime() bool {
 	return prov.realTime
 }
 
+// IsReady 返回编译是否就绪
 func (prov *CodeCompileProvider) IsReady() bool {
 	return prov.isReady
 }

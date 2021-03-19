@@ -1,5 +1,6 @@
 package logger
 
+// JudgeLogItem judge log item structs
 type JudgeLogItem struct {
 	// 时间戳
 	Timestamp float64 `json:"timestamp" bson:"timestamp"`

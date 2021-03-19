@@ -8,31 +8,36 @@ import (
 	"syscall"
 )
 
+// DarwinSafeStackSize darwin safe stack size
 const DarwinSafeStackSize = 65500
 
 // 定义ITimer的常量
 const (
-	ITIMER_REAL    = 0
-	ITIMER_VIRTUAL = 1
-	ITIMER_PROF    = 2
+	ITimerReal    = 0
+	ITimerVirtual = 1
+	ITimerProf    = 2
 )
 
+// RLimit rlimit strcut
 type RLimit struct {
 	Which  int
 	Enable bool
 	RLim   syscall.Rlimit
 }
 
+// ITimerVal Itimer value struct
 type ITimerVal struct {
 	ItInterval TimeVal
 	ItValue    TimeVal
 }
 
+// TimeVal Timer value struct
 type TimeVal struct {
 	TvSec  uint64
 	TvUsec uint64
 }
 
+// ExecRLimit  Exec rlimit options
 type ExecRLimit struct {
 	TimeLimit     int // 时间限制 (ms)
 	RealTimeLimit int // 真实时间限制 (ms, 触发SIGALRM)
@@ -41,12 +46,13 @@ type ExecRLimit struct {
 	StackLimit    int // 栈大小限制 (KB，0表示用内存限制的值，-1表示不限制，建议设置为2倍。Mac下有坑，不要去设置。)
 }
 
+// RlimitOptions rlimit options
 type RlimitOptions struct {
 	Rlimits     []RLimit
 	ITimerValue ITimerVal
 }
 
-// 解析ExecRLimit结构体并获取setrlimit操作需要的信息
+// GetRlimitOptions 解析ExecRLimit结构体并获取setrlimit操作需要的信息
 func GetRlimitOptions(sysRlimit *ExecRLimit) *RlimitOptions {
 	// Make stack limit
 	stackLimit := uint64(sysRlimit.StackLimit)

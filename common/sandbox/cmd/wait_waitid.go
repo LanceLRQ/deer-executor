@@ -7,7 +7,7 @@
 
 // +build linux
 
-package process
+package cmd
 
 import (
 	"os"

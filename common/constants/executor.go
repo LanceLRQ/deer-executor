@@ -6,31 +6,50 @@ import (
 	"os"
 )
 
+// Judge Flags
 const (
-	JudgeFlagAC  = 0 // 0 Accepted
-	JudgeFlagPE  = 1 // 1 Presentation Error
-	JudgeFlagTLE = 2 // 2 Time Limit Exceeded
-	JudgeFlagMLE = 3 // 3 Memory Limit Exceeded
-	JudgeFlagWA  = 4 // 4 Wrong Answer
-	JudgeFlagRE  = 5 // 5 Runtime Error
-	JudgeFlagOLE = 6 // 6 Output Limit Exceeded
-	JudgeFlagCE  = 7 // 7 Compile Error
-	JudgeFlagSE  = 8 // 8 System Error
+	// Accepted
+	JudgeFlagAC = 0
+	// Presentation Error
+	JudgeFlagPE = 1
+	// Time Limit Exceeded
+	JudgeFlagTLE = 2
+	// Memory Limit Exceeded
+	JudgeFlagMLE = 3
+	// Wrong Answer
+	JudgeFlagWA = 4
+	// ntime Error
+	JudgeFlagRE = 5
+	// Output Limit Exceeded
+	JudgeFlagOLE = 6
+	// Compile Error
+	JudgeFlagCE = 7
+	// System Error
+	JudgeFlagSE = 8
 
-	JudgeFlagSpecialJudgeTimeout        = 10 // 10 Special Judge Checker Time OUT
-	JudgeFlagSpecialJudgeError          = 11 // 11 Special Judge Checker ERROR
-	JudgeFlagSpecialJudgeRequireChecker = 12 // 12 Special Judge Checker Finish, Need Standard Checkup
+	// 9 is for ReJudge
+
+	// Special Judge Checker Time OUT
+	JudgeFlagSpecialJudgeTimeout = 10
+	// Special Judge Checker ERROR
+	JudgeFlagSpecialJudgeError = 11
+	// Special Judge Checker Finish, Need Standard Checkup
+	JudgeFlagSpecialJudgeRequireChecker = 12
 )
 
+// Special Judge Mode
 const (
 	SpecialJudgeModeDisabled    = 0
 	SpecialJudgeModeChecker     = 1
 	SpecialJudgeModeInteractive = 2
 
-	SpecialJudgeTimeLimit   = 1 * 1000   // Unit: ms
-	SpecialJudgeMemoryLimit = 256 * 1024 // Unit: kb
+	// unit: ms
+	SpecialJudgeTimeLimit = 1 * 1000
+	// unit: kb
+	SpecialJudgeMemoryLimit = 256 * 1024
 )
 
+// SignalNumberMap  map unix signal to text
 var SignalNumberMap = map[int][]string{
 	1: {"SIGHUP", "Hangup (POSIX)."},
 	2: {"SIGINT", "Interrupt (ANSI)."},
@@ -66,6 +85,7 @@ var SignalNumberMap = map[int][]string{
 	31: {"SIGSYS", "Bad system call."},
 }
 
+// FlagMeansMap map judge flags to text
 var FlagMeansMap = map[int]string{
 	0:  "Accepted",
 	1:  "Presentation Error",
@@ -81,7 +101,7 @@ var FlagMeansMap = map[int]string{
 	11: "Special Judge Checker Finish, Need Standard Checkup",
 }
 
-// 给动态语言、带虚拟机的语言设定虚拟机自身的初始内存大小
+// MemorySizeForJIT 给动态语言、带虚拟机的语言设定虚拟机自身的初始内存大小
 var MemorySizeForJIT = map[string]int{
 	"gcc":     0,
 	"g++":     0,
@@ -95,6 +115,7 @@ var MemorySizeForJIT = map[string]int{
 	"rust":    0,
 }
 
+// PlaceMemorySizeForJIT 替换JIT虚拟内存表
 func PlaceMemorySizeForJIT(configFile string) error {
 	if configFile != "" {
 		_, err := os.Stat(configFile)

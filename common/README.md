@@ -14,7 +14,7 @@
 ├── errors                错误定义（暂时没用到）
 ├── logger                评测日志工具
 ├── persistence           持久化
-│   ├── judge_result        评测结果持久化功能
+│   ├── judgeresult        评测结果持久化功能
 │   ├── problems            题目包功能
 │   ├── struct.go           公共结构定义
 │   └── utils.go            公共工具

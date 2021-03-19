@@ -5,8 +5,8 @@ package executor
 import (
 	"context"
 	"github.com/LanceLRQ/deer-executor/v2/common/constants"
+	"github.com/LanceLRQ/deer-executor/v2/common/sandbox/cmd"
 	"github.com/LanceLRQ/deer-executor/v2/common/sandbox/forkexec"
-	"github.com/LanceLRQ/deer-executor/v2/common/sandbox/process"
 	commonStructs "github.com/LanceLRQ/deer-executor/v2/common/structs"
 	"github.com/pkg/errors"
 	"log"
@@ -22,7 +22,7 @@ import (
 type PArgs struct {
 	Name string
 	Args []string
-	Attr *process.ProcAttr
+	Attr *cmd.ProcAttr
 }
 
 // ExtraEnviron 额外需要被注入的环境变量
@@ -72,9 +72,9 @@ func runAsync(ctx context.Context, session *JudgeSession, rst *commonStructs.Tes
 	pinfo := ProcessInfo{}
 
 	go func() {
-		var pstate *process.ProcessState
+		var pstate *cmd.ProcessState
 		var pArgs *PArgs
-		var proc *process.Process
+		var proc *cmd.Process
 		// Get process options
 		pArgs, err = getProcessOptions(session, rst, isChecker, false, nil)
 		if err != nil {
@@ -82,7 +82,7 @@ func runAsync(ctx context.Context, session *JudgeSession, rst *commonStructs.Tes
 			return
 		}
 		// Start process
-		proc, err = process.StartProcess(pArgs.Name, pArgs.Args, pArgs.Attr)
+		proc, err = cmd.StartProcess(pArgs.Name, pArgs.Args, pArgs.Attr)
 		if err != nil {
 			runSuccess <- false
 			return
@@ -153,9 +153,9 @@ func runInteractiveAsync(ctx context.Context, session *JudgeSession, rst *common
 	exitCounter := 0
 
 	go func() {
-		var pstate *process.ProcessState
+		var pstate *cmd.ProcessState
 		var pArgs *PArgs
-		var proc *process.Process
+		var proc *cmd.Process
 		// Get process options
 		pArgs, answerErr = getProcessOptions(session, rst, false, true, []uintptr{fdAnswer[0], fdChecker[1]})
 		if answerErr != nil {
@@ -163,7 +163,7 @@ func runInteractiveAsync(ctx context.Context, session *JudgeSession, rst *common
 			return
 		}
 		// Start process
-		proc, answerErr = process.StartProcess(pArgs.Name, pArgs.Args, pArgs.Attr)
+		proc, answerErr = cmd.StartProcess(pArgs.Name, pArgs.Args, pArgs.Attr)
 		if answerErr != nil {
 			answerSuccess <- false
 			return
@@ -192,9 +192,9 @@ func runInteractiveAsync(ctx context.Context, session *JudgeSession, rst *common
 	}()
 
 	go func() {
-		var pstate *process.ProcessState
+		var pstate *cmd.ProcessState
 		var pArgs *PArgs
-		var proc *process.Process
+		var proc *cmd.Process
 		// Get process options
 		pArgs, checkerErr = getProcessOptions(session, rst, true, true, []uintptr{fdChecker[0], fdAnswer[1]})
 		if checkerErr != nil {
@@ -202,7 +202,7 @@ func runInteractiveAsync(ctx context.Context, session *JudgeSession, rst *common
 			return
 		}
 		// Start process
-		proc, checkerErr = process.StartProcess(pArgs.Name, pArgs.Args, pArgs.Attr)
+		proc, checkerErr = cmd.StartProcess(pArgs.Name, pArgs.Args, pArgs.Attr)
 		if checkerErr != nil {
 			checkerSuccess <- false
 			return
@@ -344,7 +344,7 @@ func getProcessOptions(session *JudgeSession, rst *commonStructs.TestCaseResult,
 	return &PArgs{
 		Name: execProgram,
 		Args: args,
-		Attr: &process.ProcAttr{
+		Attr: &cmd.ProcAttr{
 			Dir:   session.SessionDir,
 			Env:   append(os.Environ(), ExtraEnviron...),
 			Files: files,

@@ -353,7 +353,7 @@ func forkAndExecInChild1(argv0 *byte, argv, envv []*byte, chroot, dir *byte, att
 		if err1 != 0 {
 			goto childerror
 		}
-		_, _, err1 = syscall.RawSyscall(syscall.SYS_SETUID, uintptr(cred.Uid), 0, 0)
+		_, _, err1 = syscall.RawSyscall(syscall.SYS_SETUID, uintptr(cred.UID), 0, 0)
 		if err1 != 0 {
 			goto childerror
 		}
@@ -521,7 +521,7 @@ func forkAndExecInChild1(argv0 *byte, argv, envv []*byte, chroot, dir *byte, att
 
 	// Set real time limitation
 	if sys.Rlimit.RealTimeLimit > 0 {
-		_, _, err1 = syscall.RawSyscall(syscall.SYS_SETITIMER, ITIMER_REAL, uintptr(unsafe.Pointer(&rlimitOptions.ITimerValue)), 0)
+		_, _, err1 = syscall.RawSyscall(syscall.SYS_SETITIMER, ITimerReal, uintptr(unsafe.Pointer(&rlimitOptions.ITimerValue)), 0)
 		if err1 != 0 {
 			goto childerror
 		}

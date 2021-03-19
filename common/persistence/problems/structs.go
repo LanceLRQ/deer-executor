@@ -1,12 +1,11 @@
 package problems
 
-/*********
-------------------------
-|MAG|VER|CMT|CSZ|BSZ|PCSZ| Certificate |SSZ| Signature | Configs | Body
-------------------------
-| 2 | 2 | 4 | 4 | 4 | 2 | ... | 2 | ...
-------------------------
-**********/
+// ProblemPackage 题目包-数据结构
+// ------------------------
+// |MAG|VER|CMT|CSZ|BSZ|PCSZ| Certificate |SSZ| Signature | Configs | Body
+// ------------------------
+// | 2 | 2 | 4 | 4 | 4 | 2 | ... | 2 | ...
+// ------------------------
 type ProblemPackage struct {
 	Version         uint16 // (VER) Package Version
 	CommitVersion   uint32 // (CMT) Commit Version

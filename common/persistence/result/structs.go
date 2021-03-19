@@ -1,12 +1,11 @@
-package judge_result
+package result
 
-/*********
-------------------------
-|MAG|VER|CMP|RSZ|BSZ|CSZ| Certificate |SSZ| Signature | Result | Body
-------------------------
-| 2 | 1 | 1 | 4 | 4 | 2 | ... | 2 | ...
-------------------------
-**********/
+// JudgeResultPackage  评测结果包-数据结构
+// ------------------------
+// |MAG|VER|CMP|RSZ|BSZ|CSZ| Certificate |SSZ| Signature | Result | Body
+// ------------------------
+// | 2 | 1 | 1 | 4 | 4 | 2 | ... | 2 | ...
+// ------------------------
 type JudgeResultPackage struct {
 	Version         uint8  // (VER) Package Version
 	CompressorType  uint8  // (CMP) Compressor type: 0-disabled; 1-gzip
@@ -18,21 +17,4 @@ type JudgeResultPackage struct {
 	Signature       []byte // Signature: SHA256(Result + Body)
 	Result          []byte // Result JSON
 	BodyPackageFile string // Body package file （内部成员，不输出）
-}
-
-/***
-已弃用
-------------------------
-Magic | Size | FileName | Content
-------------------------
-  2   |  4  | (Sep: \n) |  ...
-------------------------
-***/
-type JudgeResultPackageBody struct {
-	BodyPackageFile string
-	Files           []struct {
-		Size     uint32
-		FileName string
-		Position uint32
-	}
 }

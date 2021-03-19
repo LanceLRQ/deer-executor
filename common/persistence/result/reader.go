@@ -1,4 +1,4 @@
-package judge_result
+package result
 
 import (
 	"bufio"
@@ -114,7 +114,7 @@ func validateJudgeResultPackage(pack *JudgeResultPackage) (bool, error) {
 	return true, nil
 }
 
-// 读取判题结果
+// ReadJudgeResult 读取判题结果
 func ReadJudgeResult(resultFile string) (*commonStructs.JudgeResult, error) {
 	rf, err := os.Open(resultFile)
 	if err != nil {

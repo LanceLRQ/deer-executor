@@ -20,17 +20,18 @@ import (
 	"path"
 )
 
-/* SHA256 */
-
+// SHA256String 对文本执行SHA256运算
 func SHA256String(body string) ([]byte, error) {
 	return SHA256Bytes([]byte(body))
 }
 
+// SHA256Bytes 对byte数组执行SHA256运算
 func SHA256Bytes(body []byte) ([]byte, error) {
 	buf := bytes.NewBuffer(body)
 	return SHA256Streams([]io.Reader{buf})
 }
 
+// SHA256Streams 对文件流执行SHA256运算
 func SHA256Streams(streams []io.Reader) ([]byte, error) {
 	hash := sha256.New()
 	for _, stream := range streams {
@@ -43,12 +44,12 @@ func SHA256Streams(streams []io.Reader) ([]byte, error) {
 	return ret, nil
 }
 
-/* RSA Sign */
-
+// RSA2048SignString 对文本执行RSA2048运算
 func RSA2048SignString(body string, privateKey *rsa.PrivateKey) ([]byte, error) {
 	return RSA2048SignBytes([]byte(body), privateKey)
 }
 
+// RSA2048SignBytes 对byte数组执行RSA2048运算
 func RSA2048SignBytes(body []byte, privateKey *rsa.PrivateKey) ([]byte, error) {
 	hash, err := SHA256Bytes(body)
 	if err != nil {
@@ -57,6 +58,7 @@ func RSA2048SignBytes(body []byte, privateKey *rsa.PrivateKey) ([]byte, error) {
 	return RSA2048Sign(hash, privateKey)
 }
 
+// RSA2048Sign 用RSA2048运算签名
 func RSA2048Sign(hash []byte, privateKey *rsa.PrivateKey) ([]byte, error) {
 	sign, err := rsa.SignPKCS1v15(rand.Reader, privateKey, crypto.SHA256, hash)
 	if err != nil {
@@ -65,12 +67,12 @@ func RSA2048Sign(hash []byte, privateKey *rsa.PrivateKey) ([]byte, error) {
 	return sign, nil
 }
 
-/* RSA Verify */
-
+// RSA2048VerifyString 用RSA2048运算校验文本签名
 func RSA2048VerifyString(body string, sign []byte, publicKey *rsa.PublicKey) error {
 	return RSA2048VerifyBytes([]byte(body), sign, publicKey)
 }
 
+// RSA2048VerifyBytes 用RSA2048运算校验byte数组签名
 func RSA2048VerifyBytes(body []byte, sign []byte, publicKey *rsa.PublicKey) error {
 	hash, err := SHA256Bytes(body)
 	if err != nil {
@@ -79,10 +81,12 @@ func RSA2048VerifyBytes(body []byte, sign []byte, publicKey *rsa.PublicKey) erro
 	return RSA2048Verify(hash, sign, publicKey)
 }
 
+// RSA2048Verify 用RSA2048运算校验签名
 func RSA2048Verify(hash []byte, sign []byte, publicKey *rsa.PublicKey) error {
 	return rsa.VerifyPKCS1v15(publicKey, crypto.SHA256, hash, sign)
 }
 
+// ReadAndParsePublicKey 解析PEM证书公钥
 func ReadAndParsePublicKey(cert []byte) (*rsa.PublicKey, error) {
 	block, _ := pem.Decode(cert)
 	if block == nil {
@@ -97,6 +101,7 @@ func ReadAndParsePublicKey(cert []byte) (*rsa.PublicKey, error) {
 	//return publicKey.PublicKey.(*rsa.PublicKey), nil
 }
 
+// ReadAndParsePrivateKey 解析PEM证书私钥
 func ReadAndParsePrivateKey(key []byte) (*rsa.PrivateKey, error) {
 	block, _ := pem.Decode(key)
 	if block == nil {
@@ -109,6 +114,7 @@ func ReadAndParsePrivateKey(key []byte) (*rsa.PrivateKey, error) {
 	return privateKey, nil
 }
 
+// ReadPemFile 读取PEM证书
 func ReadPemFile(filename string) ([]byte, error) {
 	pemBytes, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -117,6 +123,7 @@ func ReadPemFile(filename string) ([]byte, error) {
 	return pemBytes, nil
 }
 
+// GetDigitalPEMFromFile 从文件读取PEM证书
 func GetDigitalPEMFromFile(publicKeyFile string, privateKeyFile string) (*DigitalSignPEM, error) {
 	publicKey, err := ReadPemFile(publicKeyFile)
 	if err != nil {
@@ -130,6 +137,7 @@ func GetDigitalPEMFromFile(publicKeyFile string, privateKeyFile string) (*Digita
 	return dp, nil
 }
 
+// GetDigitalPEM 获取PEM数据
 func GetDigitalPEM(publicKey []byte, privateKey []byte) *DigitalSignPEM {
 	dp := DigitalSignPEM{}
 	if publicKey != nil {
@@ -151,6 +159,7 @@ func GetDigitalPEM(publicKey []byte, privateKey []byte) *DigitalSignPEM {
 	return &dp
 }
 
+// Gets 实现gets方法
 func Gets(reader io.Reader) string {
 	buf := make([]byte, 16, 16)
 	rd := bufio.NewReader(reader)
@@ -167,6 +176,7 @@ func Gets(reader io.Reader) string {
 	return string(buf)
 }
 
+// GetPublicKeyArmorBytes 读取GPG证书信息
 func GetPublicKeyArmorBytes(entity *openpgp.Entity) ([]byte, error) {
 	pathname := path.Join("/tmp/" + uuid.NewV4().String() + ".key")
 	fp, err := os.Create(pathname)
@@ -193,6 +203,7 @@ func GetPublicKeyArmorBytes(entity *openpgp.Entity) ([]byte, error) {
 	return data, nil
 }
 
+// GetArmorPublicKey 从文件读取GPG证书公钥信息
 func GetArmorPublicKey(gpgKeyFile string, passphrase []byte) (*DigitalSignPEM, error) {
 	if gpgKeyFile == "" {
 		return nil, errors.Errorf("please set GPG key file path")

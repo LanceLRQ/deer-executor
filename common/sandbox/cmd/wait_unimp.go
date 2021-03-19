@@ -4,7 +4,7 @@
 
 // +build aix darwin dragonfly js,wasm netbsd openbsd solaris
 
-package process
+package cmd
 
 // blockUntilWaitable attempts to block until a call to p.Wait will
 // succeed immediately, and reports whether it has done so.

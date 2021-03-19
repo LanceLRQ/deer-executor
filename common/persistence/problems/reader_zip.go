@@ -87,14 +87,13 @@ func doProblemPackageValidationZip(zipArchive *zip.ReadCloser, validate bool) er
 	if errmsg != nil {
 		if validate {
 			return errmsg
-		} else {
-			log.Println("Warning! Package signature validation failed.")
 		}
+		log.Println("Warning! Package signature validation failed.")
 	}
 	return nil
 }
 
-// 读取题目信息(ZIP)
+// ReadProblemInfoZip 读取题目信息(ZIP)
 // workDir只在需要解压的时候才会用到
 func ReadProblemInfoZip(problemFile string, unpack, validate bool, workDir string) (*commonStructs.JudgeConfiguration, string, error) {
 	// 打开文件
@@ -133,7 +132,7 @@ func ReadProblemInfoZip(problemFile string, unpack, validate bool, workDir strin
 	return &config, path.Join(workDir, "problem.json"), nil
 }
 
-// 读取题目携带的GPG信息(ZIP)
+// ReadProblemGPGInfoZip 读取题目携带的GPG信息(ZIP)
 func ReadProblemGPGInfoZip(problemFile string) (string, error) {
 	zipReader, err := zip.OpenReader(problemFile)
 	if err != nil {

@@ -1,5 +1,6 @@
 package constants
 
+// TestlibBinaryPrefixs testlib program file name prefixs mapping
 var TestlibBinaryPrefixs = map[string]string{
 	"generator":  "g_",
 	"validator":  "",
@@ -7,6 +8,7 @@ var TestlibBinaryPrefixs = map[string]string{
 	"interactor": "",
 }
 
+// TestlibExitMsgMapping testlib program exit messages mapping
 var TestlibExitMsgMapping = []struct {
 	ErrName     string
 	JudgeResult int
@@ -22,6 +24,7 @@ var TestlibExitMsgMapping = []struct {
 	{ErrName: "What is the code", JudgeResult: JudgeFlagSpecialJudgeError},
 }
 
+// TestlibOutcomeMapping testlib program outcome message mapping
 var TestlibOutcomeMapping = map[string]int{
 	"accepted":           JudgeFlagAC,
 	"wrong-answer":       JudgeFlagWA,

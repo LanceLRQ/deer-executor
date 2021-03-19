@@ -16,6 +16,7 @@ import (
 	"syscall"
 )
 
+// IsExecutableFile 判断是否是可执行程序（支持linux和macos）
 func IsExecutableFile(filePath string) (bool, error) {
 	fp, err := os.OpenFile(filePath, os.O_RDONLY|syscall.O_NONBLOCK, 0)
 	if err != nil {
@@ -38,6 +39,7 @@ func IsExecutableFile(filePath string) (bool, error) {
 	return isExec, nil
 }
 
+// GetCompiledBinaryFileName 获取testlib的二进制程序前缀名
 func GetCompiledBinaryFileName(typeName, moduleName string) string {
 	prefix, ok := constants.TestlibBinaryPrefixs[typeName]
 	if !ok {
@@ -46,13 +48,13 @@ func GetCompiledBinaryFileName(typeName, moduleName string) string {
 	return prefix + moduleName
 }
 
-// 根据配置文件将对应预编译文件转换成绝对路径
+// GetCompiledBinaryFileAbsPath 根据配置文件将对应预编译文件转换成绝对路径
 func GetCompiledBinaryFileAbsPath(typeName, moduleName, configDir string) (string, error) {
 	targetName := GetCompiledBinaryFileName(typeName, moduleName)
 	return filepath.Abs(path.Join(path.Join(configDir, "bin"), targetName))
 }
 
-// 解析generator脚本
+// ParseGeneratorScript 解析generator脚本
 func ParseGeneratorScript(script string) (string, []string, error) {
 	vals := strings.Split(script, " ")
 	if len(vals) <= 1 {
@@ -61,7 +63,7 @@ func ParseGeneratorScript(script string) (string, []string, error) {
 	return vals[0], vals[1:], nil
 }
 
-// 运行UnixShell，支持context
+// RunUnixShell 运行UnixShell，支持context
 func RunUnixShell(options *structs.ShellOptions) (*structs.ShellResult, error) {
 	fpath, err := exec.LookPath(options.Name)
 	if err != nil {
@@ -125,6 +127,7 @@ func RunUnixShell(options *structs.ShellOptions) (*structs.ShellResult, error) {
 	return &result, nil
 }
 
+// CallGenerator 调用Generator
 func CallGenerator(ctx context.Context, tc *structs.TestCase, configDir string) ([]byte, error) {
 	name, args, err := ParseGeneratorScript(tc.Generator)
 	if err != nil {
@@ -146,12 +149,11 @@ func CallGenerator(ctx context.Context, tc *structs.TestCase, configDir string) 
 	}
 	if rel.Success {
 		return []byte(rel.Stdout), nil
-	} else {
-		return nil, errors.Errorf("generator error")
 	}
+	return nil, errors.Errorf("generator error")
 }
 
-// 判断是否是题目包
+// IsZipFile 判断是否是Zip文件
 func IsZipFile(filePath string) (bool, error) {
 	fp, err := os.OpenFile(filePath, os.O_RDONLY|syscall.O_NONBLOCK, 0)
 	if err != nil {
@@ -167,7 +169,7 @@ func IsZipFile(filePath string) (bool, error) {
 	return magic == constants.ZipArchiveMagicCode, nil
 }
 
-// 判断是否是题目包
+// IsProblemPackage 判断是否是题目包
 func IsProblemPackage(filePath string) (bool, error) {
 	fp, err := os.OpenFile(filePath, os.O_RDONLY|syscall.O_NONBLOCK, 0)
 	if err != nil {

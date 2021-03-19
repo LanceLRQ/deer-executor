@@ -4,7 +4,7 @@
 
 // Simple conversions to avoid depending on strconv.
 
-package process
+package cmd
 
 // Convert integer to decimal string
 func itoa(val int) string {

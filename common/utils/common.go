@@ -4,7 +4,7 @@ import (
 	"reflect"
 )
 
-// 判断数组、切片或Map是否存在某个值
+// Contains 判断数组、切片或Map是否存在某个值
 func Contains(array interface{}, obj interface{}) bool {
 	arrayValue := reflect.ValueOf(array)
 	switch reflect.TypeOf(array).Kind() {
