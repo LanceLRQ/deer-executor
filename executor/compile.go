@@ -35,6 +35,8 @@ _match:
         return provider.NewNodeJSCompileProvider(), nil
     case "rb", "ruby":
         return provider.NewRubyCompileProvider(), nil
+		case "rs", "rust":
+				return provider.NewRustCompileProvider(), nil
     case "auto", "":
         keyword = strings.Replace(path.Ext(fileName), ".", "", -1)
         goto _match
