@@ -1,6 +1,7 @@
 v2.2.2
 =====
-增加对Rust语言的支持 @TtTRz(RomChung)
+1. 增加对Rust语言的支持 @TtTRz(RomChung)
+2. 对代码重新进行整理，将deer-common库移动到本项目下，并使用golint和gofmt规范代码
 
 v2.2.1
 =====
