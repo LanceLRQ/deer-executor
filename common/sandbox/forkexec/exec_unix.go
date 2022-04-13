@@ -41,9 +41,6 @@ func forkExec(argv0 string, argv []string, attr *ProcAttr) (pid int, err error) 
 		sys = &zeroSysProcAttr
 	}
 
-	p[0] = -1
-	p[1] = -1
-
 	// Convert args to C form.
 	argv0p, err := syscall.BytePtrFromString(argv0)
 	if err != nil {
@@ -93,14 +90,17 @@ func forkExec(argv0 string, argv []string, attr *ProcAttr) (pid int, err error) 
 
 	// Allocate child status pipe close on exec.
 	if err = forkExecPipe(p[:]); err != nil {
-		goto error
+		syscall.ForkLock.Unlock()
+		return 0, err
 	}
 
 	// Kick off child.
 	pid, err1 = forkAndExecInChild(argv0p, argvp, envvp, chroot, dir, attr, sys, p[1])
 	if err1 != 0 {
-		err = syscall.Errno(err1)
-		goto error
+		syscall.Close(p[0])
+		syscall.Close(p[1])
+		syscall.ForkLock.Unlock()
+		return 0, syscall.Errno(err1)
 	}
 	syscall.ForkLock.Unlock()
 
@@ -131,14 +131,6 @@ func forkExec(argv0 string, argv []string, attr *ProcAttr) (pid int, err error) 
 
 	// Read got EOF, so pipe closed on exec, so exec succeeded.
 	return pid, nil
-
-error:
-	if p[0] >= 0 {
-		syscall.Close(p[0])
-		syscall.Close(p[1])
-	}
-	syscall.ForkLock.Unlock()
-	return 0, err
 }
 
 // ForkExec Combination of fork and exec, careful to be thread safe.
