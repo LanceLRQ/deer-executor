@@ -129,7 +129,7 @@ func (prov *CodeCompileProvider) Clean() {
 
 // 执行shell
 func (prov *CodeCompileProvider) shell(commands string) (success bool, errout string) {
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, _ := context.WithTimeout(context.Background(), 7*time.Second)
 	cmdArgs := strings.Split(commands, " ")
 	if len(cmdArgs) <= 1 {
 		return false, "not enough arguments for compiler"

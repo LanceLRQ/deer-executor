@@ -70,7 +70,9 @@ func RunUnixShell(options *structs.ShellOptions) (*structs.ShellResult, error) {
 		return nil, err
 	}
 	result := structs.ShellResult{}
-	proc := exec.CommandContext(options.Context, fpath, options.Args...)
+	proc := exec.Command(fpath, options.Args...)
+	proc.SysProcAttr = &syscall.SysProcAttr{Setpgid: true} // 把编译器整个放置在进程组里
+
 	var stderr, stdout bytes.Buffer
 
 	if options.StdWriter != nil && options.StdWriter.Output != nil {
@@ -100,8 +102,17 @@ func RunUnixShell(options *structs.ShellOptions) (*structs.ShellResult, error) {
 		_ = stdin.Close()
 	}
 
-	//err = proc.Run()
-	if err := proc.Start(); err != nil {
+	// 监听是否超时
+	go func() {
+		select {
+		case <-options.Context.Done():
+			// 干掉进程组
+			// CommandContext自带的功能没有考虑到这个操作：
+			_ = syscall.Kill(-proc.Process.Pid, syscall.SIGKILL)
+		}
+	}()
+
+	if err = proc.Start(); err != nil {
 		return nil, err
 	}
 
