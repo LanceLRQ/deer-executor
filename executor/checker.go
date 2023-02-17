@@ -1,4 +1,5 @@
-// +build linux darwin
+//go:build linux || darwin || windows
+// +build linux darwin windows
 
 package executor
 
