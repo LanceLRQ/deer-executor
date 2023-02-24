@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+package rpc;
+
+option go_package = "/rpc";
+
+enum JudgeLogLevel {
+  UNSET = 0;
+  DEBUG = 1;
+  INFO = 2;
+  WARN = 3;
+  ERROR = 4;
+}
+
+enum CompressType {
+  NO_COMPRESS = 0;    // 不压缩
+  GZIP = 1;           // GZ压缩
+}
+
+enum JudgeFlag {
+  // Accepted
+  AC = 0;
+  // Presentation Error
+  PE = 1;
+  // Time Limit Exceeded
+  TLE = 2;
+  // Memory Limit Exceeded
+  MLE = 3;
+  // Wrong Answer
+  WA = 4;
+  // ntime Error
+  RE = 5;
+  // Output Limit Exceeded
+  OLE = 6;
+  // Compile Error
+  CE = 7;
+  // System Error
+  SE = 8;
+
+  // 9 is for ReJudge (reserved)
+  ReJudge = 9;
+  // Special Judge Checker Time OUT
+  SpecialJudgeTimeout = 10;
+  // Special Judge Checker ERROR
+  SpecialJudgeError = 11;
+  // Special Judge Checker Finish, Need Standard Checkup
+  SpecialJudgeRequireChecker = 12;
+}
+
+message JudgementRequest {
+  string code = 1;                  // 代码
+  string problem = 2;               // 题目名称
+  bool enable_log = 3;              // 启用评测日志
+  JudgeLogLevel log_level = 4;      // 评测日志等级
+
+  reserved 5 to 9;
+
+  bool persist_result = 10;         // 保存评测记录
+  bool persist_with_ac_data = 11;   // 评测记录包含AC数据（会增加体积）
+  CompressType compress_type = 12 ; // 记录压缩方式
+  bool sign_result = 13;            // 对评测记录进行GPG签名（本地模式可以用）
+  string gpg_key = 14;              // Base64编码后的gpg私钥（本地模式可以用）
+  string gpg_passphrase = 15;       // gpg私钥（本地模式可以用）
+}
+
+message JudgementResponse {
+  JudgeFlag JudgeFlag = 1;              // 评测结果状态
+  string JudgeResultData = 2;           // 评测结果数据(JSON)
+  string ResultPackage = 3;             // 评测运行数据打包文件(URI)
+}
+
+message PingRequest {}
+
+message PingResponse {
+  bool ready = 1;
+  int64 time = 2;
+}
+
+service JudgementService {
+  rpc Ping(PingRequest) returns (PingResponse);
+  rpc StartJudgement(JudgementRequest) returns (JudgementResponse);
+}

@@ -5,6 +5,10 @@ import (
 	"github.com/LanceLRQ/deer-executor/v2/client"
 	"github.com/LanceLRQ/deer-executor/v2/client/generate"
 	"github.com/LanceLRQ/deer-executor/v2/client/run"
+	"github.com/LanceLRQ/deer-executor/v2/server"
+	serverConfig "github.com/LanceLRQ/deer-executor/v2/server/server_config"
+	"github.com/gookit/config/v2"
+	"github.com/gookit/config/v2/yamlv3"
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"
@@ -69,6 +73,22 @@ func main() {
 				Aliases:     []string{"p"},
 				Usage:       "problem manager",
 				Subcommands: client.AppProblemSubCommands,
+			},
+			{
+				Name:   "server",
+				Hidden: true,
+				Usage:  "run judge service backend",
+				Before: func(c *cli.Context) error {
+					config.AddDriver(yamlv3.Driver)
+					err := config.LoadFiles(c.String("config"))
+					if err != nil {
+						return err
+					}
+					// 载入服务端配置
+					return serverConfig.LoadGlobalConf()
+				},
+				Action: server.LaunchJudgeService,
+				Flags:  server.JudgeServiceCommandFlags,
 			},
 			{
 				Name:   "test",
