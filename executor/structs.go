@@ -23,6 +23,7 @@ type JudgeSession struct {
 	ConfigDir    string   // Config file dir
 	CodeLangName string   // Code file language name
 	CodeFile     string   // Code File Path
+	CodeStr      string   // Code Str (if set, use it first)
 	LibraryDir   string   // Compile Library Path for Working Program
 	Commands     []string // Executable program commands
 

@@ -48,25 +48,28 @@ enum JudgeFlag {
 }
 
 message JudgementRequest {
-  string code = 1;                  // 代码
-  string problem = 2;               // 题目名称
-  bool enable_log = 3;              // 启用评测日志
-  JudgeLogLevel log_level = 4;      // 评测日志等级
+  string code = 1;                  // 代码(具体内容)
+  string problem_dir = 2;           // 题目数据(基于%server_config.JudgementConfig.ProblemRoot%的目录路径)
+  string language = 3;              // 评测语言标识
+  bool enable_log = 4;              // 启用评测日志
+  JudgeLogLevel log_level = 5;      // 评测日志等级
+  bool clean_session = 6;           // 评测结束后是否清除会话
 
-  reserved 5 to 9;
+  reserved 7 to 9;
 
   bool persist_result = 10;         // 保存评测记录
   bool persist_with_ac_data = 11;   // 评测记录包含AC数据（会增加体积）
   CompressType compress_type = 12 ; // 记录压缩方式
-  bool sign_result = 13;            // 对评测记录进行GPG签名（本地模式可以用）
-  string gpg_key = 14;              // Base64编码后的gpg私钥（本地模式可以用）
-  string gpg_passphrase = 15;       // gpg私钥（本地模式可以用）
+  bool sign_result = 13;            // 对评测记录进行GPG签名
+  string gpg_key = 14;              // Base64编码后的GPG私钥
+  string gpg_passphrase = 15;       // GPG私钥的密码
 }
 
 message JudgementResponse {
   JudgeFlag JudgeFlag = 1;              // 评测结果状态
-  string JudgeResultData = 2;           // 评测结果数据(JSON)
-  string ResultPackage = 3;             // 评测运行数据打包文件(URI)
+  string ResultData = 2;                // 评测结果数据(JSON格式序列化成文本，结构为commonStructs.JudgeResult)
+  string ResultPackageFile = 3;         // 评测运行数据打包文件(外部根据ID访问/%server_config.JudgementConfig.SessionRoot%/%ResultPackageFile%)
+  string SessionId = 4;                 // 评测Session的ID(外部根据ID访问/%server_config.JudgementConfig.SessionRoot%/%SessionID%)
 }
 
 message PingRequest {}

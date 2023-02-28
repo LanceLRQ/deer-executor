@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"github.com/LanceLRQ/deer-executor/v2/client"
 	"github.com/LanceLRQ/deer-executor/v2/server/logic"
 	"github.com/LanceLRQ/deer-executor/v2/server/rpc"
 	"github.com/LanceLRQ/deer-executor/v2/server/server_config"
@@ -11,6 +12,12 @@ import (
 )
 
 func LaunchJudgeService(c *cli.Context) error {
+	// Load judge enviroment configuration
+	err := client.LoadSystemConfiguration()
+	if err != nil {
+		return err
+	}
+
 	hostname := fmt.Sprintf("%s:%d", server_config.GRPCConfig.Host, server_config.GRPCConfig.Port)
 	srv := grpc.NewServer()
 	rpc.RegisterJudgementServiceServer(srv, &logic.JudgementServiceServerImpl{})

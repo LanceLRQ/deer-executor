@@ -15,6 +15,7 @@ import (
 
 // 匹配编程语言
 func matchCodeLanguage(keyword string, fileName string) (provider.CodeCompileProviderInterface, error) {
+	fromAuto := false
 _match:
 	switch keyword {
 	case "c", "gcc", "gnu-c":
@@ -39,7 +40,12 @@ _match:
 		return provider.NewRustCompileProvider(), nil
 	case "auto", "":
 		keyword = strings.Replace(path.Ext(fileName), ".", "", -1)
-		goto _match
+		if fromAuto {
+			break
+		} else {
+			fromAuto = true
+			goto _match
+		}
 	}
 	return nil, errors.Errorf("unsupported language")
 }
@@ -69,7 +75,7 @@ func (session *JudgeSession) GetCompiler(codeStr string) (provider.CodeCompilePr
 // 编译目标程序
 func (session *JudgeSession) compileTargetProgram(judgeResult *commonStructs.JudgeResult) error {
 	// 获取对应的编译器提供程序
-	compiler, err := session.GetCompiler("")
+	compiler, err := session.GetCompiler(session.CodeStr)
 	if err != nil {
 		judgeResult.JudgeResult = constants.JudgeFlagSE
 		judgeResult.SeInfo = err.Error()

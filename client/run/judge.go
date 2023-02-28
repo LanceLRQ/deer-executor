@@ -1,3 +1,4 @@
+//go:build linux || darwin
 // +build linux darwin
 
 package run
@@ -86,20 +87,18 @@ func runUserJudge(c *cli.Context, configFile, workDir string) (*commonStructs.Ju
 		SaveAcceptedData: c.Bool("save-ac-data"),
 	}
 	jOption.OutFile = c.String("persistence")
-	// 是否要持久化结果
-	if persistenceOn {
-		if digitalSign {
-			if c.String("passphrase") != "" {
-				log.Println("[warn] Using a password on the command line interface can be insecure.")
-			}
-			passphrase := []byte(c.String("passphrase"))
-			pem, err := persistence.GetArmorPublicKey(c.String("gpg-key"), passphrase)
-			if err != nil {
-				return nil, err
-			}
-			jOption.DigitalSign = true
-			jOption.DigitalPEM = pem
+	// Is enable persistence with sign
+	if persistenceOn && digitalSign {
+		if c.String("passphrase") != "" {
+			log.Println("[warn] Using a password on the command line interface can be insecure.")
 		}
+		passphrase := []byte(c.String("passphrase"))
+		pem, err := persistence.GetArmorPublicKey(c.String("gpg-key"), passphrase)
+		if err != nil {
+			return nil, err
+		}
+		jOption.DigitalSign = true
+		jOption.DigitalPEM = pem
 	}
 
 	isBenchmarkMode := c.Int("benchmark") > 1

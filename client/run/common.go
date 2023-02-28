@@ -1,27 +1,12 @@
 package run
 
 import (
-	"github.com/LanceLRQ/deer-executor/v2/common/constants"
 	"github.com/LanceLRQ/deer-executor/v2/common/persistence/problems"
-	"github.com/LanceLRQ/deer-executor/v2/common/provider"
 	"github.com/LanceLRQ/deer-executor/v2/common/utils"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 	"os"
 )
-
-func loadSystemConfiguration() error {
-	// 载入默认配置
-	err := provider.PlaceCompilerCommands("./compilers.json")
-	if err != nil {
-		return err
-	}
-	err = constants.PlaceMemorySizeForJIT("./jit_memory.json")
-	if err != nil {
-		return err
-	}
-	return nil
-}
 
 func loadProblemConfiguration(configFile string, workDir string) (string, bool, string, error) {
 	_, err := os.Stat(configFile)
