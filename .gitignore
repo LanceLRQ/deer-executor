@@ -19,6 +19,7 @@ dist
 lab
 !data/problems/**/*.out
 data/problems/**/bin
+data/server/**
 data/test_cases/*
 pkg/deer-common
 report.log
