@@ -59,6 +59,9 @@ func packZipFile(rootPath string, targetPath string) error {
 			}
 			defer file.Close()
 			_, err = io.Copy(writer, file)
+			if err != nil {
+				return err
+			}
 		}
 		return err
 	})
@@ -110,6 +113,9 @@ func PackProblemsAsZip(options *persistence.ProblemPackageOptions) error {
 	}
 
 	hash, err := persistence.SHA256Streams([]io.Reader{fBody})
+	if err != nil {
+		return err
+	}
 
 	// GPG signature
 	if options.DigitalSign {

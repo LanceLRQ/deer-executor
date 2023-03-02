@@ -1,3 +1,4 @@
+//go:build linux || darwin
 // +build linux darwin
 
 package executor
@@ -158,7 +159,7 @@ func (session *JudgeSession) RunJudge() commonStructs.JudgeResult {
 
 		flagName, ok := constants.FlagMeansMap[tcResult.JudgeResult]
 		if !ok {
-			flagName = "Unkonwn"
+			flagName = "Unknown"
 		}
 		session.Logger.Infof("This case's result is " + flagName)
 
@@ -195,7 +196,7 @@ func (session *JudgeSession) RunJudge() commonStructs.JudgeResult {
 	} else {
 		flagName, ok := constants.FlagMeansMap[judgeResult.JudgeResult]
 		if !ok {
-			flagName = "Unkonwn"
+			flagName = "Unknown"
 		}
 		session.Logger.Warnf("Oops, %s! There is something wrong.", flagName)
 	}

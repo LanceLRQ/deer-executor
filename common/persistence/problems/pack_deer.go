@@ -66,6 +66,9 @@ func mergeFilesBinary(options *persistence.ProblemPackageOptions) (string, error
 			}
 			defer file.Close()
 			_, err = io.Copy(writer, file)
+			if err != nil {
+				return err
+			}
 		}
 		return err
 	})
