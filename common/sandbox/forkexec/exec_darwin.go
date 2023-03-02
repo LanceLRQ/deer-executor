@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+//go:build darwin
 // +build darwin
 
 package forkexec
@@ -13,6 +14,7 @@ import (
 
 // Find the entry point for f. See comments in runtime/proc.go for the
 // function of the same name.
+//
 //go:nosplit
 func funcPC(f func()) uintptr {
 	return **(**uintptr)(unsafe.Pointer(&f))
@@ -44,6 +46,25 @@ type SysProcAttr struct {
 	Rlimit     ExecRLimit // Set child's rlimit.
 }
 
+func errToErrno(e error) syscall.Errno {
+	var (
+		errEAGAIN error = syscall.EAGAIN
+		errEINVAL error = syscall.EINVAL
+		errENOENT error = syscall.ENOENT
+	)
+	switch e {
+	case nil:
+		return 0
+	case errEAGAIN:
+		return syscall.EAGAIN
+	case errEINVAL:
+		return syscall.EINVAL
+	case errENOENT:
+		return syscall.ENOENT
+	}
+	return syscall.Errno(unsafe.Pointer(&e))
+}
+
 // Fork, dup fd onto 0..len(fd), and exec(argv0, argvv, envv) in child.
 // If a dup or exec fails, write the errno error to pipe.
 // (Pipe is close-on-exec so if exec succeeds, it will be closed.)
@@ -53,8 +74,11 @@ type SysProcAttr struct {
 // For the same reason compiler does not race instrument it.
 // The calls to rawSyscall are okay because they are assembly
 // functions that do not grow the stack.
+//
 //go:norace
 func forkAndExecInChild(argv0 *byte, argv, envv []*byte, chroot, dir *byte, attr *ProcAttr, sys *SysProcAttr, pipe int) (pid int, err syscall.Errno) {
+	var isGoGEQ17 = goVersionGEQ1dot17()
+
 	// Declare all variables at top in case any
 	// declarations require heap allocation (e.g., err1).
 	var (
@@ -82,22 +106,33 @@ func forkAndExecInChild(argv0 *byte, argv, envv []*byte, chroot, dir *byte, attr
 
 	// About to call fork.
 	// No more allocation or calls of non-assembly functions.
-	runtime_BeforeFork()
-	r1, _, err1 = rawSyscall(funcPC(libc_fork_trampoline), 0, 0, 0)
-	if err1 != 0 {
-		runtime_AfterFork()
-		return 0, err1
-	}
+	//r1, _, err1 = syscall.Syscall(syscall.SYS_FORK, 0, 0, 0)
+	if isGoGEQ17 {
+		// fuck go>=1.17 runtime
+		// 这块确实不知道怎么解决，只能去调用syscall.fork()不会卡死。解决不了问题就解决会产生问题的东西咯。
+		pid1, err2 := fork()
+		if err2 != nil {
+			return 0, errToErrno(err2)
+		}
+		if pid1 != 0 {
+			// parent; return PID
+			return pid1, 0
+		}
+	} else {
+		runtime_BeforeFork()
+		r1, _, err1 = rawSyscall(funcPC(libc_fork_trampoline), 0, 0, 0)
+		if err1 != 0 {
+			runtime_AfterFork()
+			return 0, err1
+		}
 
-	if r1 != 0 {
-		// parent; return PID
-		runtime_AfterFork()
-		return int(r1), 0
+		if r1 != 0 {
+			// parent; return PID
+			runtime_AfterFork()
+			return int(r1), 0
+		}
 	}
-
 	// Fork succeeded, now in child.
-
-	runtime_AfterForkInChild()
 
 	// Enable tracing if requested.
 	if sys.Ptrace {
@@ -140,6 +175,12 @@ func forkAndExecInChild(argv0 *byte, argv, envv []*byte, chroot, dir *byte, attr
 		if err1 != 0 {
 			goto childerror
 		}
+	}
+
+	// Restore the signal mask. We do this after TIOCSPGRP to avoid
+	// having the kernel send a SIGTTOU signal to the process group.
+	if !isGoGEQ17 {
+		runtime_AfterForkInChild()
 	}
 
 	// Chroot

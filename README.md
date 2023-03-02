@@ -32,9 +32,9 @@
 
 文档托管在Github Wiki上，[点击访问](https://github.com/LanceLRQ/deer-executor/wiki)
 
-## 待解决
+## 关于Go Runtime
 
-go>=1.17，不能正常进行Fork，原因未知...请使用go1.16编译。
+go>=1.17开始runtime似乎有些问题，目前已缓解...但还是建议使用go1.16编译。
 
 ## 🤝 鸣谢
 

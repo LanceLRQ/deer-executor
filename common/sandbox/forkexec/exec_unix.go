@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+//go:build darwin || linux
 // +build darwin linux
 
 // Fork, exec, wait, etc.
@@ -10,7 +11,6 @@ package forkexec
 
 import (
 	errorspkg "errors"
-	"runtime"
 	"syscall"
 	"unsafe"
 )
@@ -55,10 +55,6 @@ func forkExec(argv0 string, argv []string, attr *ProcAttr) (pid int, err error) 
 		return 0, err
 	}
 
-	if (runtime.GOOS == "freebsd" || runtime.GOOS == "dragonfly") && len(argv[0]) > len(argv0) {
-		argvp[0] = argv0p
-	}
-
 	var chroot *byte
 	if sys.Chroot != "" {
 		chroot, err = syscall.BytePtrFromString(sys.Chroot)
@@ -100,7 +96,7 @@ func forkExec(argv0 string, argv []string, attr *ProcAttr) (pid int, err error) 
 		syscall.Close(p[0])
 		syscall.Close(p[1])
 		syscall.ForkLock.Unlock()
-		return 0, syscall.Errno(err1)
+		return 0, err1
 	}
 	syscall.ForkLock.Unlock()
 
