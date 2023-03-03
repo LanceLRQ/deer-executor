@@ -18,32 +18,32 @@ import (
 )
 
 // 校验判题结果数据包
-func validateProblemPackageZip(zipArchive *zip.ReadCloser) (bool, error) {
+func validateProblemPackageZip(zipArchive *zip.ReadCloser) error {
 	// 搜索config文件
 	configFile, _, err := FindInZip(zipArchive, "problem.json")
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	configBytes, err := ioutil.ReadAll(*configFile)
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	hash, err := persistence.SHA256Streams([]io.Reader{bytes.NewReader(configBytes)})
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	// signFile
 	signFile, _, err := FindInZip(zipArchive, ".sign")
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	signature, err := ioutil.ReadAll(*signFile)
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	// gpgFile
@@ -58,37 +58,33 @@ func validateProblemPackageZip(zipArchive *zip.ReadCloser) (bool, error) {
 		// Read GPG Keys
 		elist, err := openpgp.ReadArmoredKeyRing(bufio.NewReader(*gpgFile))
 		if err != nil {
-			return false, err
+			return err
 		}
 		if len(elist) < 1 {
-			return false, errors.Errorf("GPG key error")
+			return errors.Errorf("GPG key error")
 		}
 		publicKey := elist[0].PrimaryKey.PublicKey.(*rsa.PublicKey)
 		err = persistence.RSA2048Verify(hash, signature, publicKey)
 		if err != nil {
-			return false, err
+			return err
 		}
 	} else {
-		return reflect.DeepEqual(hash, signature), nil
+		isOk := reflect.DeepEqual(hash, signature)
+		if !isOk {
+			return errors.Errorf("validate package signature error")
+		}
 	}
-	return true, nil
+	return nil
 }
 
 func doProblemPackageValidationZip(zipArchive *zip.ReadCloser, validate bool) error {
-	ok, err := validateProblemPackageZip(zipArchive)
-	var errmsg error
-	if !ok || err != nil {
-		if err != nil {
-			errmsg = errors.Errorf("validate package hash error: %s", err.Error())
-		}
-		errmsg = errors.Errorf("validate package hash error")
-	}
+	err := validateProblemPackageZip(zipArchive)
 	// 如果出错并且现在必须要验证错误，则抛出
-	if errmsg != nil {
+	if err != nil {
 		if validate {
-			return errmsg
+			return errors.Errorf("validate package hash error: %s", err.Error())
 		}
-		log.Println("Warning! Package signature validation failed.")
+		log.Println("Warning! Read package signature failed.")
 	}
 	return nil
 }

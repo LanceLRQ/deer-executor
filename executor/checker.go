@@ -1,3 +1,4 @@
+//go:build linux || darwin
 // +build linux darwin
 
 package executor
@@ -60,9 +61,12 @@ func lineDiff(session *JudgeSession, rst *commonStructs.TestCaseResult) (sameLin
 	answerBuffer := bufio.NewReader(answer)
 
 	var (
-		leftStr, rightStr       = "", ""
-		leftErr, rightErr error = nil, nil
-		leftCnt, rightCnt       = 0, 0
+		leftStr        = ""
+		rightStr       = ""
+		leftErr  error = nil
+		rightErr error = nil
+		leftCnt        = 0
+		rightCnt       = 0
 	)
 
 	for leftErr == nil {

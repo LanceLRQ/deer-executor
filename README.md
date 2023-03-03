@@ -32,6 +32,10 @@
 
 文档托管在Github Wiki上，[点击访问](https://github.com/LanceLRQ/deer-executor/wiki)
 
+## 关于Go Runtime
+
+go>=1.17开始runtime似乎有些问题，目前已缓解...但还是建议使用go1.16编译。
+
 ## 🤝 鸣谢
 
 感谢开源项目[Loco's runner](https://github.com/dojiong/Lo-runner) 为本程序提供了黑盒评测的实现思路。

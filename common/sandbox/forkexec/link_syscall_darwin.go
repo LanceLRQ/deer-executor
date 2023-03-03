@@ -1,3 +1,4 @@
+//go:build darwin
 // +build darwin
 
 package forkexec
@@ -81,3 +82,6 @@ func ptrace1(request int, pid int, addr uintptr, data uintptr) (err error)
 
 //go:linkname readlen syscall.readlen
 func readlen(fd int, buf *byte, nbuf int) (n int, err error)
+
+//go:linkname fork syscall.fork
+func fork() (pid int, err error)

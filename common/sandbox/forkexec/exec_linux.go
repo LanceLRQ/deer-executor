@@ -1,3 +1,4 @@
+//go:build linux && amd64
 // +build linux,amd64
 
 package forkexec
@@ -108,6 +109,8 @@ func forkExecPipe(p []int) (err error) {
 //go:noinline
 //go:norace
 func forkAndExecInChild1(argv0 *byte, argv, envv []*byte, chroot, dir *byte, attr *ProcAttr, sys *SysProcAttr, pipe int) (r1 uintptr, err1 syscall.Errno, p [2]int, locked bool) {
+	var isGoGEQ17 = goVersionGEQ1dot17()
+
 	// Defined in linux/prctl.h starting with Linux 4.3.
 	const (
 		PR_CAP_AMBIENT       = 0x2f
@@ -184,29 +187,40 @@ func forkAndExecInChild1(argv0 *byte, argv, envv []*byte, chroot, dir *byte, att
 
 	// About to call fork.
 	// No more allocation or calls of non-assembly functions.
-	runtime_BeforeFork()
-	locked = true
-	switch {
-	case hasRawVforkSyscall && (sys.Cloneflags&syscall.CLONE_NEWUSER == 0 && sys.Unshareflags&syscall.CLONE_NEWUSER == 0):
-		r1, err1 = rawVforkSyscall(syscall.SYS_CLONE, uintptr(syscall.SIGCHLD|syscall.CLONE_VFORK|syscall.CLONE_VM)|sys.Cloneflags)
-	case runtime.GOARCH == "s390x":
-		r1, _, err1 = syscall.RawSyscall6(syscall.SYS_CLONE, 0, uintptr(syscall.SIGCHLD)|sys.Cloneflags, 0, 0, 0, 0)
-	default:
+	// fuck go>=1.17 runtime
+	// 这块确实不知道怎么解决。解决不了问题就解决会产生问题的东西咯。
+	if !isGoGEQ17 {
+		runtime_BeforeFork()
+		locked = true
+		switch {
+		case hasRawVforkSyscall && (sys.Cloneflags&syscall.CLONE_NEWUSER == 0 && sys.Unshareflags&syscall.CLONE_NEWUSER == 0):
+			r1, err1 = rawVforkSyscall(syscall.SYS_CLONE, uintptr(syscall.SIGCHLD|syscall.CLONE_VFORK|syscall.CLONE_VM)|sys.Cloneflags)
+		case runtime.GOARCH == "s390x":
+			r1, _, err1 = syscall.RawSyscall6(syscall.SYS_CLONE, 0, uintptr(syscall.SIGCHLD)|sys.Cloneflags, 0, 0, 0, 0)
+		default:
+			r1, _, err1 = syscall.RawSyscall6(syscall.SYS_CLONE, uintptr(syscall.SIGCHLD)|sys.Cloneflags, 0, 0, 0, 0, 0)
+		}
+		if err1 != 0 || r1 != 0 {
+			// If we're in the parent, we must return immediately
+			// so we're not in the same stack frame as the child.
+			// This can at most use the return PC, which the child
+			// will not modify, and the results of
+			// rawVforkSyscall, which must have been written after
+			// the child was replaced.
+			return
+		}
+	} else {
 		r1, _, err1 = syscall.RawSyscall6(syscall.SYS_CLONE, uintptr(syscall.SIGCHLD)|sys.Cloneflags, 0, 0, 0, 0, 0)
-	}
-	if err1 != 0 || r1 != 0 {
-		// If we're in the parent, we must return immediately
-		// so we're not in the same stack frame as the child.
-		// This can at most use the return PC, which the child
-		// will not modify, and the results of
-		// rawVforkSyscall, which must have been written after
-		// the child was replaced.
-		return
+		if err1 != 0 || r1 != 0 {
+			return
+		}
 	}
 
 	// Fork succeeded, now in child.
 
-	runtime_AfterForkInChild()
+	if !isGoGEQ17 {
+		runtime_AfterForkInChild()
+	}
 
 	// Enable the "keep capabilities" flag to set ambient capabilities later.
 	if len(sys.AmbientCaps) > 0 {
@@ -550,6 +564,7 @@ childerror:
 // For the same reason compiler does not race instrument it.
 // The calls to RawSyscall are okay because they are assembly
 // functions that do not grow the stack.
+//
 //go:norace
 func forkAndExecInChild(argv0 *byte, argv, envv []*byte, chroot, dir *byte, attr *ProcAttr, sys *SysProcAttr, pipe int) (pid int, err syscall.Errno) {
 	// Set up and fork. This returns immediately in the parent or

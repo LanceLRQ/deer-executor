@@ -86,11 +86,11 @@ func parseProblemPackageBinary(reader io.Reader, unpackBody bool) (*ProblemPacka
 }
 
 // 校验判题结果数据包
-func validateProblemPackage(pack *ProblemPackage) (bool, error) {
+func validateProblemPackage(pack *ProblemPackage) error {
 	// 打开临时文件
 	tmpBodyFile, err := os.Open(pack.BodyPackageFile)
 	if err != nil {
-		return false, errors.Errorf("open body package temp file error: %s", err.Error())
+		return errors.Errorf("open body package temp file error: %s", err.Error())
 	}
 	defer tmpBodyFile.Close()
 
@@ -99,27 +99,30 @@ func validateProblemPackage(pack *ProblemPackage) (bool, error) {
 		tmpBodyFile,
 	})
 	if err != nil {
-		return false, err
+		return err
 	}
 	// 进行签名校验
 	if pack.CertSize > 0 {
 		// Read GPG Keys
 		elist, err := openpgp.ReadArmoredKeyRing(bytes.NewReader(pack.Certificate))
 		if err != nil {
-			return false, err
+			return err
 		}
 		if len(elist) < 1 {
-			return false, errors.Errorf("GPG key error")
+			return errors.Errorf("GPG key error")
 		}
 		publicKey := elist[0].PrimaryKey.PublicKey.(*rsa.PublicKey)
 		err = persistence.RSA2048Verify(hash, pack.Signature, publicKey)
 		if err != nil {
-			return false, err
+			return err
 		}
 	} else {
-		return reflect.DeepEqual(hash, pack.Signature), nil
+		isOk := reflect.DeepEqual(hash, pack.Signature)
+		if !isOk {
+			return errors.Errorf("validate package signature error")
+		}
 	}
-	return true, nil
+	return nil
 }
 
 func readProblemPackage(problemFile string, unpack bool) (*ProblemPackage, error) {
@@ -139,19 +142,15 @@ func readProblemPackage(problemFile string, unpack bool) (*ProblemPackage, error
 }
 
 func doProblemPackageValidation(pack *ProblemPackage, validate bool) error {
-	ok, err := validateProblemPackage(pack)
-	var errmsg error
-	if !ok || err != nil {
-		if err != nil {
-			errmsg = errors.Errorf("validate package hash error: %s", err.Error())
+	err := validateProblemPackage(pack)
+	// 如果出错并且现在必须验证错误，则抛出
+	if err != nil {
+		if validate {
+			return errors.Errorf("validate package hash error: %s", err.Error())
+		} else if pack.CertSize > 0 {
+			fmt.Println("Warning! Read package signature failed.")
 		}
-		errmsg = errors.Errorf("validate package hash error")
 	}
-	// 如果出错并且现在必须要验证错误，则抛出
-	if errmsg != nil && validate {
-		return errmsg
-	}
-	fmt.Println("Warning! Package signature validation failed.")
 	return nil
 }
 

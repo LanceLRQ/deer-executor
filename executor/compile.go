@@ -50,7 +50,7 @@ _match:
 	return nil, errors.Errorf("unsupported language")
 }
 
-// GetCompiler get a complier provider from session.CodeLangName
+// GetCompiler get a compiler provider from session.CodeLangName
 // 如果不设置codeStr，默认会读取配置文件里的code_file字段并打开对应文件
 func (session *JudgeSession) GetCompiler(codeStr string) (provider.CodeCompileProviderInterface, error) {
 	if codeStr == "" {

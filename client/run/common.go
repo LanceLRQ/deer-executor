@@ -38,13 +38,12 @@ func loadProblemConfiguration(configFile string, workDir string) (string, bool, 
 		}
 		if isDeerPack {
 			_, configFile, err = problems.ReadProblemInfo(configFile, true, true, workDir)
-			if err != nil {
-				return "", false, "", err
-			}
 		} else {
 			_, configFile, err = problems.ReadProblemInfoZip(configFile, true, true, workDir)
 		}
-
+		if err != nil {
+			return "", false, "", err
+		}
 	}
 	// 如果不是题包文件，返回的是配置文件的路径和工作目录，
 	return configFile, autoRemoveWorkDir, workDir, nil
