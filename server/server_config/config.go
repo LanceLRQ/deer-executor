@@ -1,6 +1,9 @@
 package server_config
 
-import "github.com/gookit/config/v2"
+import (
+	"github.com/gookit/config/v2"
+	"path/filepath"
+)
 
 type GRPCConfigDefinition struct {
 	Host string `mapstructure:"host"`
@@ -22,6 +25,19 @@ func LoadGlobalConf() error {
 		return err
 	}
 	err = config.BindStruct("judgement", &JudgementConfig)
+	if err != nil {
+		return err
+	}
+	// 转换目录到绝对路径
+	JudgementConfig.ProblemRoot, err = filepath.Abs(JudgementConfig.ProblemRoot)
+	if err != nil {
+		return err
+	}
+	JudgementConfig.SystemLibraryRoot, err = filepath.Abs(JudgementConfig.SystemLibraryRoot)
+	if err != nil {
+		return err
+	}
+	JudgementConfig.SessionRoot, err = filepath.Abs(JudgementConfig.SessionRoot)
 	if err != nil {
 		return err
 	}

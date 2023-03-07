@@ -41,11 +41,13 @@ func TestRpcJudge(t *testing.T) {
 		Language:      "gcc",
 		EnableLog:     true,
 		CleanSession:  true,
-		PersistResult: false,
+		PersistResult: true,
 	})
 	if err != nil {
 		t.Fatalf("cannot ping: %v", err)
 	}
 	log.Println(resp.JudgeFlag)
+	log.Println(resp.SessionId)
 	log.Println(resp.ResultData)
+	log.Println(resp.ResultPackageFile)
 }

@@ -165,9 +165,9 @@ func runRpcJudge(request *rpc.JudgementRequest) (*commonStructs.JudgeResult, str
 		SessionRoot: server_config.JudgementConfig.SessionRoot,
 	}
 
-	// to enable persistence
-	persistFile := fmt.Sprintf("%s.result", sessionID)
-	if request.PersistResult {
+	persistFile := ""          // set empty
+	if request.PersistResult { // if enable persistence
+		persistFile = fmt.Sprintf("%s.result", sessionID)
 		// outfile
 		jOption.OutFile = path.Join(server_config.JudgementConfig.SessionRoot, persistFile)
 		rOptions.Persistence = &jOption
