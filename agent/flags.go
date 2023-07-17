@@ -1,4 +1,4 @@
-package server
+package agent
 
 import "github.com/urfave/cli/v2"
 

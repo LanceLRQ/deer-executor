@@ -5,13 +5,13 @@ package logic
 
 import (
 	"fmt"
+	agentConfig "github.com/LanceLRQ/deer-executor/v2/agent/config"
+	"github.com/LanceLRQ/deer-executor/v2/agent/rpc"
 	"github.com/LanceLRQ/deer-executor/v2/common/persistence"
 	"github.com/LanceLRQ/deer-executor/v2/common/persistence/result"
 	commonStructs "github.com/LanceLRQ/deer-executor/v2/common/structs"
 	"github.com/LanceLRQ/deer-executor/v2/common/utils"
 	"github.com/LanceLRQ/deer-executor/v2/executor"
-	"github.com/LanceLRQ/deer-executor/v2/server/rpc"
-	"github.com/LanceLRQ/deer-executor/v2/server/server_config"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 	"os"
@@ -112,7 +112,7 @@ func startRealJudgement(options *JudgementRunOption) (*executor.JudgeSession, *c
 // intro
 func runRpcJudge(request *rpc.JudgementRequest) (*commonStructs.JudgeResult, string, error) {
 	// build and check workdir
-	workDir := path.Join(server_config.JudgementConfig.ProblemRoot, request.ProblemDir)
+	workDir := path.Join(agentConfig.JudgementConfig.ProblemRoot, request.ProblemDir)
 	if wd, err := os.Stat(workDir); os.IsNotExist(err) || (wd != nil && !wd.IsDir()) {
 		return nil, "", fmt.Errorf("problem_dir is not exists or not a directory")
 	}
@@ -141,7 +141,7 @@ func runRpcJudge(request *rpc.JudgementRequest) (*commonStructs.JudgeResult, str
 	// create session info
 	sessionID := uuid.NewV1().String()
 	// init session dir
-	sessionDir, err := utils.GetSessionDir(server_config.JudgementConfig.SessionRoot, sessionID)
+	sessionDir, err := utils.GetSessionDir(agentConfig.JudgementConfig.SessionRoot, sessionID)
 	if err != nil {
 		return nil, "", err
 	}
@@ -158,18 +158,18 @@ func runRpcJudge(request *rpc.JudgementRequest) (*commonStructs.JudgeResult, str
 		WorkDir:     workDir,
 		ConfigFile:  configFile,
 		Language:    request.Language,
-		LibraryDir:  server_config.JudgementConfig.SystemLibraryRoot,
+		LibraryDir:  agentConfig.JudgementConfig.SystemLibraryRoot,
 		CodeStr:     request.Code,
 		SessionID:   sessionID,
 		SessionDir:  sessionDir,
-		SessionRoot: server_config.JudgementConfig.SessionRoot,
+		SessionRoot: agentConfig.JudgementConfig.SessionRoot,
 	}
 
 	persistFile := ""          // set empty
 	if request.PersistResult { // if enable persistence
 		persistFile = fmt.Sprintf("%s.result", sessionID)
 		// outfile
-		jOption.OutFile = path.Join(server_config.JudgementConfig.SessionRoot, persistFile)
+		jOption.OutFile = path.Join(agentConfig.JudgementConfig.SessionRoot, persistFile)
 		rOptions.Persistence = &jOption
 	}
 

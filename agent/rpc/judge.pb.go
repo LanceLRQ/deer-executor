@@ -219,7 +219,7 @@ type JudgementRequest struct {
 	unknownFields protoimpl.UnknownFields
 
 	Code              string        `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`                                                             // 代码(具体内容)
-	ProblemDir        string        `protobuf:"bytes,2,opt,name=problem_dir,json=problemDir,proto3" json:"problem_dir,omitempty"`                               // 题目数据(基于%server_config.JudgementConfig.ProblemRoot%的目录路径)
+	ProblemDir        string        `protobuf:"bytes,2,opt,name=problem_dir,json=problemDir,proto3" json:"problem_dir,omitempty"`                               // 题目数据(基于%agent_config.JudgementConfig.ProblemRoot%的目录路径)
 	Language          string        `protobuf:"bytes,3,opt,name=language,proto3" json:"language,omitempty"`                                                     // 评测语言标识
 	EnableLog         bool          `protobuf:"varint,4,opt,name=enable_log,json=enableLog,proto3" json:"enable_log,omitempty"`                                 // 启用评测日志
 	LogLevel          JudgeLogLevel `protobuf:"varint,5,opt,name=log_level,json=logLevel,proto3,enum=rpc.JudgeLogLevel" json:"log_level,omitempty"`             // 评测日志等级
@@ -355,7 +355,7 @@ type JudgementResponse struct {
 
 	JudgeFlag         JudgeFlag `protobuf:"varint,1,opt,name=JudgeFlag,proto3,enum=rpc.JudgeFlag" json:"JudgeFlag,omitempty"` // 评测结果状态
 	ResultData        string    `protobuf:"bytes,2,opt,name=ResultData,proto3" json:"ResultData,omitempty"`                   // 评测结果数据(JSON格式序列化成文本，结构为commonStructs.JudgeResult)
-	ResultPackageFile string    `protobuf:"bytes,3,opt,name=ResultPackageFile,proto3" json:"ResultPackageFile,omitempty"`     // 评测运行数据打包文件(外部根据ID访问/%server_config.JudgementConfig.SessionRoot%/%ResultPackageFile%)
+	ResultPackageFile string    `protobuf:"bytes,3,opt,name=ResultPackageFile,proto3" json:"ResultPackageFile,omitempty"`     // 评测运行数据打包文件(外部根据ID访问/%agent_config.JudgementConfig.SessionRoot%/%ResultPackageFile%)
 	SessionId         string    `protobuf:"bytes,4,opt,name=SessionId,proto3" json:"SessionId,omitempty"`                     // 评测Session的ID(外部根据ID访问/%server_config.JudgementConfig.SessionRoot%/%SessionID%)
 }
 

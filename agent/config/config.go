@@ -1,4 +1,4 @@
-package server_config
+package agent_config
 
 import (
 	"github.com/gookit/config/v2"
