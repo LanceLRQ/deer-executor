@@ -3,9 +3,9 @@ package packmgr
 import (
 	"context"
 	"fmt"
-	"github.com/LanceLRQ/deer-executor/v2/common/structs"
-	"github.com/LanceLRQ/deer-executor/v2/common/utils"
-	"github.com/LanceLRQ/deer-executor/v2/executor"
+	"github.com/LanceLRQ/deer-executor/v3/executor"
+	structs2 "github.com/LanceLRQ/deer-executor/v3/executor/structs"
+	utils2 "github.com/LanceLRQ/deer-executor/v3/executor/utils"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 	"github.com/urfave/cli/v2"
@@ -18,12 +18,12 @@ import (
 )
 
 // 运行测试数据生成
-func runTestCaseGen(session *executor.JudgeSession, tCase *structs.TestCase, withAnswer bool) error {
+func runTestCaseGen(session *executor.JudgeSession, tCase *structs2.TestCase, withAnswer bool) error {
 	// 如果是generator脚本
 	if tCase.UseGenerator {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
-		inbytes, err := utils.CallGenerator(ctx, tCase, session.ConfigDir)
+		inbytes, err := utils2.CallGenerator(ctx, tCase, session.ConfigDir)
 		if err != nil {
 			return err
 		}
@@ -45,11 +45,11 @@ func runTestCaseGen(session *executor.JudgeSession, tCase *structs.TestCase, wit
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		rel, err := utils.RunUnixShell(&structs.ShellOptions{
+		rel, err := utils2.RunUnixShell(&structs2.ShellOptions{
 			Context: ctx,
 			Name:    session.Commands[0],
 			Args:    session.Commands[1:],
-			StdWriter: &structs.ShellWriters{
+			StdWriter: &structs2.ShellWriters{
 				Input:  fin,
 				Output: fout,
 				Error:  nil,
@@ -95,7 +95,7 @@ func initWork(session *executor.JudgeSession, answerCaseIndex uint) error {
 	session.SessionID = uuid.NewV4().String()
 	session.SessionRoot = "/tmp"
 	// 初始化session dir
-	sessionDir, err := utils.GetSessionDir(session.SessionRoot, session.SessionID)
+	sessionDir, err := utils2.GetSessionDir(session.SessionRoot, session.SessionID)
 	if err != nil {
 		return err
 	}

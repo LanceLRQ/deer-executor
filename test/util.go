@@ -2,11 +2,11 @@ package test
 
 import (
 	"fmt"
-	"github.com/LanceLRQ/deer-executor/v2/common/constants"
-	"github.com/LanceLRQ/deer-executor/v2/common/provider"
-	commonStructs "github.com/LanceLRQ/deer-executor/v2/common/structs"
-	"github.com/LanceLRQ/deer-executor/v2/common/utils"
-	"github.com/LanceLRQ/deer-executor/v2/executor"
+	"github.com/LanceLRQ/deer-executor/v3/executor"
+	"github.com/LanceLRQ/deer-executor/v3/executor/constants"
+	"github.com/LanceLRQ/deer-executor/v3/executor/provider"
+	commonStructs "github.com/LanceLRQ/deer-executor/v3/executor/structs"
+	utils2 "github.com/LanceLRQ/deer-executor/v3/executor/utils"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 	"os"
@@ -45,7 +45,7 @@ func runJudge(conf, codeFile, codeLang string) (*commonStructs.JudgeResult, erro
 	session.CodeLangName = codeLang
 	session.SessionRoot = "/tmp"
 	session.SessionID = uuid.NewV1().String()
-	sessionDir, err := utils.GetSessionDir(session.SessionRoot, session.SessionID)
+	sessionDir, err := utils2.GetSessionDir(session.SessionRoot, session.SessionID)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func analysisResult(caseName string, result *commonStructs.JudgeResult, expect i
 		if !ok {
 			ename = "Unknown"
 		}
-		return errors.Errorf("[%s] expect %s, but got %s\n%s", caseName, ename, name, utils.ObjectToJSONStringFormatted(result))
+		return errors.Errorf("[%s] expect %s, but got %s\n%s", caseName, ename, name, utils2.ObjectToJSONStringFormatted(result))
 	}
 	fmt.Printf("[%s] finish with: %s\n", caseName, name)
 	return nil

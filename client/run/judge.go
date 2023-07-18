@@ -4,11 +4,11 @@
 package run
 
 import (
-	"github.com/LanceLRQ/deer-executor/v2/common/logger"
-	"github.com/LanceLRQ/deer-executor/v2/common/persistence"
-	commonStructs "github.com/LanceLRQ/deer-executor/v2/common/structs"
-	"github.com/LanceLRQ/deer-executor/v2/common/utils"
-	"github.com/LanceLRQ/deer-executor/v2/executor"
+	"github.com/LanceLRQ/deer-executor/v3/executor"
+	"github.com/LanceLRQ/deer-executor/v3/executor/logger"
+	persistence2 "github.com/LanceLRQ/deer-executor/v3/executor/persistence"
+	commonStructs "github.com/LanceLRQ/deer-executor/v3/executor/structs"
+	"github.com/LanceLRQ/deer-executor/v3/executor/utils"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 	"github.com/urfave/cli/v2"
@@ -82,7 +82,7 @@ func runUserJudge(c *cli.Context, configFile, workDir string) (*commonStructs.Ju
 	if c.String("compress") == "none" {
 		compressorType = uint8(0)
 	}
-	jOption := persistence.JudgeResultPersisOptions{
+	jOption := persistence2.JudgeResultPersisOptions{
 		CompressorType:   compressorType,
 		SaveAcceptedData: c.Bool("save-ac-data"),
 	}
@@ -93,7 +93,7 @@ func runUserJudge(c *cli.Context, configFile, workDir string) (*commonStructs.Ju
 			log.Println("[warn] Using a password on the command line interface can be insecure.")
 		}
 		passphrase := []byte(c.String("passphrase"))
-		pem, err := persistence.GetArmorPublicKey(c.String("gpg-key"), passphrase)
+		pem, err := persistence2.GetArmorPublicKey(c.String("gpg-key"), passphrase)
 		if err != nil {
 			return nil, err
 		}

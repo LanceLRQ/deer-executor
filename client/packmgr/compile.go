@@ -2,10 +2,10 @@ package packmgr
 
 import (
 	"fmt"
-	"github.com/LanceLRQ/deer-executor/v2/common/constants"
-	"github.com/LanceLRQ/deer-executor/v2/common/provider"
-	"github.com/LanceLRQ/deer-executor/v2/common/structs"
-	"github.com/LanceLRQ/deer-executor/v2/executor"
+	"github.com/LanceLRQ/deer-executor/v3/executor"
+	"github.com/LanceLRQ/deer-executor/v3/executor/constants"
+	"github.com/LanceLRQ/deer-executor/v3/executor/provider"
+	"github.com/LanceLRQ/deer-executor/v3/executor/structs"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 	"os"

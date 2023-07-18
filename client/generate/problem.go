@@ -2,10 +2,10 @@ package generate
 
 import (
 	"fmt"
-	"github.com/LanceLRQ/deer-executor/v2/common/persistence/problems"
-	commonStructs "github.com/LanceLRQ/deer-executor/v2/common/structs"
-	"github.com/LanceLRQ/deer-executor/v2/common/utils"
-	"github.com/LanceLRQ/deer-executor/v2/executor"
+	"github.com/LanceLRQ/deer-executor/v3/executor"
+	"github.com/LanceLRQ/deer-executor/v3/executor/persistence/problems"
+	"github.com/LanceLRQ/deer-executor/v3/executor/structs"
+	utils2 "github.com/LanceLRQ/deer-executor/v3/executor/utils"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 	"io/ioutil"
@@ -13,25 +13,25 @@ import (
 	"path"
 )
 
-func makeProblmConfig() (*commonStructs.JudgeConfiguration, error) {
+func makeProblmConfig() (*structs.JudgeConfiguration, error) {
 	session, err := executor.NewSession("")
 	if err != nil {
 		return nil, err
 	}
 	config := session.JudgeConfig
-	config.TestCases = []commonStructs.TestCase{{}}
-	config.Limitation = make(map[string]commonStructs.JudgeResourceLimit)
-	config.Limitation["gcc"] = commonStructs.JudgeResourceLimit{
+	config.TestCases = []structs.TestCase{{}}
+	config.Limitation = make(map[string]structs.JudgeResourceLimit)
+	config.Limitation["gcc"] = structs.JudgeResourceLimit{
 		TimeLimit:     config.TimeLimit,
 		MemoryLimit:   config.MemoryLimit,
 		RealTimeLimit: config.RealTimeLimit,
 		FileSizeLimit: config.FileSizeLimit,
 	}
-	config.AnswerCases = []commonStructs.AnswerCase{{}}
-	config.SpecialJudge.CheckerCases = []commonStructs.SpecialJudgeCheckerCase{{}}
-	config.Problem.Sample = []commonStructs.ProblemIOSample{{}}
-	config.TestLib.ValidatorCases = []commonStructs.TestlibValidatorCase{{}}
-	config.TestLib.Generators = []commonStructs.TestlibGenerator{{}}
+	config.AnswerCases = []structs.AnswerCase{{}}
+	config.SpecialJudge.CheckerCases = []structs.SpecialJudgeCheckerCase{{}}
+	config.Problem.Sample = []structs.ProblemIOSample{{}}
+	config.TestLib.ValidatorCases = []structs.TestlibValidatorCase{{}}
+	config.TestLib.Generators = []structs.TestlibGenerator{{}}
 	return &config, nil
 }
 
@@ -52,12 +52,12 @@ func MakeProblemConfigFile(c *cli.Context) error {
 			return errors.Errorf("open output file error: %s\n", err.Error())
 		}
 		defer fp.Close()
-		_, err = fp.WriteString(utils.ObjectToJSONStringFormatted(config))
+		_, err = fp.WriteString(utils2.ObjectToJSONStringFormatted(config))
 		if err != nil {
 			return err
 		}
 	} else {
-		fmt.Println(utils.ObjectToJSONStringFormatted(config))
+		fmt.Println(utils2.ObjectToJSONStringFormatted(config))
 	}
 	return nil
 }
@@ -77,7 +77,7 @@ func InitProblemWorkDir(c *cli.Context) error {
 	if example != "" {
 		packageFile := path.Join("./lib/example", example)
 		// 检查题目包是否存在
-		yes, err := utils.IsProblemPackage(packageFile)
+		yes, err := utils2.IsProblemPackage(packageFile)
 		if err != nil {
 			return err
 		}
@@ -103,7 +103,7 @@ func InitProblemWorkDir(c *cli.Context) error {
 			return err
 		}
 		// 写入到文件
-		if err = ioutil.WriteFile(path.Join(workDir, "problem.json"), []byte(utils.ObjectToJSONStringFormatted(config)), 0664); err != nil {
+		if err = ioutil.WriteFile(path.Join(workDir, "problem.json"), []byte(utils2.ObjectToJSONStringFormatted(config)), 0664); err != nil {
 			return err
 		}
 	}

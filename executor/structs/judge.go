@@ -2,7 +2,7 @@ package structs
 
 import (
 	"encoding/xml"
-	"github.com/LanceLRQ/deer-executor/v2/common/logger"
+	"github.com/LanceLRQ/deer-executor/v3/executor/logger"
 )
 
 // JudgeConfiguration 评测配置信息

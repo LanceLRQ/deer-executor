@@ -6,7 +6,7 @@ package cmd
 
 import (
 	"errors"
-	"github.com/LanceLRQ/deer-executor/v2/common/sandbox/forkexec"
+	"github.com/LanceLRQ/deer-executor/v3/executor/sandbox/forkexec"
 	"runtime"
 	"sync"
 	"sync/atomic"

@@ -2,10 +2,10 @@ package packmgr
 
 import (
 	"fmt"
-	"github.com/LanceLRQ/deer-executor/v2/common/persistence"
-	"github.com/LanceLRQ/deer-executor/v2/common/persistence/problems"
-	"github.com/LanceLRQ/deer-executor/v2/common/utils"
-	"github.com/LanceLRQ/deer-executor/v2/executor"
+	"github.com/LanceLRQ/deer-executor/v3/executor"
+	persistence2 "github.com/LanceLRQ/deer-executor/v3/executor/persistence"
+	problems2 "github.com/LanceLRQ/deer-executor/v3/executor/persistence/problems"
+	utils2 "github.com/LanceLRQ/deer-executor/v3/executor/utils"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 	"log"
@@ -29,7 +29,7 @@ func BuildProblemPackage(c *cli.Context) error {
 	}
 
 	var err error
-	var pem *persistence.DigitalSignPEM
+	var pem *persistence2.DigitalSignPEM
 
 	_, err = os.Stat(configFile)
 	if err != nil && os.IsNotExist(err) {
@@ -37,12 +37,12 @@ func BuildProblemPackage(c *cli.Context) error {
 	}
 
 	if c.Bool("sign") {
-		pem, err = persistence.GetArmorPublicKey(c.String("gpg-key"), passphrase)
+		pem, err = persistence2.GetArmorPublicKey(c.String("gpg-key"), passphrase)
 		if err != nil {
 			return err
 		}
 	}
-	options := persistence.ProblemPackageOptions{}
+	options := persistence2.ProblemPackageOptions{}
 	options.ConfigFile = configFile
 	options.DigitalSign = c.Bool("sign")
 	options.DigitalPEM = pem
@@ -61,12 +61,12 @@ func BuildProblemPackage(c *cli.Context) error {
 	}
 
 	if c.Bool("zip") {
-		err = problems.PackProblemsAsZip(&options)
+		err = problems2.PackProblemsAsZip(&options)
 		if err != nil {
 			return err
 		}
 	} else {
-		err = problems.PackProblems(&session.JudgeConfig, &options)
+		err = problems2.PackProblems(&session.JudgeConfig, &options)
 		if err != nil {
 			return err
 		}
@@ -90,21 +90,21 @@ func UnpackProblemPackage(c *cli.Context) error {
 		log.Println("[warn] package validation had been disabled!")
 	}
 	// 检查是否为题目包
-	isDeerPack, err := utils.IsProblemPackage(packageFile)
+	isDeerPack, err := utils2.IsProblemPackage(packageFile)
 	if err != nil {
 		return err
 	}
-	isZip, err := utils.IsZipFile(packageFile)
+	isZip, err := utils2.IsZipFile(packageFile)
 	if err != nil {
 		return err
 	}
 	// 解包
 	if isDeerPack {
-		if _, _, err := problems.ReadProblemInfo(packageFile, true, !c.Bool("no-validate"), workDir); err != nil {
+		if _, _, err := problems2.ReadProblemInfo(packageFile, true, !c.Bool("no-validate"), workDir); err != nil {
 			return err
 		}
 	} else if isZip {
-		if _, _, err := problems.ReadProblemInfoZip(packageFile, true, !c.Bool("no-validate"), workDir); err != nil {
+		if _, _, err := problems2.ReadProblemInfoZip(packageFile, true, !c.Bool("no-validate"), workDir); err != nil {
 			return err
 		}
 		// clean meta file
@@ -120,44 +120,44 @@ func UnpackProblemPackage(c *cli.Context) error {
 // ReadProblemInfo 访问题目包信息
 func ReadProblemInfo(c *cli.Context) error {
 	packageFile := c.Args().Get(0)
-	isDeerPack, err := utils.IsProblemPackage(packageFile)
+	isDeerPack, err := utils2.IsProblemPackage(packageFile)
 	if err != nil {
 		return err
 	}
-	isZip, err := utils.IsZipFile(packageFile)
+	isZip, err := utils2.IsZipFile(packageFile)
 	if err != nil {
 		return err
 	}
 	// 如果是题目包文件，进行解包
 	if isDeerPack {
 		if c.Bool("gpg") {
-			g, err := problems.ReadProblemGPGInfo(packageFile)
+			g, err := problems2.ReadProblemGPGInfo(packageFile)
 			if err != nil {
 				fmt.Println(err.Error())
 				return nil
 			}
 			fmt.Println(g)
 		} else {
-			s, _, err := problems.ReadProblemInfo(packageFile, false, false, "")
+			s, _, err := problems2.ReadProblemInfo(packageFile, false, false, "")
 			if err != nil {
 				return err
 			}
-			fmt.Println(utils.ObjectToJSONStringFormatted(s))
+			fmt.Println(utils2.ObjectToJSONStringFormatted(s))
 		}
 	} else if isZip {
 		if c.Bool("gpg") {
-			g, err := problems.ReadProblemGPGInfoZip(packageFile)
+			g, err := problems2.ReadProblemGPGInfoZip(packageFile)
 			if err != nil {
 				fmt.Println(err.Error())
 				return nil
 			}
 			fmt.Println(g)
 		} else {
-			s, _, err := problems.ReadProblemInfoZip(packageFile, false, false, "")
+			s, _, err := problems2.ReadProblemInfoZip(packageFile, false, false, "")
 			if err != nil {
 				return err
 			}
-			fmt.Println(utils.ObjectToJSONStringFormatted(s))
+			fmt.Println(utils2.ObjectToJSONStringFormatted(s))
 		}
 	} else {
 		return errors.Errorf("not a deer-executor problem package file")

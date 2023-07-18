@@ -8,7 +8,7 @@
 package execenv
 
 import (
-	"github.com/LanceLRQ/deer-executor/v2/common/sandbox/forkexec"
+	"github.com/LanceLRQ/deer-executor/v3/executor/sandbox/forkexec"
 	"syscall"
 )
 

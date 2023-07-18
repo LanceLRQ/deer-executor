@@ -5,10 +5,10 @@ package executor
 
 import (
 	"context"
-	"github.com/LanceLRQ/deer-executor/v2/common/constants"
-	"github.com/LanceLRQ/deer-executor/v2/common/sandbox/cmd"
-	"github.com/LanceLRQ/deer-executor/v2/common/sandbox/forkexec"
-	commonStructs "github.com/LanceLRQ/deer-executor/v2/common/structs"
+	"github.com/LanceLRQ/deer-executor/v3/executor/constants"
+	cmd2 "github.com/LanceLRQ/deer-executor/v3/executor/sandbox/cmd"
+	forkexec2 "github.com/LanceLRQ/deer-executor/v3/executor/sandbox/forkexec"
+	commonStructs "github.com/LanceLRQ/deer-executor/v3/executor/structs"
 	"github.com/pkg/errors"
 	"log"
 	"os"
@@ -23,7 +23,7 @@ import (
 type PArgs struct {
 	Name string
 	Args []string
-	Attr *cmd.ProcAttr
+	Attr *cmd2.ProcAttr
 }
 
 // ExtraEnviron 额外需要被注入的环境变量
@@ -73,9 +73,9 @@ func runAsync(ctx context.Context, session *JudgeSession, rst *commonStructs.Tes
 	pinfo := ProcessInfo{}
 
 	go func() {
-		var pstate *cmd.ProcessState
+		var pstate *cmd2.ProcessState
 		var pArgs *PArgs
-		var proc *cmd.Process
+		var proc *cmd2.Process
 		// Get process options
 		pArgs, err = getProcessOptions(session, rst, isChecker, false, nil)
 		if err != nil {
@@ -83,7 +83,7 @@ func runAsync(ctx context.Context, session *JudgeSession, rst *commonStructs.Tes
 			return
 		}
 		// Start process
-		proc, err = cmd.StartProcess(pArgs.Name, pArgs.Args, pArgs.Attr)
+		proc, err = cmd2.StartProcess(pArgs.Name, pArgs.Args, pArgs.Attr)
 		if err != nil {
 			runSuccess <- false
 			return
@@ -135,12 +135,12 @@ finish:
 func runInteractiveAsync(ctx context.Context, session *JudgeSession, rst *commonStructs.TestCaseResult) (*ProcessInfo, *ProcessInfo, error) {
 	var answerErr, checkerErr, gErr error
 
-	fdChecker, err := forkexec.GetPipe()
+	fdChecker, err := forkexec2.GetPipe()
 	if err != nil {
 		return nil, nil, errors.Errorf("create pipe error: %s", err.Error())
 	}
 
-	fdAnswer, err := forkexec.GetPipe()
+	fdAnswer, err := forkexec2.GetPipe()
 	if err != nil {
 		return nil, nil, errors.Errorf("create pipe error: %s", err.Error())
 	}
@@ -154,9 +154,9 @@ func runInteractiveAsync(ctx context.Context, session *JudgeSession, rst *common
 	exitCounter := 0
 
 	go func() {
-		var pstate *cmd.ProcessState
+		var pstate *cmd2.ProcessState
 		var pArgs *PArgs
-		var proc *cmd.Process
+		var proc *cmd2.Process
 		// Get process options
 		pArgs, answerErr = getProcessOptions(session, rst, false, true, []uintptr{fdAnswer[0], fdChecker[1]})
 		if answerErr != nil {
@@ -164,7 +164,7 @@ func runInteractiveAsync(ctx context.Context, session *JudgeSession, rst *common
 			return
 		}
 		// Start process
-		proc, answerErr = cmd.StartProcess(pArgs.Name, pArgs.Args, pArgs.Attr)
+		proc, answerErr = cmd2.StartProcess(pArgs.Name, pArgs.Args, pArgs.Attr)
 		if answerErr != nil {
 			answerSuccess <- false
 			return
@@ -193,9 +193,9 @@ func runInteractiveAsync(ctx context.Context, session *JudgeSession, rst *common
 	}()
 
 	go func() {
-		var pstate *cmd.ProcessState
+		var pstate *cmd2.ProcessState
 		var pArgs *PArgs
-		var proc *cmd.Process
+		var proc *cmd2.Process
 		// Get process options
 		pArgs, checkerErr = getProcessOptions(session, rst, true, true, []uintptr{fdChecker[0], fdAnswer[1]})
 		if checkerErr != nil {
@@ -203,7 +203,7 @@ func runInteractiveAsync(ctx context.Context, session *JudgeSession, rst *common
 			return
 		}
 		// Start process
-		proc, checkerErr = cmd.StartProcess(pArgs.Name, pArgs.Args, pArgs.Attr)
+		proc, checkerErr = cmd2.StartProcess(pArgs.Name, pArgs.Args, pArgs.Attr)
 		if checkerErr != nil {
 			checkerSuccess <- false
 			return
@@ -283,7 +283,7 @@ func getProcessOptions(session *JudgeSession, rst *commonStructs.TestCaseResult,
 		}
 	}
 	var infile, outfile, errfile string
-	var rlimit forkexec.ExecRLimit
+	var rlimit forkexec2.ExecRLimit
 	var args []string
 	var files []interface{}
 	var execProgram string
@@ -298,7 +298,7 @@ func getProcessOptions(session *JudgeSession, rst *commonStructs.TestCaseResult,
 		}
 		outfile = path.Join(session.SessionDir, rst.CheckerOut)
 		errfile = path.Join(session.SessionDir, rst.CheckerError)
-		rlimit = forkexec.ExecRLimit{
+		rlimit = forkexec2.ExecRLimit{
 			TimeLimit:     session.JudgeConfig.SpecialJudge.TimeLimit,
 			MemoryLimit:   session.JudgeConfig.SpecialJudge.MemoryLimit,
 			RealTimeLimit: session.JudgeConfig.RealTimeLimit,
@@ -309,7 +309,7 @@ func getProcessOptions(session *JudgeSession, rst *commonStructs.TestCaseResult,
 		execProgram = programPath
 		outfile = path.Join(session.SessionDir, rst.ProgramOut)
 		errfile = path.Join(session.SessionDir, rst.ProgramError)
-		rlimit = forkexec.ExecRLimit{
+		rlimit = forkexec2.ExecRLimit{
 			TimeLimit:     session.JudgeConfig.TimeLimit,
 			MemoryLimit:   session.JudgeConfig.MemoryLimit,
 			RealTimeLimit: session.JudgeConfig.RealTimeLimit,
@@ -345,11 +345,11 @@ func getProcessOptions(session *JudgeSession, rst *commonStructs.TestCaseResult,
 	return &PArgs{
 		Name: execProgram,
 		Args: args,
-		Attr: &cmd.ProcAttr{
+		Attr: &cmd2.ProcAttr{
 			Dir:   session.SessionDir,
 			Env:   append(os.Environ(), ExtraEnviron...),
 			Files: files,
-			Sys: &forkexec.SysProcAttr{
+			Sys: &forkexec2.SysProcAttr{
 				Rlimit: rlimit,
 			},
 		},

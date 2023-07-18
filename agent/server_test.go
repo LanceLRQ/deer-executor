@@ -2,7 +2,7 @@ package agent
 
 import (
 	"context"
-	"github.com/LanceLRQ/deer-executor/v2/agent/rpc"
+	"github.com/LanceLRQ/deer-executor/v3/agent/rpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"

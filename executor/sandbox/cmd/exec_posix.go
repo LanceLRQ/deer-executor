@@ -8,8 +8,8 @@
 package cmd
 
 import (
-	"github.com/LanceLRQ/deer-executor/v2/common/sandbox/cmd/execenv"
-	"github.com/LanceLRQ/deer-executor/v2/common/sandbox/forkexec"
+	"github.com/LanceLRQ/deer-executor/v3/executor/sandbox/cmd/execenv"
+	"github.com/LanceLRQ/deer-executor/v3/executor/sandbox/forkexec"
 	"github.com/pkg/errors"
 	"os"
 	"runtime"

@@ -4,7 +4,7 @@
 package executor
 
 import (
-	"github.com/LanceLRQ/deer-executor/v2/common/sandbox/cmd"
+	"github.com/LanceLRQ/deer-executor/v3/executor/sandbox/cmd"
 	"syscall"
 )
 

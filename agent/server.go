@@ -2,10 +2,10 @@ package agent
 
 import (
 	"fmt"
-	agentConfig "github.com/LanceLRQ/deer-executor/v2/agent/config"
-	"github.com/LanceLRQ/deer-executor/v2/agent/logic"
-	"github.com/LanceLRQ/deer-executor/v2/agent/rpc"
-	"github.com/LanceLRQ/deer-executor/v2/client"
+	agentConfig "github.com/LanceLRQ/deer-executor/v3/agent/config"
+	"github.com/LanceLRQ/deer-executor/v3/agent/logic"
+	"github.com/LanceLRQ/deer-executor/v3/agent/rpc"
+	"github.com/LanceLRQ/deer-executor/v3/client"
 	"github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
 	"net"

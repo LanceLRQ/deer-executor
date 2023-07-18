@@ -4,8 +4,8 @@
 package executor
 
 import (
-	"github.com/LanceLRQ/deer-executor/v2/common/constants"
-	commonStructs "github.com/LanceLRQ/deer-executor/v2/common/structs"
+	"github.com/LanceLRQ/deer-executor/v3/executor/constants"
+	commonStructs "github.com/LanceLRQ/deer-executor/v3/executor/structs"
 	"github.com/pkg/errors"
 	"os"
 	"path"

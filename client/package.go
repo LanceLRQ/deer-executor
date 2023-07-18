@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/LanceLRQ/deer-executor/v2/client/packmgr"
+	"github.com/LanceLRQ/deer-executor/v3/client/packmgr"
 	"github.com/urfave/cli/v2"
 )
 

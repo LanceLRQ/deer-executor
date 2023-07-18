@@ -2,10 +2,10 @@ package executor
 
 import (
 	"fmt"
-	"github.com/LanceLRQ/deer-executor/v2/common/constants"
-	"github.com/LanceLRQ/deer-executor/v2/common/provider"
-	commonStructs "github.com/LanceLRQ/deer-executor/v2/common/structs"
-	"github.com/LanceLRQ/deer-executor/v2/common/utils"
+	"github.com/LanceLRQ/deer-executor/v3/executor/constants"
+	provider2 "github.com/LanceLRQ/deer-executor/v3/executor/provider"
+	commonStructs "github.com/LanceLRQ/deer-executor/v3/executor/structs"
+	"github.com/LanceLRQ/deer-executor/v3/executor/utils"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
@@ -14,30 +14,30 @@ import (
 )
 
 // 匹配编程语言
-func matchCodeLanguage(keyword string, fileName string) (provider.CodeCompileProviderInterface, error) {
+func matchCodeLanguage(keyword string, fileName string) (provider2.CodeCompileProviderInterface, error) {
 	fromAuto := false
 _match:
 	switch keyword {
 	case "c", "gcc", "gnu-c":
-		return provider.NewGnucCompileProvider(), nil
+		return provider2.NewGnucCompileProvider(), nil
 	case "cpp", "gcc-cpp", "gcpp", "g++":
-		return provider.NewGnucppCompileProvider(), nil
+		return provider2.NewGnucppCompileProvider(), nil
 	case "java":
-		return provider.NewJavaCompileProvider(), nil
+		return provider2.NewJavaCompileProvider(), nil
 	case "py2", "python2":
-		return provider.NewPy2CompileProvider(), nil
+		return provider2.NewPy2CompileProvider(), nil
 	case "py", "py3", "python3":
-		return provider.NewPy3CompileProvider(), nil
+		return provider2.NewPy3CompileProvider(), nil
 	case "php":
-		return provider.NewPHPCompileProvider(), nil
+		return provider2.NewPHPCompileProvider(), nil
 	case "go", "golang":
-		return provider.NewGolangCompileProvider(), nil
+		return provider2.NewGolangCompileProvider(), nil
 	case "node", "nodejs":
-		return provider.NewNodeJSCompileProvider(), nil
+		return provider2.NewNodeJSCompileProvider(), nil
 	case "rb", "ruby":
-		return provider.NewRubyCompileProvider(), nil
+		return provider2.NewRubyCompileProvider(), nil
 	case "rs", "rust":
-		return provider.NewRustCompileProvider(), nil
+		return provider2.NewRustCompileProvider(), nil
 	case "auto", "":
 		keyword = strings.Replace(path.Ext(fileName), ".", "", -1)
 		if fromAuto {
@@ -52,7 +52,7 @@ _match:
 
 // GetCompiler get a compiler provider from session.CodeLangName
 // 如果不设置codeStr，默认会读取配置文件里的code_file字段并打开对应文件
-func (session *JudgeSession) GetCompiler(codeStr string) (provider.CodeCompileProviderInterface, error) {
+func (session *JudgeSession) GetCompiler(codeStr string) (provider2.CodeCompileProviderInterface, error) {
 	if codeStr == "" {
 		codeFileBytes, err := ioutil.ReadFile(session.CodeFile)
 		if err != nil {

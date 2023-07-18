@@ -1,7 +1,7 @@
 package test
 
 import (
-	"github.com/LanceLRQ/deer-executor/v2/common/constants"
+	"github.com/LanceLRQ/deer-executor/v3/executor/constants"
 	"testing"
 )
 

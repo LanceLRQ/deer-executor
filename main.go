@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/LanceLRQ/deer-executor/v2/agent"
-	agentConfig "github.com/LanceLRQ/deer-executor/v2/agent/config"
-	"github.com/LanceLRQ/deer-executor/v2/client"
-	"github.com/LanceLRQ/deer-executor/v2/client/generate"
-	"github.com/LanceLRQ/deer-executor/v2/client/run"
+	"github.com/LanceLRQ/deer-executor/v3/agent"
+	agentConfig "github.com/LanceLRQ/deer-executor/v3/agent/config"
+	"github.com/LanceLRQ/deer-executor/v3/client"
+	"github.com/LanceLRQ/deer-executor/v3/client/generate"
+	"github.com/LanceLRQ/deer-executor/v3/client/run"
 	"github.com/gookit/config/v2"
 	"github.com/gookit/config/v2/yamlv3"
 	"github.com/urfave/cli/v2"

@@ -5,9 +5,9 @@ package executor
 
 import (
 	"fmt"
-	"github.com/LanceLRQ/deer-executor/v2/common/constants"
-	commonStructs "github.com/LanceLRQ/deer-executor/v2/common/structs"
-	"github.com/LanceLRQ/deer-executor/v2/common/utils"
+	constants2 "github.com/LanceLRQ/deer-executor/v3/executor/constants"
+	commonStructs "github.com/LanceLRQ/deer-executor/v3/executor/structs"
+	"github.com/LanceLRQ/deer-executor/v3/executor/utils"
 	"io/ioutil"
 	"path"
 	"strconv"
@@ -60,18 +60,18 @@ func (session *JudgeSession) analysisExitStatus(rst *commonStructs.TestCaseResul
 	if judger {
 		if status.Signaled() {
 			sig := status.Signal()
-			if session.JudgeConfig.SpecialJudge.Mode != constants.SpecialJudgeModeInteractive {
+			if session.JudgeConfig.SpecialJudge.Mode != constants2.SpecialJudgeModeInteractive {
 				// 检查判题程序是否超时
 				if sig == syscall.SIGXCPU || sig == syscall.SIGALRM {
-					rst.JudgeResult = constants.JudgeFlagSpecialJudgeTimeout
+					rst.JudgeResult = constants2.JudgeFlagSpecialJudgeTimeout
 					rst.ReInfo = fmt.Sprintf("special judger time limit exceed, unix singal: %d", sig)
 				} else {
-					rst.JudgeResult = constants.JudgeFlagSpecialJudgeError
+					rst.JudgeResult = constants2.JudgeFlagSpecialJudgeError
 					rst.ReInfo = fmt.Sprintf("special judger caused an error, unix singal: %d", sig)
 				}
 			} else {
 				// 交互特判时，如果选手程序让判题程序挂了，视作RE
-				rst.JudgeResult = constants.JudgeFlagRE
+				rst.JudgeResult = constants2.JudgeFlagRE
 				rst.ReInfo = fmt.Sprintf("special judger caused an error, unix singal: %d", sig)
 			}
 		} else if status.Exited() {
@@ -82,34 +82,34 @@ func (session *JudgeSession) analysisExitStatus(rst *commonStructs.TestCaseResul
 				// 如果是Testlib的checker，则退出代码要按照他们的规则去判定
 				msg, err := ioutil.ReadFile(path.Join(session.SessionDir, rst.CheckerReport))
 				if err != nil {
-					rst.JudgeResult = constants.JudgeFlagSpecialJudgeError
+					rst.JudgeResult = constants2.JudgeFlagSpecialJudgeError
 					rst.SPJMsg = fmt.Sprintf("read checker report file error: %s", err.Error())
 				} else {
 					tr := commonStructs.TestlibCheckerResult{}
 					ok := utils.XMLStringObject(string(msg), &tr)
 					if ok {
 						rst.SPJMsg = tr.Description
-						if flag, ok := constants.TestlibOutcomeMapping[tr.Outcome]; ok {
+						if flag, ok := constants2.TestlibOutcomeMapping[tr.Outcome]; ok {
 							rst.JudgeResult = flag
 						} else {
-							rst.JudgeResult = constants.JudgeFlagSpecialJudgeError
+							rst.JudgeResult = constants2.JudgeFlagSpecialJudgeError
 						}
 						if tr.Outcome == "partially-correct" {
 							rst.PartiallyScore, _ = strconv.Atoi(tr.PcType)
 						}
 					} else {
-						rst.JudgeResult = constants.JudgeFlagSpecialJudgeError
+						rst.JudgeResult = constants2.JudgeFlagSpecialJudgeError
 						rst.SPJMsg = fmt.Sprintf("parsee checker report file error:\n%s", string(msg))
 					}
 				}
 			} else {
 				// 判断退出代码是否正确
-				if exitcode == constants.JudgeFlagAC || exitcode == constants.JudgeFlagPE ||
-					exitcode == constants.JudgeFlagWA || exitcode == constants.JudgeFlagOLE ||
-					exitcode == constants.JudgeFlagSpecialJudgeRequireChecker {
+				if exitcode == constants2.JudgeFlagAC || exitcode == constants2.JudgeFlagPE ||
+					exitcode == constants2.JudgeFlagWA || exitcode == constants2.JudgeFlagOLE ||
+					exitcode == constants2.JudgeFlagSpecialJudgeRequireChecker {
 					rst.JudgeResult = exitcode
 				} else {
-					rst.JudgeResult = constants.JudgeFlagSpecialJudgeError
+					rst.JudgeResult = constants2.JudgeFlagSpecialJudgeError
 					rst.SPJMsg = fmt.Sprintf("special judger return with a wrong exitcode: %d", exitcode)
 				}
 			}
@@ -121,42 +121,42 @@ func (session *JudgeSession) analysisExitStatus(rst *commonStructs.TestCaseResul
 			if sig == syscall.SIGSEGV {
 				// MLE or RE can also get SIGSEGV signal.
 				if rst.MemoryUsed > session.JudgeConfig.MemoryLimit {
-					rst.JudgeResult = constants.JudgeFlagMLE
+					rst.JudgeResult = constants2.JudgeFlagMLE
 				} else {
-					rst.JudgeResult = constants.JudgeFlagRE
-					if r, e := constants.SignalNumberMap[rst.ReSignum]; e {
+					rst.JudgeResult = constants2.JudgeFlagRE
+					if r, e := constants2.SignalNumberMap[rst.ReSignum]; e {
 						rst.ReInfo = fmt.Sprintf("%s: %s", r[0], r[1])
 					}
 				}
 			} else if sig == syscall.SIGXFSZ {
 				// SIGXFSZ signal means OLE
-				rst.JudgeResult = constants.JudgeFlagOLE
+				rst.JudgeResult = constants2.JudgeFlagOLE
 			} else if sig == syscall.SIGALRM || sig == syscall.SIGVTALRM || sig == syscall.SIGXCPU {
 				// Normal TLE signal
-				rst.JudgeResult = constants.JudgeFlagTLE
+				rst.JudgeResult = constants2.JudgeFlagTLE
 			} else if sig == syscall.SIGKILL {
 				// Sometimes MLE might get SIGKILL signal.
 				// So if real time used lower than TIME_LIMIT - 100, it might be a TLE error.
 				if rst.TimeUsed > (session.JudgeConfig.TimeLimit - 100) {
-					rst.JudgeResult = constants.JudgeFlagTLE
+					rst.JudgeResult = constants2.JudgeFlagTLE
 				} else {
-					rst.JudgeResult = constants.JudgeFlagMLE
+					rst.JudgeResult = constants2.JudgeFlagMLE
 				}
 			} else {
 				// Otherwise, called runtime error.
-				rst.JudgeResult = constants.JudgeFlagRE
-				if r, e := constants.SignalNumberMap[rst.ReSignum]; e {
+				rst.JudgeResult = constants2.JudgeFlagRE
+				if r, e := constants2.SignalNumberMap[rst.ReSignum]; e {
 					rst.ReInfo = fmt.Sprintf("%s: %s", r[0], r[1])
 				}
 			}
 		} else {
 			// Sometimes setrlimit doesn't work accurately.
 			if rst.TimeUsed > session.JudgeConfig.TimeLimit {
-				rst.JudgeResult = constants.JudgeFlagMLE
+				rst.JudgeResult = constants2.JudgeFlagMLE
 			} else if rst.MemoryUsed > session.JudgeConfig.MemoryLimit {
-				rst.JudgeResult = constants.JudgeFlagMLE
+				rst.JudgeResult = constants2.JudgeFlagMLE
 			} else {
-				rst.JudgeResult = constants.JudgeFlagAC
+				rst.JudgeResult = constants2.JudgeFlagAC
 			}
 		}
 	}
@@ -164,8 +164,8 @@ func (session *JudgeSession) analysisExitStatus(rst *commonStructs.TestCaseResul
 
 // 判定是否是灾难性结果
 func (session *JudgeSession) isDisastrousFault(judgeResult *commonStructs.JudgeResult, tcResult *commonStructs.TestCaseResult) bool {
-	if tcResult.JudgeResult == constants.JudgeFlagSE {
-		judgeResult.JudgeResult = constants.JudgeFlagSE
+	if tcResult.JudgeResult == constants2.JudgeFlagSE {
+		judgeResult.JudgeResult = constants2.JudgeFlagSE
 		judgeResult.SeInfo = fmt.Sprintf("testcase %s caused a problem", tcResult.Handle)
 		return true
 	}
@@ -178,14 +178,14 @@ func (session *JudgeSession) isDisastrousFault(judgeResult *commonStructs.JudgeR
 				remsg := string(outfile)
 
 				if session.Compiler.IsCompileError(remsg) {
-					tcResult.JudgeResult = constants.JudgeFlagCE
+					tcResult.JudgeResult = constants2.JudgeFlagCE
 					tcResult.CeInfo = remsg
-					judgeResult.JudgeResult = constants.JudgeFlagCE
+					judgeResult.JudgeResult = constants2.JudgeFlagCE
 					judgeResult.CeInfo = remsg
 				} else {
-					tcResult.JudgeResult = constants.JudgeFlagRE
+					tcResult.JudgeResult = constants2.JudgeFlagRE
 					tcResult.SeInfo = fmt.Sprintf("%s\n%s\n", tcResult.SeInfo, remsg)
-					judgeResult.JudgeResult = constants.JudgeFlagRE
+					judgeResult.JudgeResult = constants2.JudgeFlagRE
 					judgeResult.SeInfo = tcResult.SeInfo
 				}
 				return true
@@ -202,40 +202,40 @@ func (session *JudgeSession) generateFinallyResult(result *commonStructs.JudgeRe
 	)
 	for _, exitcode := range exitcodes {
 		// 如果，不是AC、PE、WA
-		if exitcode != constants.JudgeFlagWA && exitcode != constants.JudgeFlagPE && exitcode != constants.JudgeFlagAC {
+		if exitcode != constants2.JudgeFlagWA && exitcode != constants2.JudgeFlagPE && exitcode != constants2.JudgeFlagAC {
 			//直接应用结果
 			result.JudgeResult = exitcode
 			return
 		}
-		if exitcode == constants.JudgeFlagWA {
+		if exitcode == constants2.JudgeFlagWA {
 			wa++
 		}
-		if exitcode == constants.JudgeFlagPE {
+		if exitcode == constants2.JudgeFlagPE {
 			pe++
 		}
-		if exitcode == constants.JudgeFlagAC {
+		if exitcode == constants2.JudgeFlagAC {
 			ac++
 		}
 	}
 	// 在严格判题模式下，由于第一组数据不是AC\PE就会直接报错，因此要判定测试数据是否全部跑完。
 	if len(exitcodes) != len(session.JudgeConfig.TestCases) {
 		// 如果测试数据未全部跑完
-		result.JudgeResult = constants.JudgeFlagWA
+		result.JudgeResult = constants2.JudgeFlagWA
 	} else {
 		// 如果测试数据未全部跑了
 		if wa > 0 {
 			// 如果存在WA，报WA
-			result.JudgeResult = constants.JudgeFlagWA
+			result.JudgeResult = constants2.JudgeFlagWA
 		} else if pe > 0 { // 如果PE > 0
 			if !session.JudgeConfig.StrictMode {
 				// 非严格模式，报AC
-				result.JudgeResult = constants.JudgeFlagAC
+				result.JudgeResult = constants2.JudgeFlagAC
 			} else {
 				// 严格模式下报PE
-				result.JudgeResult = constants.JudgeFlagPE
+				result.JudgeResult = constants2.JudgeFlagPE
 			}
 		} else {
-			result.JudgeResult = constants.JudgeFlagAC
+			result.JudgeResult = constants2.JudgeFlagAC
 		}
 	}
 }

@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/binary"
-	"github.com/LanceLRQ/deer-executor/v2/common/constants"
-	"github.com/LanceLRQ/deer-executor/v2/common/persistence"
-	commonStructs "github.com/LanceLRQ/deer-executor/v2/common/structs"
-	"github.com/LanceLRQ/deer-executor/v2/common/utils"
+	constants2 "github.com/LanceLRQ/deer-executor/v3/executor/constants"
+	persistence2 "github.com/LanceLRQ/deer-executor/v3/executor/persistence"
+	commonStructs "github.com/LanceLRQ/deer-executor/v3/executor/structs"
+	"github.com/LanceLRQ/deer-executor/v3/executor/utils"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 	"io"
@@ -23,7 +23,7 @@ func readAndWriteToTempFile(writer io.Writer, fileName string, workDir string) e
 	if err != nil {
 		return err
 	}
-	binary.BigEndian.PutUint16(buf16, constants.JudgeBodyPackageMagicCode)
+	binary.BigEndian.PutUint16(buf16, constants2.JudgeBodyPackageMagicCode)
 	binary.BigEndian.PutUint32(buf32, uint32(len(body)))
 	if _, err := writer.Write(buf16); err != nil {
 		return errors.Errorf("write temp file error: %s", err.Error())
@@ -41,7 +41,7 @@ func readAndWriteToTempFile(writer io.Writer, fileName string, workDir string) e
 }
 
 func mergeResultBinary(
-	options *persistence.JudgeResultPersisOptions,
+	options *persistence2.JudgeResultPersisOptions,
 	judgeResult *commonStructs.JudgeResult,
 ) (string, error) {
 	tmpFileName := uuid.NewV1().String() + ".tmp"
@@ -62,7 +62,7 @@ func mergeResultBinary(
 
 	for _, testCase := range judgeResult.TestCases {
 		// 如果不需要保留AC的数据
-		if !options.SaveAcceptedData && testCase.JudgeResult == constants.JudgeFlagAC {
+		if !options.SaveAcceptedData && testCase.JudgeResult == constants2.JudgeFlagAC {
 			continue
 		}
 		err = readAndWriteToTempFile(testCaseWriter, testCase.ProgramOut, options.SessionDir)
@@ -81,7 +81,7 @@ func writeFileHeaderAndResult(writer io.Writer, pack JudgeResultPackage) error {
 	buf32 := make([]byte, 4)
 
 	// magic
-	binary.BigEndian.PutUint16(buf16, constants.JudgeResultMagicCode)
+	binary.BigEndian.PutUint16(buf16, constants2.JudgeResultMagicCode)
 	if _, err := writer.Write(buf16); err != nil {
 		return errors.Errorf("write result file error: %s", err.Error())
 	}
@@ -129,7 +129,7 @@ func writeFileHeaderAndResult(writer io.Writer, pack JudgeResultPackage) error {
 // PersistentJudgeResult 持久化评测记录
 func PersistentJudgeResult(
 	judgeResult *commonStructs.JudgeResult,
-	options *persistence.JudgeResultPersisOptions,
+	options *persistence2.JudgeResultPersisOptions,
 ) error {
 	fout, err := os.Create(options.OutFile)
 	if err != nil {
@@ -183,7 +183,7 @@ func PersistentJudgeResult(
 		return err
 	}
 
-	hash, err := persistence.SHA256Streams([]io.Reader{
+	hash, err := persistence2.SHA256Streams([]io.Reader{
 		bytes.NewReader(resultBytes),
 		fBody,
 	})
@@ -192,7 +192,7 @@ func PersistentJudgeResult(
 	}
 	_ = fBody.Close()
 	if options.DigitalSign {
-		hash, err = persistence.RSA2048Sign(hash, options.DigitalPEM.PrivateKey)
+		hash, err = persistence2.RSA2048Sign(hash, options.DigitalPEM.PrivateKey)
 		if err != nil {
 			return err
 		}

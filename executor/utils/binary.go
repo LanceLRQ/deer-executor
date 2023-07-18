@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
-	"github.com/LanceLRQ/deer-executor/v2/common/constants"
-	"github.com/LanceLRQ/deer-executor/v2/common/structs"
+	constants2 "github.com/LanceLRQ/deer-executor/v3/executor/constants"
+	structs2 "github.com/LanceLRQ/deer-executor/v3/executor/structs"
 	"github.com/pkg/errors"
 	"os"
 	"os/exec"
@@ -41,7 +41,7 @@ func IsExecutableFile(filePath string) (bool, error) {
 
 // GetCompiledBinaryFileName 获取testlib的二进制程序前缀名
 func GetCompiledBinaryFileName(typeName, moduleName string) string {
-	prefix, ok := constants.TestlibBinaryPrefixs[typeName]
+	prefix, ok := constants2.TestlibBinaryPrefixs[typeName]
 	if !ok {
 		prefix = ""
 	}
@@ -64,12 +64,12 @@ func ParseGeneratorScript(script string) (string, []string, error) {
 }
 
 // RunUnixShell 运行UnixShell，支持context
-func RunUnixShell(options *structs.ShellOptions) (*structs.ShellResult, error) {
+func RunUnixShell(options *structs2.ShellOptions) (*structs2.ShellResult, error) {
 	fpath, err := exec.LookPath(options.Name)
 	if err != nil {
 		return nil, err
 	}
-	result := structs.ShellResult{}
+	result := structs2.ShellResult{}
 	proc := exec.Command(fpath, options.Args...)
 	proc.SysProcAttr = &syscall.SysProcAttr{Setpgid: true} // 把编译器整个放置在进程组里
 
@@ -139,7 +139,7 @@ func RunUnixShell(options *structs.ShellOptions) (*structs.ShellResult, error) {
 }
 
 // CallGenerator 调用Generator
-func CallGenerator(ctx context.Context, tc *structs.TestCase, configDir string) ([]byte, error) {
+func CallGenerator(ctx context.Context, tc *structs2.TestCase, configDir string) ([]byte, error) {
 	name, args, err := ParseGeneratorScript(tc.Generator)
 	if err != nil {
 		return nil, err
@@ -148,7 +148,7 @@ func CallGenerator(ctx context.Context, tc *structs.TestCase, configDir string) 
 	if err != nil {
 		return nil, err
 	}
-	rel, err := RunUnixShell(&structs.ShellOptions{
+	rel, err := RunUnixShell(&structs2.ShellOptions{
 		Context:   ctx,
 		Name:      gBin,
 		Args:      args,
@@ -177,7 +177,7 @@ func IsZipFile(filePath string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	return magic == constants.ZipArchiveMagicCode, nil
+	return magic == constants2.ZipArchiveMagicCode, nil
 }
 
 // IsProblemPackage 判断是否是题目包
@@ -194,5 +194,5 @@ func IsProblemPackage(filePath string) (bool, error) {
 		return false, err
 	}
 
-	return magic == constants.ProblemPackageMagicCode, nil
+	return magic == constants2.ProblemPackageMagicCode, nil
 }

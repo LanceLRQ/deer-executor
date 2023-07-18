@@ -2,7 +2,7 @@ package client
 
 import (
 	"fmt"
-	"github.com/LanceLRQ/deer-executor/v2/common/utils"
+	"github.com/LanceLRQ/deer-executor/v3/executor/utils"
 )
 
 // CliCommonMessage is a client comment message

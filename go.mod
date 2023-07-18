@@ -1,4 +1,4 @@
-module github.com/LanceLRQ/deer-executor/v2
+module github.com/LanceLRQ/deer-executor/v3
 
 go 1.16
 

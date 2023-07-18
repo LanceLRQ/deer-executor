@@ -4,7 +4,7 @@
 package run
 
 import (
-	"github.com/LanceLRQ/deer-executor/v2/client"
+	"github.com/LanceLRQ/deer-executor/v3/client"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 	"os"

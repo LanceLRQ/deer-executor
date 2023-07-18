@@ -1,6 +1,8 @@
 package run
 
-import "github.com/LanceLRQ/deer-executor/v2/common/persistence"
+import (
+	"github.com/LanceLRQ/deer-executor/v3/executor/persistence"
+)
 
 // JudgementRunOption options for StartJudgement
 type JudgementRunOption struct {

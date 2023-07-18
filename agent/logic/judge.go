@@ -3,7 +3,7 @@ package logic
 import (
 	"context"
 	"encoding/json"
-	"github.com/LanceLRQ/deer-executor/v2/agent/rpc"
+	"github.com/LanceLRQ/deer-executor/v3/agent/rpc"
 	"time"
 )
 

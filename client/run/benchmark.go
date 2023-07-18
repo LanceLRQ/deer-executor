@@ -5,9 +5,9 @@ package run
 
 import (
 	"fmt"
-	"github.com/LanceLRQ/deer-executor/v2/client"
-	"github.com/LanceLRQ/deer-executor/v2/common/constants"
-	"github.com/LanceLRQ/deer-executor/v2/common/utils"
+	"github.com/LanceLRQ/deer-executor/v3/client"
+	"github.com/LanceLRQ/deer-executor/v3/executor/constants"
+	"github.com/LanceLRQ/deer-executor/v3/executor/utils"
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"

@@ -2,8 +2,8 @@ package executor
 
 import (
 	"fmt"
-	"github.com/LanceLRQ/deer-executor/v2/common/provider"
-	commonStructs "github.com/LanceLRQ/deer-executor/v2/common/structs"
+	provider2 "github.com/LanceLRQ/deer-executor/v3/executor/provider"
+	commonStructs "github.com/LanceLRQ/deer-executor/v3/executor/structs"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
@@ -106,13 +106,13 @@ func CompileSpecialJudgeCodeFile(source, name, binRoot, configDir, libraryDir, l
 	var ceinfo string
 	switch lang {
 	case "c", "gcc", "gnu-c":
-		compiler := provider.NewGnucppCompileProvider()
+		compiler := provider2.NewGnucppCompileProvider()
 		ok, ceinfo = compiler.ManualCompile(genCodeFile, compileTarget, []string{libraryDir})
 	case "go", "golang":
-		compiler := provider.NewGolangCompileProvider()
+		compiler := provider2.NewGolangCompileProvider()
 		ok, ceinfo = compiler.ManualCompile(genCodeFile, compileTarget)
 	case "cpp", "gcc-cpp", "gcpp", "g++", "":
-		compiler := provider.NewGnucppCompileProvider()
+		compiler := provider2.NewGnucppCompileProvider()
 		ok, ceinfo = compiler.ManualCompile(genCodeFile, compileTarget, []string{libraryDir})
 	default:
 		return compileTarget, errors.Errorf("checker must be written by c/c++/golang")
