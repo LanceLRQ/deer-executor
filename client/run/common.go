@@ -1,7 +1,7 @@
 package run
 
 import (
-	problems2 "github.com/LanceLRQ/deer-executor/v3/executor/persistence/problems"
+	problems "github.com/LanceLRQ/deer-executor/v3/executor/persistence/problems"
 	"github.com/LanceLRQ/deer-executor/v3/executor/utils"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
@@ -37,9 +37,9 @@ func loadProblemConfiguration(configFile string, workDir string) (string, bool, 
 			return "", false, "", errors.Errorf("work dir path cannot be a file path")
 		}
 		if isDeerPack {
-			_, configFile, err = problems2.ReadProblemInfo(configFile, true, true, workDir)
+			_, configFile, err = problems.ReadProblemInfo(configFile, true, true, workDir)
 		} else {
-			_, configFile, err = problems2.ReadProblemInfoZip(configFile, true, true, workDir)
+			_, configFile, err = problems.ReadProblemInfoZip(configFile, true, true, workDir)
 		}
 		if err != nil {
 			return "", false, "", err

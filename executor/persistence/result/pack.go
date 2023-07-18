@@ -5,7 +5,7 @@ import (
 	"compress/gzip"
 	"encoding/binary"
 	constants2 "github.com/LanceLRQ/deer-executor/v3/executor/constants"
-	persistence2 "github.com/LanceLRQ/deer-executor/v3/executor/persistence"
+	persistence "github.com/LanceLRQ/deer-executor/v3/executor/persistence"
 	commonStructs "github.com/LanceLRQ/deer-executor/v3/executor/structs"
 	"github.com/LanceLRQ/deer-executor/v3/executor/utils"
 	"github.com/pkg/errors"
@@ -41,7 +41,7 @@ func readAndWriteToTempFile(writer io.Writer, fileName string, workDir string) e
 }
 
 func mergeResultBinary(
-	options *persistence2.JudgeResultPersisOptions,
+	options *persistence.JudgeResultPersisOptions,
 	judgeResult *commonStructs.JudgeResult,
 ) (string, error) {
 	tmpFileName := uuid.NewV1().String() + ".tmp"
@@ -129,7 +129,7 @@ func writeFileHeaderAndResult(writer io.Writer, pack JudgeResultPackage) error {
 // PersistentJudgeResult 持久化评测记录
 func PersistentJudgeResult(
 	judgeResult *commonStructs.JudgeResult,
-	options *persistence2.JudgeResultPersisOptions,
+	options *persistence.JudgeResultPersisOptions,
 ) error {
 	fout, err := os.Create(options.OutFile)
 	if err != nil {
@@ -183,7 +183,7 @@ func PersistentJudgeResult(
 		return err
 	}
 
-	hash, err := persistence2.SHA256Streams([]io.Reader{
+	hash, err := persistence.SHA256Streams([]io.Reader{
 		bytes.NewReader(resultBytes),
 		fBody,
 	})
@@ -192,7 +192,7 @@ func PersistentJudgeResult(
 	}
 	_ = fBody.Close()
 	if options.DigitalSign {
-		hash, err = persistence2.RSA2048Sign(hash, options.DigitalPEM.PrivateKey)
+		hash, err = persistence.RSA2048Sign(hash, options.DigitalPEM.PrivateKey)
 		if err != nil {
 			return err
 		}

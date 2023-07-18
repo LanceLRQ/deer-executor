@@ -5,7 +5,7 @@ import (
 	"github.com/LanceLRQ/deer-executor/v3/executor"
 	"github.com/LanceLRQ/deer-executor/v3/executor/persistence/problems"
 	"github.com/LanceLRQ/deer-executor/v3/executor/structs"
-	utils2 "github.com/LanceLRQ/deer-executor/v3/executor/utils"
+	utils "github.com/LanceLRQ/deer-executor/v3/executor/utils"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 	"io/ioutil"
@@ -52,12 +52,12 @@ func MakeProblemConfigFile(c *cli.Context) error {
 			return errors.Errorf("open output file error: %s\n", err.Error())
 		}
 		defer fp.Close()
-		_, err = fp.WriteString(utils2.ObjectToJSONStringFormatted(config))
+		_, err = fp.WriteString(utils.ObjectToJSONStringFormatted(config))
 		if err != nil {
 			return err
 		}
 	} else {
-		fmt.Println(utils2.ObjectToJSONStringFormatted(config))
+		fmt.Println(utils.ObjectToJSONStringFormatted(config))
 	}
 	return nil
 }
@@ -77,7 +77,7 @@ func InitProblemWorkDir(c *cli.Context) error {
 	if example != "" {
 		packageFile := path.Join("./lib/example", example)
 		// 检查题目包是否存在
-		yes, err := utils2.IsProblemPackage(packageFile)
+		yes, err := utils.IsProblemPackage(packageFile)
 		if err != nil {
 			return err
 		}
@@ -103,7 +103,7 @@ func InitProblemWorkDir(c *cli.Context) error {
 			return err
 		}
 		// 写入到文件
-		if err = ioutil.WriteFile(path.Join(workDir, "problem.json"), []byte(utils2.ObjectToJSONStringFormatted(config)), 0664); err != nil {
+		if err = ioutil.WriteFile(path.Join(workDir, "problem.json"), []byte(utils.ObjectToJSONStringFormatted(config)), 0664); err != nil {
 			return err
 		}
 	}

@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"github.com/LanceLRQ/deer-executor/v3/executor/constants"
-	persistence2 "github.com/LanceLRQ/deer-executor/v3/executor/persistence"
+	persistence "github.com/LanceLRQ/deer-executor/v3/executor/persistence"
 	commonStructs "github.com/LanceLRQ/deer-executor/v3/executor/structs"
 	"github.com/LanceLRQ/deer-executor/v3/executor/utils"
 	"github.com/pkg/errors"
@@ -17,7 +17,7 @@ import (
 	"strings"
 )
 
-func mergeFilesBinary(options *persistence2.ProblemPackageOptions) (string, error) {
+func mergeFilesBinary(options *persistence.ProblemPackageOptions) (string, error) {
 	tmpFileName := uuid.NewV1().String() + ".zip"
 	tmpFilePath := path.Join("/tmp/", tmpFileName)
 	zipFile, err := os.Create(tmpFilePath)
@@ -131,7 +131,7 @@ func writeFileHeader(writer io.Writer, pack ProblemPackage) error {
 // PackProblems 执行题目数据表打包操作
 func PackProblems(
 	configuration *commonStructs.JudgeConfiguration,
-	options *persistence2.ProblemPackageOptions,
+	options *persistence.ProblemPackageOptions,
 ) error {
 
 	if options.DigitalSign {
@@ -186,7 +186,7 @@ func PackProblems(
 		return err
 	}
 
-	hash, err := persistence2.SHA256Streams([]io.Reader{
+	hash, err := persistence.SHA256Streams([]io.Reader{
 		bytes.NewReader(configBytes),
 		fBody,
 	})
@@ -196,7 +196,7 @@ func PackProblems(
 	_ = fBody.Close()
 	// GPG signature
 	if options.DigitalSign {
-		hash, err = persistence2.RSA2048Sign(hash, options.DigitalPEM.PrivateKey)
+		hash, err = persistence.RSA2048Sign(hash, options.DigitalPEM.PrivateKey)
 		if err != nil {
 			return err
 		}

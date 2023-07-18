@@ -2,7 +2,7 @@ package problems
 
 import (
 	"archive/zip"
-	persistence2 "github.com/LanceLRQ/deer-executor/v3/executor/persistence"
+	persistence "github.com/LanceLRQ/deer-executor/v3/executor/persistence"
 	"github.com/pkg/errors"
 	"io"
 	"os"
@@ -70,7 +70,7 @@ func packZipFile(rootPath string, targetPath string) error {
 }
 
 // PackProblemsAsZip 执行题目数据表打包操作（打包成zip版本)
-func PackProblemsAsZip(options *persistence2.ProblemPackageOptions) error {
+func PackProblemsAsZip(options *persistence.ProblemPackageOptions) error {
 	// 这边没法支持所有内容的校验了，只能给config签名。
 	if options.DigitalSign {
 		if options.DigitalPEM.PublicKey == nil || options.DigitalPEM.PrivateKey == nil {
@@ -112,14 +112,14 @@ func PackProblemsAsZip(options *persistence2.ProblemPackageOptions) error {
 		return err
 	}
 
-	hash, err := persistence2.SHA256Streams([]io.Reader{fBody})
+	hash, err := persistence.SHA256Streams([]io.Reader{fBody})
 	if err != nil {
 		return err
 	}
 
 	// GPG signature
 	if options.DigitalSign {
-		hash, err = persistence2.RSA2048Sign(hash, options.DigitalPEM.PrivateKey)
+		hash, err = persistence.RSA2048Sign(hash, options.DigitalPEM.PrivateKey)
 		if err != nil {
 			return err
 		}

@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/LanceLRQ/deer-executor/v3/executor"
 	structs2 "github.com/LanceLRQ/deer-executor/v3/executor/structs"
-	utils2 "github.com/LanceLRQ/deer-executor/v3/executor/utils"
+	utils "github.com/LanceLRQ/deer-executor/v3/executor/utils"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 	"io"
@@ -17,7 +17,7 @@ import (
 
 func runValidatorCase(vBin string, vCase *structs2.TestlibValidatorCase) error {
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-	rel, err := utils2.RunUnixShell(&structs2.ShellOptions{
+	rel, err := utils.RunUnixShell(&structs2.ShellOptions{
 		Context:   ctx,
 		Name:      vBin,
 		Args:      nil,
@@ -48,7 +48,7 @@ func runTestCase(configDir, vBin string, tCase *structs2.TestCase) error {
 	var err error
 	// 判断是generator还是普通input
 	if tCase.UseGenerator {
-		inbytes, err = utils2.CallGenerator(ctx, tCase, configDir)
+		inbytes, err = utils.CallGenerator(ctx, tCase, configDir)
 		if err != nil {
 			return err
 		}
@@ -59,7 +59,7 @@ func runTestCase(configDir, vBin string, tCase *structs2.TestCase) error {
 		}
 	}
 
-	rel, err := utils2.RunUnixShell(&structs2.ShellOptions{
+	rel, err := utils.RunUnixShell(&structs2.ShellOptions{
 		Context:   ctx,
 		Name:      vBin,
 		Args:      nil,
@@ -84,7 +84,7 @@ func runTestCase(configDir, vBin string, tCase *structs2.TestCase) error {
 }
 
 func isValidatorExists(config *structs2.JudgeConfiguration) error {
-	validator, err := utils2.GetCompiledBinaryFileAbsPath("validator", config.TestLib.ValidatorName, config.ConfigDir)
+	validator, err := utils.GetCompiledBinaryFileAbsPath("validator", config.TestLib.ValidatorName, config.ConfigDir)
 	if err != nil {
 		return err
 	}
@@ -120,7 +120,7 @@ func runTestlibValidators(config *structs2.JudgeConfiguration, moduleName string
 // RunTestlibValidatorCases 运行validator cases的校验
 // caseIndex < 0 表示校验全部
 func RunTestlibValidatorCases(config *structs2.JudgeConfiguration, caseIndex int) error {
-	validator, err := utils2.GetCompiledBinaryFileAbsPath("validator", config.TestLib.ValidatorName, config.ConfigDir)
+	validator, err := utils.GetCompiledBinaryFileAbsPath("validator", config.TestLib.ValidatorName, config.ConfigDir)
 	if err != nil {
 		return err
 	}
@@ -146,7 +146,7 @@ func RunTestlibValidatorCases(config *structs2.JudgeConfiguration, caseIndex int
 // RunTestCasesInputValidation 运行test cases的校验
 // caseIndex < 0 表示校验全部
 func RunTestCasesInputValidation(config *structs2.JudgeConfiguration, caseIndex int) error {
-	validator, err := utils2.GetCompiledBinaryFileAbsPath("validator", config.TestLib.ValidatorName, config.ConfigDir)
+	validator, err := utils.GetCompiledBinaryFileAbsPath("validator", config.TestLib.ValidatorName, config.ConfigDir)
 	if err != nil {
 		return err
 	}
@@ -185,7 +185,7 @@ func RunTestlibValidators(c *cli.Context) error {
 	silence := c.Bool("silence")
 
 	LIST := []string{"all", "validator_cases", "test_cases"}
-	if !utils2.Contains(LIST, mtype) {
+	if !utils.Contains(LIST, mtype) {
 		return errors.Errorf("[validator] unsupport module type")
 	}
 	err = runTestlibValidators(&session.JudgeConfig, mtype, mCaseIndex)

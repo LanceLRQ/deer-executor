@@ -8,7 +8,7 @@ import (
 	agentConfig "github.com/LanceLRQ/deer-executor/v3/agent/config"
 	"github.com/LanceLRQ/deer-executor/v3/agent/rpc"
 	"github.com/LanceLRQ/deer-executor/v3/executor"
-	persistence2 "github.com/LanceLRQ/deer-executor/v3/executor/persistence"
+	persistence "github.com/LanceLRQ/deer-executor/v3/executor/persistence"
 	"github.com/LanceLRQ/deer-executor/v3/executor/persistence/result"
 	commonStructs "github.com/LanceLRQ/deer-executor/v3/executor/structs"
 	"github.com/LanceLRQ/deer-executor/v3/executor/utils"
@@ -22,7 +22,7 @@ import (
 
 // JudgementRunOption options for StartJudgement
 type JudgementRunOption struct {
-	Persistence *persistence2.JudgeResultPersisOptions
+	Persistence *persistence.JudgeResultPersisOptions
 	Clean       bool
 	ConfigFile  string
 	WorkDir     string
@@ -123,14 +123,14 @@ func runRpcJudge(request *rpc.JudgementRequest) (*commonStructs.JudgeResult, str
 	}
 	// build persistence options
 	compressorType := uint8(request.CompressType)
-	jOption := persistence2.JudgeResultPersisOptions{
+	jOption := persistence.JudgeResultPersisOptions{
 		CompressorType:   compressorType,
 		SaveAcceptedData: request.PersistWithAcData,
 	}
 	// Is enable persistence with sign
 	if request.PersistResult && request.SignResult {
 		passphrase := []byte(request.GpgPassphrase)
-		pem, err := persistence2.GetArmorPublicKey(request.GpgKey, passphrase)
+		pem, err := persistence.GetArmorPublicKey(request.GpgKey, passphrase)
 		if err != nil {
 			return nil, "", err
 		}
