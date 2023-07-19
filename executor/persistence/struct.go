@@ -17,6 +17,7 @@ type CommonPersisOptions struct {
 	DigitalSign bool            // 是否启用数字签名
 	DigitalPEM  *DigitalSignPEM // PEM 数字证书
 	OutFile     string          // 最终输出文件
+	TempFile    string          // 临时的文件，可清理
 }
 
 // JudgeResultPersisOptions 评测记录的持久化选项
@@ -32,4 +33,5 @@ type ProblemPackageOptions struct {
 	CommonPersisOptions
 	ConfigFile string
 	ConfigDir  string
+	BodyFile   string // 临时的文件，可清理
 }
