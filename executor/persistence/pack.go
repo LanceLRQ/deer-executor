@@ -10,8 +10,76 @@ import (
 	"os"
 )
 
-// sign body
-func (pack *DeerPackageBase) signPackageBody(options *CommonPersisOptions) error {
+// writePackageFile 打包题目数据到文件
+func (pack *DeerPackageBase) writePackageFile() error {
+	options, err := pack.getCommonPersisOptions()
+	if err != nil {
+		return err
+	}
+
+	// Need digital sign?
+	if options.DigitalSign {
+		if options.DigitalPEM.PublicKey == nil || options.DigitalPEM.PrivateKey == nil {
+			return errors.Errorf("digital sign need public key and private key")
+		}
+	}
+
+	// Build pack body
+	err = pack.buildPackageBody()
+	if err != nil {
+		return err
+	}
+	defer pack.cleanWorkspace()
+
+	// Hash body
+	err = pack.signPackageBody()
+	if err != nil {
+		return err
+	}
+
+	// Init outfile
+	fout, err := os.Create(options.OutFile)
+	if err != nil {
+		return errors.Errorf("create problem package file error: %s", err.Error())
+	}
+	foutWriter := bufio.NewWriter(fout)
+	defer fout.Close()
+	defer foutWriter.Flush()
+
+	// Make GPG sign
+	if options.DigitalSign {
+		err = pack.makeGPGSignature(foutWriter)
+		if err != nil {
+			return errors.Errorf("sign problem package file error: %s", err.Error())
+		}
+	}
+
+	// Write header
+	if err = pack.createPackageHeader(foutWriter); err != nil {
+		return err
+	}
+
+	// Header end with [0 0]
+	if _, err := foutWriter.Write([]byte{0x0, 0x0}); err != nil {
+		return err
+	}
+
+	// Write body
+	err = pack.writePackageBody(foutWriter)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Sign body with sha256
+func (pack *DeerPackageBase) signPackageBody() error {
+	options, err := pack.getCommonPersisOptions()
+	if err != nil {
+		return err
+	}
+
 	tBody, err := os.Open(options.TempFile)
 	if err != nil {
 		return err
@@ -26,8 +94,13 @@ func (pack *DeerPackageBase) signPackageBody(options *CommonPersisOptions) error
 	return nil
 }
 
-// write body into package
-func (pack *DeerPackageBase) writePackageBody(options *CommonPersisOptions, writer io.Writer) error {
+// Write body into package
+func (pack *DeerPackageBase) writePackageBody(writer io.Writer) error {
+	options, err := pack.getCommonPersisOptions()
+	if err != nil {
+		return err
+	}
+
 	tBody, err := os.Open(options.TempFile)
 	if err != nil {
 		return err
@@ -41,7 +114,12 @@ func (pack *DeerPackageBase) writePackageBody(options *CommonPersisOptions, writ
 }
 
 // Do GPG signature
-func (pack *DeerPackageBase) makeGPGSignature(options *CommonPersisOptions, writer io.Writer) error {
+func (pack *DeerPackageBase) makeGPGSignature(writer io.Writer) error {
+	options, err := pack.getCommonPersisOptions()
+	if err != nil {
+		return err
+	}
+
 	buf16 := make([]byte, 2)
 
 	pack.GPGCertSize = uint16(len(options.DigitalPEM.PublicKeyRaw))
@@ -86,7 +164,9 @@ func (pack *DeerPackageBase) makeGPGSignature(options *CommonPersisOptions, writ
 }
 
 // Clean workspace temp file
-func (pack *DeerPackageBase) cleanWorkspaceCommon(options *CommonPersisOptions) {
+func (pack *DeerPackageBase) cleanWorkspaceCommon() {
+	options, _ := pack.getCommonPersisOptions()
+
 	if options.TempFile != "" {
 		_ = os.Remove(options.TempFile)
 	}

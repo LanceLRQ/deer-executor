@@ -3,6 +3,8 @@ package persistence
 import (
 	"crypto/rsa"
 	uuid "github.com/satori/go.uuid"
+
+	commonStructs "github.com/LanceLRQ/deer-executor/v3/executor/structs"
 )
 
 const (
@@ -16,7 +18,7 @@ const MaskTypeFlag uint8 = 0x80
 const MaskTypeLen uint8 = 0x60
 const MaskTypeNum uint8 = 0x1F
 
-// DigitalSignPEM 数字签名PEM证书内容
+// DigitalSignPEM gpg cert data
 type DigitalSignPEM struct {
 	PublicKey     *rsa.PublicKey
 	PrivateKey    *rsa.PrivateKey
@@ -24,15 +26,23 @@ type DigitalSignPEM struct {
 	PrivateKeyRaw []byte
 }
 
-// CommonPersisOptions 公共的持久化选项
+// CommonPersisOptions common persis options
 type CommonPersisOptions struct {
-	DigitalSign bool            // 是否启用数字签名
-	DigitalPEM  *DigitalSignPEM // PEM 数字证书
-	OutFile     string          // 最终输出文件
-	TempFile    string          // 临时的文件，可清理
+	DigitalSign bool            // enable digital sign?
+	DigitalPEM  *DigitalSignPEM // PEM certification data
+	OutFile     string          // package result output file
+	TempFile    string          // temporary file
 }
 
-// JudgeResultPersisOptions 评测记录的持久化选项
+// ProblemProjectPersisOptions problem persis options
+type ProblemProjectPersisOptions struct {
+	CommonPersisOptions
+	ConfigFile      string // for skip the config file when zipping
+	ProjectDir      string // problem project work dir
+	ProblemBodyFile string
+}
+
+// JudgeResultPersisOptions judge resule persis options
 type JudgeResultPersisOptions struct {
 	CommonPersisOptions
 	CompressorType   uint8
@@ -41,7 +51,9 @@ type JudgeResultPersisOptions struct {
 }
 
 type IDeerPackage interface {
-	buildPackageBody(options *CommonPersisOptions) error
+	getCommonPersisOptions() (*CommonPersisOptions, error)
+	buildPackageBody() error
+	cleanWorkspace()
 }
 
 // DeerPackageBase deer executor data package binary struct definition
@@ -74,4 +86,19 @@ type DeerPackageBase struct {
 	GPGSignature   []byte    // Signature: SHA256(PackageId + Body)
 	// --- body
 	// ...
+	// -- meta
+	presistOptions    interface{}
+	presistHeaderSize int64
+	presistFilePath   string
+	presistFileSize   int64
+}
+
+// ProblemProjectPackage problem project package entity
+type ProblemProjectPackage struct {
+	DeerPackageBase
+	// --- body
+	problemConfigsBytes []byte // Problem Configs JSON [type: 0x1]
+	problemBodyTempFile string // Problem package temp file [type: 0x2]
+	// --- internal
+	ProblemConfigs *commonStructs.JudgeConfiguration
 }

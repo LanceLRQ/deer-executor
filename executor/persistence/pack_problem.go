@@ -16,94 +16,30 @@ import (
 	"strings"
 )
 
-// ProblemProjectPersisOptions for persis
-type ProblemProjectPersisOptions struct {
-	CommonPersisOptions
-	ConfigFile      string
-	ProjectDir      string
-	ProblemBodyFile string
-}
-
-// ProblemProjectPackage for problem project
-type ProblemProjectPackage struct {
-	DeerPackageBase
-	// --- body
-	problemConfigsBytes []byte // Problem Configs JSON [type: 0x1]
-	ProblemBodyTempFile string // Problem package temp file [type: 0x2]
-	// --- internal
-	ProblemConfigs *commonStructs.JudgeConfiguration
-}
-
-func NewProblemProjectPackage(conf *commonStructs.JudgeConfiguration) ProblemProjectPackage {
-	return ProblemProjectPackage{
+func NewProblemProjectPackage(conf *commonStructs.JudgeConfiguration) *ProblemProjectPackage {
+	instance := ProblemProjectPackage{
 		DeerPackageBase: DeerPackageBase{
 			Version:   2,
 			PackageID: uuid.NewV4(),
 		},
 		ProblemConfigs: conf,
 	}
+	instance.IDeerPackage = &instance
+	return &instance
 }
 
-// WritePackageFile 打包题目数据到文件
-func (pack *ProblemProjectPackage) WritePackageFile(options *ProblemProjectPersisOptions) error {
-	// Need digital sign?
-	if options.DigitalSign {
-		if options.DigitalPEM.PublicKey == nil || options.DigitalPEM.PrivateKey == nil {
-			return errors.Errorf("digital sign need public key and private key")
-		}
-	}
-
-	// Build pack body
-	err := pack.buildPackageBody(options)
-	if err != nil {
-		return err
-	}
-
-	defer pack.cleanWorkspace(options)
-
-	// Hash body
-	err = pack.signPackageBody(&options.CommonPersisOptions)
-	if err != nil {
-		return err
-	}
-
-	// Init outfile
-	fout, err := os.Create(options.OutFile)
-	if err != nil {
-		return errors.Errorf("create problem package file error: %s", err.Error())
-	}
-	foutWriter := bufio.NewWriter(fout)
-	defer fout.Close()
-
-	// Make GPG sign
-	if options.DigitalSign {
-		err = pack.makeGPGSignature(&options.CommonPersisOptions, foutWriter)
-		if err != nil {
-			return errors.Errorf("sign problem package file error: %s", err.Error())
-		}
-	}
-
-	// Write header
-	if err = pack.createPackageHeader(foutWriter); err != nil {
-		return err
-	}
-
-	// Header end with [0 0]
-	if _, err := foutWriter.Write([]byte{0x0, 0x0}); err != nil {
-		return err
-	}
-
-	// Write body
-	err = pack.writePackageBody(&options.CommonPersisOptions, foutWriter)
-	if err != nil {
-		return err
-	}
-
-	return nil
+// WritePackageFile create a problem package file
+func (pack *DeerPackageBase) WritePackageFile(presistOptions *ProblemProjectPersisOptions) error {
+	pack.presistOptions = presistOptions
+	return pack.writePackageFile()
 }
 
 // build package body
-func (pack *ProblemProjectPackage) buildPackageBody(options *ProblemProjectPersisOptions) error {
+func (pack *ProblemProjectPackage) buildPackageBody() error {
+	options, err := pack.getProblemPersisOptions()
+	if err != nil {
+		return err
+	}
 	options.TempFile = fmt.Sprintf("%s.tmp", options.OutFile)
 	tempOut, err := os.Create(options.TempFile)
 	if err != nil {
@@ -111,6 +47,7 @@ func (pack *ProblemProjectPackage) buildPackageBody(options *ProblemProjectPersi
 	}
 	defer tempOut.Close()
 	tempOutWriter := bufio.NewWriter(tempOut)
+	defer tempOutWriter.Flush()
 
 	// config
 	configBytes := utils.ObjectToJSONByte(pack.ProblemConfigs)
@@ -121,11 +58,10 @@ func (pack *ProblemProjectPackage) buildPackageBody(options *ProblemProjectPersi
 
 	// content file
 	options.ProblemBodyFile = fmt.Sprintf("%s.zip", options.OutFile)
-	err = pack.mergeFilesBinary(options)
+	err = pack.mergeFilesBinary()
 	if err != nil {
 		return err
 	}
-
 	fBody, err := os.Open(options.ProblemBodyFile)
 	if err != nil {
 		return err
@@ -143,8 +79,12 @@ func (pack *ProblemProjectPackage) buildPackageBody(options *ProblemProjectPersi
 }
 
 // clean workspace
-func (pack *ProblemProjectPackage) cleanWorkspace(options *ProblemProjectPersisOptions) {
-	pack.cleanWorkspaceCommon(&options.CommonPersisOptions)
+func (pack *ProblemProjectPackage) cleanWorkspace() {
+	options, err := pack.getProblemPersisOptions()
+	if err != nil {
+		return
+	}
+	pack.cleanWorkspaceCommon()
 	if options.ProblemBodyFile != "" {
 		_ = os.Remove(options.ProblemBodyFile)
 	}
@@ -152,7 +92,12 @@ func (pack *ProblemProjectPackage) cleanWorkspace(options *ProblemProjectPersisO
 }
 
 // merge problem project files into zip
-func (pack *ProblemProjectPackage) mergeFilesBinary(options *ProblemProjectPersisOptions) error {
+func (pack *ProblemProjectPackage) mergeFilesBinary() error {
+	options, err := pack.getProblemPersisOptions()
+	if err != nil {
+		return err
+	}
+
 	zipFile, err := os.Create(options.ProblemBodyFile)
 	if err != nil {
 		return err
@@ -209,4 +154,20 @@ func (pack *ProblemProjectPackage) mergeFilesBinary(options *ProblemProjectPersi
 		return err
 	}
 	return nil
+}
+
+func (pack *ProblemProjectPackage) getCommonPersisOptions() (*CommonPersisOptions, error) {
+	options, err := pack.getProblemPersisOptions()
+	if err != nil {
+		return nil, err
+	}
+	return &options.CommonPersisOptions, nil
+}
+
+func (pack *ProblemProjectPackage) getProblemPersisOptions() (*ProblemProjectPersisOptions, error) {
+	options, ok := pack.presistOptions.(*ProblemProjectPersisOptions)
+	if !ok {
+		return nil, errors.Errorf("persistOptions must be a *ProblemProjectPersisOptions")
+	}
+	return options, nil
 }

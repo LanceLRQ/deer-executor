@@ -4,13 +4,11 @@ import (
 	"fmt"
 	"github.com/LanceLRQ/deer-executor/v3/executor"
 	persistence "github.com/LanceLRQ/deer-executor/v3/executor/persistence"
-	problems "github.com/LanceLRQ/deer-executor/v3/executor/persistence/problems"
 	utils "github.com/LanceLRQ/deer-executor/v3/executor/utils"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"
-	"path"
 	"strings"
 )
 
@@ -42,34 +40,31 @@ func BuildProblemPackage(c *cli.Context) error {
 			return err
 		}
 	}
-	options := persistence.ProblemPackageOptions{}
-	options.ConfigFile = configFile
-	options.DigitalSign = c.Bool("sign")
-	options.DigitalPEM = pem
-	options.OutFile = outputFile
 
 	// problem
 	session, err := executor.NewSession(configFile)
 	if err != nil {
 		return err
 	}
-	options.ConfigDir = session.ConfigDir
 
-	err = executor.CheckRequireFilesExists(&session.JudgeConfig, options.ConfigDir)
+	pack := persistence.NewProblemProjectPackage(&session.JudgeConfig)
+	options := &persistence.ProblemProjectPersisOptions{
+		CommonPersisOptions: persistence.CommonPersisOptions{
+			DigitalSign: c.Bool("sign"),
+			OutFile:     outputFile,
+			DigitalPEM:  pem,
+		},
+		ConfigFile: configFile,
+		ProjectDir: session.ConfigDir,
+	}
+
+	err = executor.CheckRequireFilesExists(&session.JudgeConfig, options.ProjectDir)
 	if err != nil {
 		return err
 	}
-
-	if c.Bool("zip") {
-		err = problems.PackProblemsAsZip(&options)
-		if err != nil {
-			return err
-		}
-	} else {
-		err = problems.PackProblems(&session.JudgeConfig, &options)
-		if err != nil {
-			return err
-		}
+	err = pack.WritePackageFile(options)
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -94,22 +89,10 @@ func UnpackProblemPackage(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	isZip, err := utils.IsZipFile(packageFile)
-	if err != nil {
-		return err
-	}
 	// 解包
 	if isDeerPack {
-		if _, _, err := problems.ReadProblemInfo(packageFile, true, !c.Bool("no-validate"), workDir); err != nil {
-			return err
-		}
-	} else if isZip {
-		if _, _, err := problems.ReadProblemInfoZip(packageFile, true, !c.Bool("no-validate"), workDir); err != nil {
-			return err
-		}
-		// clean meta file
-		_ = os.Remove(path.Join(workDir, ".sign"))
-		_ = os.Remove(path.Join(workDir, ".gpg"))
+		//pack, err := persistence.ParsePackageFile(packageFile, workDir, false, !c.Bool("no-validate"))
+		// TODO
 	} else {
 		return errors.Errorf("not a deer-executor problem package file")
 	}
@@ -124,41 +107,27 @@ func ReadProblemInfo(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	isZip, err := utils.IsZipFile(packageFile)
-	if err != nil {
-		return err
-	}
 	// 如果是题目包文件，进行解包
 	if isDeerPack {
-		if c.Bool("gpg") {
-			g, err := problems.ReadProblemGPGInfo(packageFile)
-			if err != nil {
-				fmt.Println(err.Error())
-				return nil
-			}
-			fmt.Println(g)
-		} else {
-			s, _, err := problems.ReadProblemInfo(packageFile, false, false, "")
-			if err != nil {
-				return err
-			}
-			fmt.Println(utils.ObjectToJSONStringFormatted(s))
+		_, err := persistence.ParsePackageFile(packageFile, !c.Bool("no-validate"))
+		if err != nil {
+			return err
 		}
-	} else if isZip {
-		if c.Bool("gpg") {
-			g, err := problems.ReadProblemGPGInfoZip(packageFile)
-			if err != nil {
-				fmt.Println(err.Error())
-				return nil
-			}
-			fmt.Println(g)
-		} else {
-			s, _, err := problems.ReadProblemInfoZip(packageFile, false, false, "")
-			if err != nil {
-				return err
-			}
-			fmt.Println(utils.ObjectToJSONStringFormatted(s))
-		}
+
+		//if c.Bool("gpg") {
+		//	g, err := problems.ReadProblemGPGInfo(packageFile)
+		//	if err != nil {
+		//		fmt.Println(err.Error())
+		//		return nil
+		//	}
+		//	fmt.Println(g)
+		//} else {
+		//	s, _, err := problems.ReadProblemInfo(packageFile, false, false, "")
+		//	if err != nil {
+		//		return err
+		//	}
+		//	fmt.Println(utils.ObjectToJSONStringFormatted(s))
+		//}
 	} else {
 		return errors.Errorf("not a deer-executor problem package file")
 	}

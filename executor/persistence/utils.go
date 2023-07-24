@@ -1,6 +1,7 @@
 package persistence
 
 import (
+	"archive/zip"
 	"bufio"
 	"bytes"
 	"crypto"
@@ -9,6 +10,7 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/pem"
+	"fmt"
 	"github.com/howeyc/gopass"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
@@ -18,6 +20,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 )
 
 // SHA256String 对文本执行SHA256运算
@@ -42,6 +45,22 @@ func SHA256Streams(streams []io.Reader) ([]byte, error) {
 	ret := hash.Sum(nil)
 	//hex.EncodeToString(ret)
 	return ret, nil
+}
+
+// SHA256StreamsWithCount sha256 and return size
+func SHA256StreamsWithCount(streams []io.Reader) ([]byte, int64, error) {
+	counter := int64(0)
+	hash := sha256.New()
+	for _, stream := range streams {
+		if c, err := io.Copy(hash, stream); err != nil {
+			return nil, 0, err
+		} else {
+			counter += c
+		}
+	}
+	ret := hash.Sum(nil)
+	//hex.EncodeToString(ret)
+	return ret, counter, nil
 }
 
 // RSA2048SignString 对文本执行RSA2048运算
@@ -243,4 +262,100 @@ func GetArmorPublicKey(gpgKeyFile string, passphrase []byte) (*DigitalSignPEM, e
 		PublicKeyRaw: publicKeyArmor,
 		PublicKey:    elist[0].PrimaryKey.PublicKey.(*rsa.PublicKey),
 	}, nil
+}
+
+// FileNotFoundError file not found error
+type FileNotFoundError struct {
+	FileName string
+}
+
+// Error get error string
+func (e FileNotFoundError) Error() string {
+	return fmt.Sprintf("file (%s) not found", e.FileName)
+}
+
+// IsFileNotFoundError check is file not found error
+func IsFileNotFoundError(e error) bool {
+	_, ok := e.(FileNotFoundError)
+	return ok
+}
+
+// NewFileNotFoundError new a file not found error
+func NewFileNotFoundError(fileName string) error {
+	return FileNotFoundError{FileName: fileName}
+}
+
+// UnZip do unzip
+func UnZip(zipArchive *zip.ReadCloser, destDir string) error {
+	return WalkZip(zipArchive, func(f *zip.File) error {
+		fpath := filepath.Join(destDir, f.Name)
+		if f.FileInfo().IsDir() {
+			_ = os.MkdirAll(fpath, os.ModePerm)
+		} else {
+			if err := os.MkdirAll(filepath.Dir(fpath), os.ModePerm); err != nil {
+				return err
+			}
+
+			inFile, err := f.Open()
+			if err != nil {
+				return err
+			}
+			defer inFile.Close()
+
+			outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+			if err != nil {
+				return err
+			}
+			defer outFile.Close()
+
+			_, err = io.Copy(outFile, inFile)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
+// WalkZip walk in zip
+func WalkZip(zipArchive *zip.ReadCloser, walkFunc func(file *zip.File) error) error {
+	for _, f := range zipArchive.File {
+		err := walkFunc(f)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// FindInZip find file in zip exactly.
+func FindInZip(zipArchive *zip.ReadCloser, fileName string) (*io.ReadCloser, *zip.File, error) {
+	var fileResult io.ReadCloser
+	finded := false
+	var fileInfo *zip.File
+	err := WalkZip(zipArchive, func(file *zip.File) error {
+		fileInfo = file
+		if fileName == file.Name {
+			finded = true
+			var err error
+			fileResult, err = file.Open()
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if !finded {
+		return nil, nil, NewFileNotFoundError(fileName)
+	}
+	return &fileResult, fileInfo, err
+}
+
+func isInArray(target interface{}, arr []interface{}) (int, bool) {
+	for i, value := range arr {
+		if target == value {
+			return i, true
+		}
+	}
+	return -1, false
 }
