@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/LanceLRQ/deer-executor/v3/executor"
-	constants2 "github.com/LanceLRQ/deer-executor/v3/executor/constants"
-	structs2 "github.com/LanceLRQ/deer-executor/v3/executor/structs"
+	constants "github.com/LanceLRQ/deer-executor/v3/executor/constants"
+	structs "github.com/LanceLRQ/deer-executor/v3/executor/structs"
 	"github.com/LanceLRQ/deer-executor/v3/executor/utils"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
@@ -46,7 +46,7 @@ func runCheckerCase(session *executor.JudgeSession, caseIndex int) error {
 	// 运行checker程序
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 	// <input-file> <output-file> <answer-file> [<report-file>]
-	ret, err := utils.RunUnixShell(&structs2.ShellOptions{
+	ret, err := utils.RunUnixShell(&structs.ShellOptions{
 		Context: ctx,
 		Name:    cPath,
 		Args: []string{
@@ -62,13 +62,13 @@ func runCheckerCase(session *executor.JudgeSession, caseIndex int) error {
 	}
 
 	judgeResult := -1
-	for _, item := range constants2.TestlibExitMsgMapping {
+	for _, item := range constants.TestlibExitMsgMapping {
 		if strings.HasPrefix(ret.Stderr, item.ErrName) {
 			judgeResult = item.JudgeResult
 		}
 	}
 	if judgeResult == -1 {
-		judgeResult = constants2.JudgeFlagSpecialJudgeError
+		judgeResult = constants.JudgeFlagSpecialJudgeError
 	}
 	iCase.CheckerVerdict = judgeResult
 	iCase.CheckerComment = ret.Stderr
@@ -77,7 +77,7 @@ func runCheckerCase(session *executor.JudgeSession, caseIndex int) error {
 }
 
 // 检查是否存在checker
-func isCheckerExists(config *structs2.JudgeConfiguration) error {
+func isCheckerExists(config *structs.JudgeConfiguration) error {
 	cPath, err := utils.GetCompiledBinaryFileAbsPath("checker", config.SpecialJudge.Name, config.ConfigDir)
 	if err != nil {
 		return err

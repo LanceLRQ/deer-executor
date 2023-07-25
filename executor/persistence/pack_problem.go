@@ -111,7 +111,7 @@ func (pack *ProblemProjectPackage) mergeFilesBinary() error {
 			return err
 		}
 		// 跳过配置文件
-		if zpath == options.ConfigFile {
+		if strings.HasSuffix(zpath, options.ConfigFile) {
 			return nil
 		}
 		// 跳过配置文件夹

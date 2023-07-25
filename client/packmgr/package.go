@@ -103,17 +103,21 @@ func UnpackProblemPackage(c *cli.Context) error {
 // ReadProblemInfo 访问题目包信息
 func ReadProblemInfo(c *cli.Context) error {
 	packageFile := c.Args().Get(0)
-	isDeerPack, err := utils.IsProblemPackage(packageFile)
+	isDeerPack, err := utils.IsDeerPackage(packageFile)
 	if err != nil {
 		return err
 	}
 	// 如果是题目包文件，进行解包
 	if isDeerPack {
-		_, err := persistence.ParsePackageFile(packageFile, !c.Bool("no-validate"))
+		pack, err := persistence.ParsePackageFile(packageFile, !c.Bool("no-validate"))
 		if err != nil {
 			return err
 		}
-
+		_, err = pack.GetProblemConfig()
+		if err != nil {
+			return err
+		}
+		fmt.Println(utils.ObjectToJSONStringFormatted(pack.ProblemConfigs))
 		//if c.Bool("gpg") {
 		//	g, err := problems.ReadProblemGPGInfo(packageFile)
 		//	if err != nil {

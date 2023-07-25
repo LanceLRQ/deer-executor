@@ -3,7 +3,7 @@ package packmgr
 import (
 	"context"
 	"github.com/LanceLRQ/deer-executor/v3/executor"
-	structs2 "github.com/LanceLRQ/deer-executor/v3/executor/structs"
+	structs "github.com/LanceLRQ/deer-executor/v3/executor/structs"
 	utils "github.com/LanceLRQ/deer-executor/v3/executor/utils"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
@@ -15,9 +15,9 @@ import (
 	"time"
 )
 
-func runValidatorCase(vBin string, vCase *structs2.TestlibValidatorCase) error {
+func runValidatorCase(vBin string, vCase *structs.TestlibValidatorCase) error {
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-	rel, err := utils.RunUnixShell(&structs2.ShellOptions{
+	rel, err := utils.RunUnixShell(&structs.ShellOptions{
 		Context:   ctx,
 		Name:      vBin,
 		Args:      nil,
@@ -42,7 +42,7 @@ func runValidatorCase(vBin string, vCase *structs2.TestlibValidatorCase) error {
 	return nil
 }
 
-func runTestCase(configDir, vBin string, tCase *structs2.TestCase) error {
+func runTestCase(configDir, vBin string, tCase *structs.TestCase) error {
 	ctx, _ := context.WithTimeout(context.Background(), 3*time.Second)
 	var inbytes []byte
 	var err error
@@ -59,7 +59,7 @@ func runTestCase(configDir, vBin string, tCase *structs2.TestCase) error {
 		}
 	}
 
-	rel, err := utils.RunUnixShell(&structs2.ShellOptions{
+	rel, err := utils.RunUnixShell(&structs.ShellOptions{
 		Context:   ctx,
 		Name:      vBin,
 		Args:      nil,
@@ -83,7 +83,7 @@ func runTestCase(configDir, vBin string, tCase *structs2.TestCase) error {
 	return nil
 }
 
-func isValidatorExists(config *structs2.JudgeConfiguration) error {
+func isValidatorExists(config *structs.JudgeConfiguration) error {
 	validator, err := utils.GetCompiledBinaryFileAbsPath("validator", config.TestLib.ValidatorName, config.ConfigDir)
 	if err != nil {
 		return err
@@ -96,7 +96,7 @@ func isValidatorExists(config *structs2.JudgeConfiguration) error {
 }
 
 // 运行Testlib的validator校验
-func runTestlibValidators(config *structs2.JudgeConfiguration, moduleName string, caseIndex int) error {
+func runTestlibValidators(config *structs.JudgeConfiguration, moduleName string, caseIndex int) error {
 	if err := isValidatorExists(config); err != nil {
 		return err
 	}
@@ -119,7 +119,7 @@ func runTestlibValidators(config *structs2.JudgeConfiguration, moduleName string
 
 // RunTestlibValidatorCases 运行validator cases的校验
 // caseIndex < 0 表示校验全部
-func RunTestlibValidatorCases(config *structs2.JudgeConfiguration, caseIndex int) error {
+func RunTestlibValidatorCases(config *structs.JudgeConfiguration, caseIndex int) error {
 	validator, err := utils.GetCompiledBinaryFileAbsPath("validator", config.TestLib.ValidatorName, config.ConfigDir)
 	if err != nil {
 		return err
@@ -145,7 +145,7 @@ func RunTestlibValidatorCases(config *structs2.JudgeConfiguration, caseIndex int
 
 // RunTestCasesInputValidation 运行test cases的校验
 // caseIndex < 0 表示校验全部
-func RunTestCasesInputValidation(config *structs2.JudgeConfiguration, caseIndex int) error {
+func RunTestCasesInputValidation(config *structs.JudgeConfiguration, caseIndex int) error {
 	validator, err := utils.GetCompiledBinaryFileAbsPath("validator", config.TestLib.ValidatorName, config.ConfigDir)
 	if err != nil {
 		return err

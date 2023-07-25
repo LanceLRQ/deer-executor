@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/binary"
-	constants2 "github.com/LanceLRQ/deer-executor/v3/executor/constants"
+	constants "github.com/LanceLRQ/deer-executor/v3/executor/constants"
 	persistence "github.com/LanceLRQ/deer-executor/v3/executor/persistence"
 	commonStructs "github.com/LanceLRQ/deer-executor/v3/executor/structs"
 	"github.com/LanceLRQ/deer-executor/v3/executor/utils"
@@ -23,7 +23,7 @@ func readAndWriteToTempFile(writer io.Writer, fileName string, workDir string) e
 	if err != nil {
 		return err
 	}
-	binary.BigEndian.PutUint16(buf16, constants2.JudgeBodyPackageMagicCode)
+	binary.BigEndian.PutUint16(buf16, constants.JudgeBodyPackageMagicCode)
 	binary.BigEndian.PutUint32(buf32, uint32(len(body)))
 	if _, err := writer.Write(buf16); err != nil {
 		return errors.Errorf("write temp file error: %s", err.Error())
@@ -62,7 +62,7 @@ func mergeResultBinary(
 
 	for _, testCase := range judgeResult.TestCases {
 		// 如果不需要保留AC的数据
-		if !options.SaveAcceptedData && testCase.JudgeResult == constants2.JudgeFlagAC {
+		if !options.SaveAcceptedData && testCase.JudgeResult == constants.JudgeFlagAC {
 			continue
 		}
 		err = readAndWriteToTempFile(testCaseWriter, testCase.ProgramOut, options.SessionDir)
@@ -81,7 +81,7 @@ func writeFileHeaderAndResult(writer io.Writer, pack JudgeResultPackage) error {
 	buf32 := make([]byte, 4)
 
 	// magic
-	binary.BigEndian.PutUint16(buf16, constants2.JudgeResultMagicCode)
+	binary.BigEndian.PutUint16(buf16, constants.JudgeResultMagicCode)
 	if _, err := writer.Write(buf16); err != nil {
 		return errors.Errorf("write result file error: %s", err.Error())
 	}

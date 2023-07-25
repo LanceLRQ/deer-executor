@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/LanceLRQ/deer-executor/v3/executor"
-	structs2 "github.com/LanceLRQ/deer-executor/v3/executor/structs"
+	structs "github.com/LanceLRQ/deer-executor/v3/executor/structs"
 	utils "github.com/LanceLRQ/deer-executor/v3/executor/utils"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
@@ -18,7 +18,7 @@ import (
 )
 
 // 运行测试数据生成
-func runTestCaseGen(session *executor.JudgeSession, tCase *structs2.TestCase, withAnswer bool) error {
+func runTestCaseGen(session *executor.JudgeSession, tCase *structs.TestCase, withAnswer bool) error {
 	// 如果是generator脚本
 	if tCase.UseGenerator {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -45,11 +45,11 @@ func runTestCaseGen(session *executor.JudgeSession, tCase *structs2.TestCase, wi
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		rel, err := utils.RunUnixShell(&structs2.ShellOptions{
+		rel, err := utils.RunUnixShell(&structs.ShellOptions{
 			Context: ctx,
 			Name:    session.Commands[0],
 			Args:    session.Commands[1:],
-			StdWriter: &structs2.ShellWriters{
+			StdWriter: &structs.ShellWriters{
 				Input:  fin,
 				Output: fout,
 				Error:  nil,

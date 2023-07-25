@@ -21,11 +21,11 @@ func (pack *DeerPackageBase) parseDeerPackageHeader(reader io.Reader) error {
 	}
 
 	// check magic number
-	magic := uint16(0)
+	magic := uint32(0)
 	if err := binary.Read(reader, binary.BigEndian, &magic); err != nil {
 		return errorFunc("magic number", err)
 	}
-	if magic != constants.ProblemPackageMagicCode {
+	if magic != constants.DeerPackageMagicCode {
 		return errors.Errorf("not deer-executor problem package file")
 	}
 	if err := binary.Read(reader, binary.BigEndian, &pack.Version); err != nil {
@@ -163,7 +163,7 @@ func (pack *DeerPackageBase) parseDeerPackage(doValidate bool) error {
 	return nil
 }
 
-func (pack *DeerPackageBase) walkDeerPackageBody(items []interface{}, callback func(uint8, int64, io.Reader) error) error {
+func (pack *DeerPackageBase) walkDeerPackageBody(items []interface{}, callback func(uint8, int64, io.Reader) (int64, error)) error {
 	// Open pack file
 	fp, err := os.Open(pack.presistFilePath)
 	if err != nil {
@@ -177,61 +177,68 @@ func (pack *DeerPackageBase) walkDeerPackageBody(items []interface{}, callback f
 		return err
 	}
 
-	reader := bufio.NewReader(fp)
-
 	for {
-		typeId, cLength, err := pack.readPackageBodyChunkHeader(reader)
+		typeId, cLength, err := pack.readPackageBodyChunkHeader(fp)
 		if err == io.EOF {
 			break
 		} else if err != nil {
 			return err
 		}
-		if _, ok := isInArray(typeId, items); !ok {
-			// next <cLength> bytes
-			_, err = fp.Seek(cLength, io.SeekCurrent)
+		if items != nil && typeId > 0 {
+			if _, ok := isInArray(typeId, items); !ok {
+				// next <cLength> bytes
+				_, err = fp.Seek(cLength, io.SeekCurrent)
+				if err != nil {
+					return err
+				}
+				continue
+			}
+		}
+		// read operation must in callbak
+		n, err := callback(typeId, cLength, io.LimitReader(fp, cLength))
+		if err != nil {
+			return err
+		}
+		if n < cLength { // if not read all bytes, skip
+			_, err := fp.Seek(cLength-n, io.SeekCurrent)
 			if err != nil {
 				return err
 			}
-			continue
-		}
-		// read operation must in callbak
-		err = callback(typeId, cLength, reader)
-		if err != nil {
-			return err
 		}
 	}
 	return nil
 }
 
-func (pack *DeerPackageBase) readPackageBodyChunkHeader(reader io.Reader) (uint8, int64, error) {
-	flags := uint8(0)
-	if err := binary.Read(reader, binary.BigEndian, &flags); err != nil {
+func (pack *DeerPackageBase) readPackageBodyChunkHeader(file *os.File) (uint8, int64, error) {
+	flags := make([]byte, 1)
+	if _, err := file.Read(flags); err != nil {
 		return 0, 0, err
 	}
-	isContinue := (flags&MaskTypeFlag)>>7 == 1
-	chunkSizeLen := (flags & MaskTypeLen) >> 5
-	chunkSize := int64(0)
-	chunkType := flags & MaskTypeNum
+	flag := flags[0]
+	isContinue := (flag&MaskTypeFlag)>>7 == 1
+	chunkSizeLen := (flag & MaskTypeLen) >> 5
+	chunkSize := uint64(0)
+	chunkType := flag & MaskTypeNum
 	if !isContinue {
 		return 0, 0, nil
 	}
 	switch chunkSizeLen {
 	case 1:
 		l := uint16(0)
-		if err := binary.Read(reader, binary.BigEndian, &l); err != nil {
+		if err := binary.Read(file, binary.BigEndian, &l); err != nil {
 			return 0, 0, err
 		}
-		chunkSize = int64(l)
+		chunkSize = uint64(l)
 	case 2:
 		l := uint32(0)
-		if err := binary.Read(reader, binary.BigEndian, &l); err != nil {
+		if err := binary.Read(file, binary.BigEndian, &l); err != nil {
 			return 0, 0, err
 		}
-		chunkSize = int64(l)
+		chunkSize = uint64(l)
 	case 3:
-		if err := binary.Read(reader, binary.BigEndian, &chunkSize); err != nil {
+		if err := binary.Read(file, binary.BigEndian, &chunkSize); err != nil {
 			return 0, 0, err
 		}
 	}
-	return chunkType, chunkSize, nil
+	return chunkType, int64(chunkSize), nil
 }

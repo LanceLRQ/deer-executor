@@ -231,14 +231,15 @@ func (pack *DeerPackageBase) writeBodyChunk(writer io.Writer, chunkType uint8, c
 // Create package header
 func (pack *DeerPackageBase) createPackageHeader(writer io.Writer) error {
 	buf16 := make([]byte, 2)
+	buf32 := make([]byte, 4)
 
 	errorFunc := func(key string, err error) error {
 		return errors.Errorf("write problem header (%s) error: %s", key, err.Error())
 	}
 
 	// Magic Code
-	binary.BigEndian.PutUint16(buf16, constants.ProblemPackageMagicCode)
-	if _, err := writer.Write(buf16); err != nil {
+	binary.BigEndian.PutUint32(buf32, constants.DeerPackageMagicCode)
+	if _, err := writer.Write(buf32); err != nil {
 		return errorFunc("magic", err)
 	}
 	// Version
