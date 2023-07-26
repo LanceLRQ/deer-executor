@@ -163,7 +163,7 @@ func (pack *DeerPackageBase) parseDeerPackage(doValidate bool) error {
 	return nil
 }
 
-func (pack *DeerPackageBase) walkDeerPackageBody(items []interface{}, callback func(uint8, int64, io.Reader) (int64, error)) error {
+func (pack *DeerPackageBase) walkDeerPackageBody(items []interface{}, callback func(uint8, int64, *io.SectionReader) (int64, error)) error {
 	// Open pack file
 	fp, err := os.Open(pack.presistFilePath)
 	if err != nil {
@@ -194,8 +194,13 @@ func (pack *DeerPackageBase) walkDeerPackageBody(items []interface{}, callback f
 				continue
 			}
 		}
+		// get current file pointer position
+		fpos, err := fp.Seek(0, io.SeekCurrent)
+		if err != nil {
+			return err
+		}
 		// read operation must in callbak
-		n, err := callback(typeId, cLength, io.LimitReader(fp, cLength))
+		n, err := callback(typeId, cLength, io.NewSectionReader(fp, fpos, cLength))
 		if err != nil {
 			return err
 		}

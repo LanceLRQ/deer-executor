@@ -2,7 +2,6 @@ package persistence
 
 import (
 	"archive/zip"
-	"bufio"
 	"bytes"
 	"fmt"
 	commonStructs "github.com/LanceLRQ/deer-executor/v3/executor/structs"
@@ -46,12 +45,10 @@ func (pack *ProblemProjectPackage) buildPackageBody() error {
 		return errors.Errorf("create problem package body file error: %s", err.Error())
 	}
 	defer tempOut.Close()
-	tempOutWriter := bufio.NewWriter(tempOut)
-	defer tempOutWriter.Flush()
 
 	// config
 	configBytes := utils.ObjectToJSONByte(pack.ProblemConfigs)
-	err = pack.writeBodyChunk(tempOutWriter, PackageChunkTypeConfig, uint64(len(configBytes)), bytes.NewBuffer(configBytes))
+	err = pack.writeBodyChunk(tempOut, PackageChunkTypeConfig, uint64(len(configBytes)), bytes.NewBuffer(configBytes))
 	if err != nil {
 		return err
 	}
@@ -70,7 +67,7 @@ func (pack *ProblemProjectPackage) buildPackageBody() error {
 	if err != nil {
 		return err
 	}
-	err = pack.writeBodyChunk(tempOutWriter, PackageChunkTypeProject, uint64(bodyInfo.Size()), fBody)
+	err = pack.writeBodyChunk(tempOut, PackageChunkTypeProject, uint64(bodyInfo.Size()), fBody)
 	if err != nil {
 		return err
 	}

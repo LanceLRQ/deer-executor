@@ -42,30 +42,29 @@ func (pack *DeerPackageBase) writePackageFile() error {
 	if err != nil {
 		return errors.Errorf("create problem package file error: %s", err.Error())
 	}
-	foutWriter := bufio.NewWriter(fout)
 	defer fout.Close()
-	defer foutWriter.Flush()
+
+	// Write header
+	if err = pack.createPackageHeader(fout); err != nil {
+		return err
+	}
 
 	// Make GPG sign
 	if options.DigitalSign {
-		err = pack.makeGPGSignature(foutWriter)
+		err = pack.makeGPGSignature(fout)
 		if err != nil {
 			return errors.Errorf("sign problem package file error: %s", err.Error())
 		}
 	}
 
-	// Write header
-	if err = pack.createPackageHeader(foutWriter); err != nil {
-		return err
-	}
-
-	// Header end with [0 0]
-	if _, err := foutWriter.Write([]byte{0x0, 0x0}); err != nil {
+	// Write divider [0, 0]
+	err = pack.writePackageDivider(fout)
+	if err != nil {
 		return err
 	}
 
 	// Write body
-	err = pack.writePackageBody(foutWriter)
+	err = pack.writePackageBody(fout)
 	if err != nil {
 		return err
 	}
@@ -95,7 +94,9 @@ func (pack *DeerPackageBase) signPackageBody() error {
 }
 
 // Write body into package
-func (pack *DeerPackageBase) writePackageBody(writer io.Writer) error {
+func (pack *DeerPackageBase) writePackageBody(file *os.File) error {
+	writer := bufio.NewWriter(file)
+	defer writer.Flush()
 	options, err := pack.getCommonPersisOptions()
 	if err != nil {
 		return err
@@ -113,8 +114,20 @@ func (pack *DeerPackageBase) writePackageBody(writer io.Writer) error {
 	return nil
 }
 
+func (pack *DeerPackageBase) writePackageDivider(file *os.File) error {
+	writer := bufio.NewWriter(file)
+	defer writer.Flush()
+	// Header end with [0 0]
+	if _, err := writer.Write([]byte{0x0, 0x0}); err != nil {
+		return err
+	}
+	return nil
+}
+
 // Do GPG signature
-func (pack *DeerPackageBase) makeGPGSignature(writer io.Writer) error {
+func (pack *DeerPackageBase) makeGPGSignature(file *os.File) error {
+	writer := bufio.NewWriter(file)
+	defer writer.Flush()
 	options, err := pack.getCommonPersisOptions()
 	if err != nil {
 		return err
@@ -174,7 +187,10 @@ func (pack *DeerPackageBase) cleanWorkspaceCommon() {
 }
 
 // Write body chunk into file
-func (pack *DeerPackageBase) writeBodyChunk(writer io.Writer, chunkType uint8, chunkSize uint64, chunkData io.Reader) error {
+func (pack *DeerPackageBase) writeBodyChunk(file *os.File, chunkType uint8, chunkSize uint64, chunkData io.Reader) error {
+	writer := bufio.NewWriter(file)
+	defer writer.Flush()
+
 	buf16 := make([]byte, 2)
 	buf32 := make([]byte, 4)
 	buf64 := make([]byte, 8)
@@ -229,7 +245,10 @@ func (pack *DeerPackageBase) writeBodyChunk(writer io.Writer, chunkType uint8, c
 }
 
 // Create package header
-func (pack *DeerPackageBase) createPackageHeader(writer io.Writer) error {
+func (pack *DeerPackageBase) createPackageHeader(file *os.File) error {
+	writer := bufio.NewWriter(file)
+	defer writer.Flush()
+
 	buf16 := make([]byte, 2)
 	buf32 := make([]byte, 4)
 

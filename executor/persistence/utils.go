@@ -287,40 +287,49 @@ func NewFileNotFoundError(fileName string) error {
 
 // UnZip do unzip
 func UnZip(zipArchive *zip.ReadCloser, destDir string) error {
-	return WalkZip(zipArchive, func(f *zip.File) error {
-		fpath := filepath.Join(destDir, f.Name)
-		if f.FileInfo().IsDir() {
-			_ = os.MkdirAll(fpath, os.ModePerm)
-		} else {
-			if err := os.MkdirAll(filepath.Dir(fpath), os.ModePerm); err != nil {
-				return err
-			}
-
-			inFile, err := f.Open()
-			if err != nil {
-				return err
-			}
-			defer inFile.Close()
-
-			outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
-			if err != nil {
-				return err
-			}
-			defer outFile.Close()
-
-			_, err = io.Copy(outFile, inFile)
-			if err != nil {
-				return err
-			}
+	for _, f := range zipArchive.File {
+		err := WalkZip(f, destDir)
+		if err != nil {
+			return err
 		}
-		return nil
-	})
+	}
+	return nil
 }
 
-// WalkZip walk in zip
-func WalkZip(zipArchive *zip.ReadCloser, walkFunc func(file *zip.File) error) error {
+// UnZipReader do unzip (for *zip.Reader)
+func UnZipReader(zipArchive *zip.Reader, destDir string) error {
 	for _, f := range zipArchive.File {
-		err := walkFunc(f)
+		err := WalkZip(f, destDir)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// WalkZip walk in zip file
+func WalkZip(f *zip.File, destDir string) error {
+	fpath := filepath.Join(destDir, f.Name)
+	if f.FileInfo().IsDir() {
+		_ = os.MkdirAll(fpath, os.ModePerm)
+	} else {
+		if err := os.MkdirAll(filepath.Dir(fpath), os.ModePerm); err != nil {
+			return err
+		}
+
+		inFile, err := f.Open()
+		if err != nil {
+			return err
+		}
+		defer inFile.Close()
+
+		outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+		if err != nil {
+			return err
+		}
+		defer outFile.Close()
+
+		_, err = io.Copy(outFile, inFile)
 		if err != nil {
 			return err
 		}
@@ -333,22 +342,21 @@ func FindInZip(zipArchive *zip.ReadCloser, fileName string) (*io.ReadCloser, *zi
 	var fileResult io.ReadCloser
 	finded := false
 	var fileInfo *zip.File
-	err := WalkZip(zipArchive, func(file *zip.File) error {
+	for _, file := range zipArchive.File {
 		fileInfo = file
 		if fileName == file.Name {
 			finded = true
 			var err error
 			fileResult, err = file.Open()
 			if err != nil {
-				return err
+				return nil, nil, err
 			}
 		}
-		return nil
-	})
+	}
 	if !finded {
 		return nil, nil, NewFileNotFoundError(fileName)
 	}
-	return &fileResult, fileInfo, err
+	return &fileResult, fileInfo, nil
 }
 
 func isInArray(target interface{}, arr []interface{}) (int, bool) {

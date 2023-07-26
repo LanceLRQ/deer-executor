@@ -3,6 +3,7 @@ package generate
 import (
 	"fmt"
 	"github.com/LanceLRQ/deer-executor/v3/executor"
+	"github.com/LanceLRQ/deer-executor/v3/executor/persistence"
 	"github.com/LanceLRQ/deer-executor/v3/executor/structs"
 	utils "github.com/LanceLRQ/deer-executor/v3/executor/utils"
 	"github.com/pkg/errors"
@@ -76,17 +77,22 @@ func InitProblemWorkDir(c *cli.Context) error {
 	if example != "" {
 		packageFile := path.Join("./lib/example", example)
 		// 检查题目包是否存在
-		yes, err := utils.IsProblemPackage(packageFile)
+		yes, err := utils.IsDeerPackage(packageFile)
 		if err != nil {
 			return err
 		}
 		if !yes {
 			return errors.Errorf("not a problem package")
 		}
-		// TODO 如果指定了对应的模板
-		//if _, _, err := problems.ReadProblemInfo(packageFile, true, true, workDir); err != nil {
-		//	return err
-		//}
+		pack, err := persistence.ParsePackageFile(packageFile, true)
+		if err != nil {
+			return err
+		}
+		// unpack
+		err = pack.UnpackProblemProject(workDir)
+		if err != nil {
+			return err
+		}
 	} else {
 		// 创建文件夹
 		dirs := []string{"answers", "cases", "bin", "codes", "generators"}

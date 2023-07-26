@@ -66,6 +66,7 @@ func BuildProblemPackage(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("Done.")
 	return nil
 }
 
@@ -73,26 +74,32 @@ func BuildProblemPackage(c *cli.Context) error {
 func UnpackProblemPackage(c *cli.Context) error {
 	packageFile := c.Args().Get(0)
 	workDir := c.Args().Get(1)
-	// 如果路径存在目录或者文件
-	if _, err := os.Stat(workDir); err == nil {
-		return errors.Errorf("work directory (%s) path exisis", workDir)
-	}
-	// 创建目录
-	if err := os.MkdirAll(workDir, 0775); err != nil {
-		return err
-	}
 	if c.Bool("no-validate") {
 		log.Println("[warn] package validation had been disabled!")
 	}
 	// 检查是否为题目包
-	isDeerPack, err := utils.IsProblemPackage(packageFile)
+	isDeerPack, err := utils.IsDeerPackage(packageFile)
 	if err != nil {
 		return err
 	}
 	// 解包
 	if isDeerPack {
-		//pack, err := persistence.ParsePackageFile(packageFile, workDir, false, !c.Bool("no-validate"))
-		// TODO
+		pack, err := persistence.ParsePackageFile(packageFile, !c.Bool("no-validate"))
+		if err != nil {
+			return err
+		}
+		// if <workDir> exists
+		if _, err := os.Stat(workDir); err == nil {
+			return errors.Errorf("work directory (%s) path exisis", workDir)
+		}
+		// create folder <workDir>
+		if err := os.MkdirAll(workDir, 0775); err != nil {
+			return err
+		}
+		err = pack.UnpackProblemProject(workDir)
+		if err != nil {
+			return err
+		}
 	} else {
 		return errors.Errorf("not a deer-executor problem package file")
 	}
@@ -113,28 +120,22 @@ func ReadProblemInfo(c *cli.Context) error {
 		if err != nil {
 			return err
 		}
-		_, err = pack.GetProblemConfig()
+		err = pack.GetProblemConfig()
 		if err != nil {
 			return err
 		}
-		fmt.Println(utils.ObjectToJSONStringFormatted(pack.ProblemConfigs))
-		//if c.Bool("gpg") {
-		//	g, err := problems.ReadProblemGPGInfo(packageFile)
-		//	if err != nil {
-		//		fmt.Println(err.Error())
-		//		return nil
-		//	}
-		//	fmt.Println(g)
-		//} else {
-		//	s, _, err := problems.ReadProblemInfo(packageFile, false, false, "")
-		//	if err != nil {
-		//		return err
-		//	}
-		//	fmt.Println(utils.ObjectToJSONStringFormatted(s))
-		//}
+		if c.Bool("gpg") {
+			g, err := pack.GetProblemGPGInfo()
+			if err != nil {
+				fmt.Println(err.Error())
+				return nil
+			}
+			fmt.Println(g)
+		} else {
+			fmt.Println(utils.ObjectToJSONStringFormatted(pack.ProblemConfigs))
+		}
 	} else {
 		return errors.Errorf("not a deer-executor problem package file")
 	}
-
 	return nil
 }
