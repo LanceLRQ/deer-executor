@@ -9,7 +9,6 @@ import (
 	"github.com/LanceLRQ/deer-executor/v3/agent/rpc"
 	"github.com/LanceLRQ/deer-executor/v3/executor"
 	persistence "github.com/LanceLRQ/deer-executor/v3/executor/persistence"
-	"github.com/LanceLRQ/deer-executor/v3/executor/persistence/result"
 	commonStructs "github.com/LanceLRQ/deer-executor/v3/executor/structs"
 	"github.com/LanceLRQ/deer-executor/v3/executor/utils"
 	"github.com/pkg/errors"
@@ -101,7 +100,8 @@ func startRealJudgement(options *JudgementRunOption) (*executor.JudgeSession, *c
 	// persistence
 	if options.Persistence != nil {
 		options.Persistence.SessionDir = judgeSession.SessionDir
-		err = result.PersistentJudgeResult(judgeResult, options.Persistence)
+		pack := persistence.NewJudgeResultPackage(judgeResult)
+		err = pack.WritePackageFile(options.Persistence)
 		if err != nil {
 			return nil, nil, err
 		}

@@ -18,7 +18,7 @@ import (
 func NewProblemProjectPackage(conf *commonStructs.JudgeConfiguration) *ProblemProjectPackage {
 	instance := ProblemProjectPackage{
 		DeerPackageBase: DeerPackageBase{
-			Version:   2,
+			Version:   1,
 			PackageID: uuid.NewV4(),
 		},
 		ProblemConfigs: conf,
@@ -28,7 +28,7 @@ func NewProblemProjectPackage(conf *commonStructs.JudgeConfiguration) *ProblemPr
 }
 
 // WritePackageFile create a problem package file
-func (pack *DeerPackageBase) WritePackageFile(presistOptions *ProblemProjectPersisOptions) error {
+func (pack *ProblemProjectPackage) WritePackageFile(presistOptions *ProblemProjectPersisOptions) error {
 	pack.presistOptions = presistOptions
 	return pack.writePackageFile()
 }
@@ -54,7 +54,7 @@ func (pack *ProblemProjectPackage) buildPackageBody() error {
 	}
 
 	// content file
-	options.ProblemBodyFile = fmt.Sprintf("%s.zip", options.OutFile)
+	options.ProblemBodyFile = fmt.Sprintf("%s.tmp.zip", options.OutFile)
 	err = pack.mergeFilesBinary()
 	if err != nil {
 		return err
@@ -103,19 +103,19 @@ func (pack *ProblemProjectPackage) mergeFilesBinary() error {
 	zipWriter := zip.NewWriter(zipFile)
 	defer zipWriter.Close()
 
-	err = filepath.Walk(options.ProjectDir, func(zpath string, info os.FileInfo, err error) error {
+	return filepath.Walk(options.ProjectDir, func(zpath string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		// 跳过配置文件
+		// skip problem config file
 		if strings.HasSuffix(zpath, options.ConfigFile) {
 			return nil
 		}
-		// 跳过配置文件夹
+		// skip problem project dir
 		if zpath == options.ProjectDir {
 			return nil
 		}
-		// 跳过二进制文件夹
+		// skip binary dir
 		binDir := path.Join(options.ProjectDir, "bin")
 		if strings.HasPrefix(zpath, binDir) {
 			return nil
@@ -147,10 +147,6 @@ func (pack *ProblemProjectPackage) mergeFilesBinary() error {
 		}
 		return err
 	})
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func (pack *ProblemProjectPackage) getCommonPersisOptions() (*CommonPersisOptions, error) {

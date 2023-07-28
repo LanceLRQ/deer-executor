@@ -11,7 +11,7 @@ const (
 	PackageChunkTypeConfig uint8 = iota + 1 // GPG Certificate
 	PackageChunkTypeProject
 	PackageChunkTypeJudgeResult
-	PackageChunkTypeResultBody
+	PackageChunkTypeJudgeResultData
 )
 
 const MaskTypeFlag uint8 = 0x80
@@ -45,9 +45,10 @@ type ProblemProjectPersisOptions struct {
 // JudgeResultPersisOptions judge resule persis options
 type JudgeResultPersisOptions struct {
 	CommonPersisOptions
-	CompressorType   uint8
-	SessionDir       string
-	SaveAcceptedData bool // 是否保存已经AC的数据
+	CompressorType      uint8
+	SessionDir          string
+	JudgeResultDataFile string
+	SaveAcceptedData    bool
 }
 
 type IDeerPackage interface {
@@ -101,4 +102,10 @@ type ProblemProjectPackage struct {
 	problemBodyTempFile string // Problem package temp file [type: 0x2]
 	// --- internal
 	ProblemConfigs *commonStructs.JudgeConfiguration
+}
+
+type JudgeResultPackage struct {
+	DeerPackageBase
+	// -- body
+	JudgeResult *commonStructs.JudgeResult
 }

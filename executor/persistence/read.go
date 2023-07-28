@@ -147,19 +147,6 @@ func (pack *DeerPackageBase) parseDeerPackage(doValidate bool) error {
 		return nil
 	}
 
-	//// copy last bytes to temp file
-	//tmpFileName := fmt.Sprintf("%s.body.tmp", uuid.NewV1().String())
-	//pack.presistTempFile = path.Join(workDir, tmpFileName)
-	//
-	//tmpFile, err := os.Create(pack.presistTempFile)
-	//if err != nil {
-	//	return errors.Errorf("create package temp file error: %s", err.Error())
-	//}
-	//defer tmpFile.Close()
-	//if _, err := io.Copy(tmpFile, reader); err != nil {
-	//	return errors.Errorf("write package temp file error: %s", err.Error())
-	//}
-
 	return nil
 }
 
