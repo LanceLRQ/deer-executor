@@ -7,6 +7,7 @@ import (
 	constants "github.com/LanceLRQ/deer-executor/v3/executor/constants"
 	structs "github.com/LanceLRQ/deer-executor/v3/executor/structs"
 	"github.com/pkg/errors"
+	"io"
 	"os"
 	"os/exec"
 	"path"
@@ -180,36 +181,30 @@ func IsZipFile(filePath string) (bool, error) {
 	return magic == constants.ZipArchiveMagicCode, nil
 }
 
-// IsProblemPackage 判断是否是题目包
-func IsProblemPackage(filePath string) (bool, error) {
-	fp, err := os.OpenFile(filePath, os.O_RDONLY|syscall.O_NONBLOCK, 0)
-	if err != nil {
-		return false, errors.Errorf("open file error")
-	}
-	defer fp.Close()
-
-	var magic uint16 = 0
-	err = binary.Read(fp, binary.BigEndian, &magic)
-	if err != nil {
-		return false, err
-	}
-
-	return magic == constants.ProblemPackageMagicCode, nil
-}
-
 // IsDeerPackage 判断是否是题目包
-func IsDeerPackage(filePath string) (bool, error) {
+func IsDeerPackage(filePath string) (bool, uint16, error) {
 	fp, err := os.OpenFile(filePath, os.O_RDONLY|syscall.O_NONBLOCK, 0)
 	if err != nil {
-		return false, errors.Errorf("open file error")
+		return false, 0, errors.Errorf("open file error")
 	}
 	defer fp.Close()
 
 	var magic uint32 = 0
+	var typeCode uint16 = 0
 	err = binary.Read(fp, binary.BigEndian, &magic)
 	if err != nil {
-		return false, err
+		return false, 0, err
 	}
 
-	return magic == constants.DeerPackageMagicCode, nil
+	_, err = fp.Seek(4, io.SeekCurrent)
+	if err != nil {
+		return false, 0, err
+	}
+
+	err = binary.Read(fp, binary.BigEndian, &typeCode)
+	if err != nil {
+		return false, 0, err
+	}
+
+	return magic == constants.DeerPackageMagicCode, typeCode, nil
 }

@@ -8,7 +8,6 @@ import (
 	utils "github.com/LanceLRQ/deer-executor/v3/executor/utils"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
-	"io/ioutil"
 	"os"
 	"path"
 )
@@ -35,7 +34,7 @@ func makeProblmConfig() (*structs.JudgeConfiguration, error) {
 	return &config, nil
 }
 
-// MakeProblemConfigFile 生成评测配置文件
+// MakeProblemConfigFile Generate a problem configuration file.
 func MakeProblemConfigFile(c *cli.Context) error {
 	config, err := makeProblmConfig()
 	if err != nil {
@@ -62,29 +61,29 @@ func MakeProblemConfigFile(c *cli.Context) error {
 	return nil
 }
 
-// InitProblemWorkDir 创建一个题目工作目录
-func InitProblemWorkDir(c *cli.Context) error {
+// InitProblemProjectDir create a problem project directory
+func InitProblemProjectDir(c *cli.Context) error {
 	workDir := c.Args().Get(0)
-	// 如果路径存在目录或者文件
+	// If the path exists and refers to a directory or a file.
 	if _, err := os.Stat(workDir); err == nil {
 		return errors.Errorf("work directory (%s) path exisis", workDir)
 	}
-	// 创建目录
+	// make a new work directory
 	if err := os.MkdirAll(workDir, 0775); err != nil {
 		return err
 	}
 	example := c.String("name")
 	if example != "" {
 		packageFile := path.Join("./lib/example", example)
-		// 检查题目包是否存在
-		yes, err := utils.IsDeerPackage(packageFile)
+		// Check if the file belongs to deer-package
+		yes, packageType, err := utils.IsDeerPackage(packageFile)
 		if err != nil {
 			return err
 		}
-		if !yes {
+		if !yes || packageType != persistence.PackageTypeProblem {
 			return errors.Errorf("not a problem package")
 		}
-		pack, err := persistence.ParsePackageFile(packageFile, true)
+		pack, err := persistence.ParseProblemPackageFile(packageFile, true)
 		if err != nil {
 			return err
 		}
@@ -94,7 +93,7 @@ func InitProblemWorkDir(c *cli.Context) error {
 			return err
 		}
 	} else {
-		// 创建文件夹
+		// Create some commonly folders.
 		dirs := []string{"answers", "cases", "bin", "codes", "generators"}
 		for _, dirname := range dirs {
 			err := os.MkdirAll(path.Join(workDir, dirname), 0775)
@@ -102,13 +101,13 @@ func InitProblemWorkDir(c *cli.Context) error {
 				return err
 			}
 		}
-		/// 创建配置
+		// create a default conf
 		config, err := makeProblmConfig()
 		if err != nil {
 			return err
 		}
-		// 写入到文件
-		if err = ioutil.WriteFile(path.Join(workDir, "problem.json"), []byte(utils.ObjectToJSONStringFormatted(config)), 0664); err != nil {
+		// write to file
+		if err = os.WriteFile(path.Join(workDir, "problem.json"), []byte(utils.ObjectToJSONStringFormatted(config)), 0664); err != nil {
 			return err
 		}
 	}

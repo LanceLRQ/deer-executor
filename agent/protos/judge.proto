@@ -12,11 +12,6 @@ enum JudgeLogLevel {
   ERROR = 4;
 }
 
-enum CompressType {
-  NO_COMPRESS = 0;    // 不压缩
-  GZIP = 1;           // GZ压缩
-}
-
 enum JudgeFlag {
   // Accepted
   AC = 0;
@@ -59,10 +54,9 @@ message JudgementRequest {
 
   bool persist_result = 10;         // 保存评测记录
   bool persist_with_ac_data = 11;   // 评测记录包含AC数据（会增加体积）
-  CompressType compress_type = 12 ; // 记录压缩方式
-  bool sign_result = 13;            // 对评测记录进行GPG签名
-  string gpg_key = 14;              // Base64编码后的GPG私钥
-  string gpg_passphrase = 15;       // GPG私钥的密码
+  bool sign_result = 12;            // 对评测记录进行GPG签名
+  string gpg_key = 13;              // Base64编码后的GPG私钥
+  string gpg_passphrase = 14;       // GPG私钥的密码
 }
 
 message JudgementResponse {

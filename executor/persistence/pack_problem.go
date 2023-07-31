@@ -18,8 +18,9 @@ import (
 func NewProblemProjectPackage(conf *commonStructs.JudgeConfiguration) *ProblemProjectPackage {
 	instance := ProblemProjectPackage{
 		DeerPackageBase: DeerPackageBase{
-			Version:   1,
-			PackageID: uuid.NewV4(),
+			Version:     1,
+			PackageID:   uuid.NewV4(),
+			PackageType: PackageTypeProblem,
 		},
 		ProblemConfigs: conf,
 	}

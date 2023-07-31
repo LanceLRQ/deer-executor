@@ -17,8 +17,9 @@ import (
 func NewJudgeResultPackage(judgeResult *commonStructs.JudgeResult) *JudgeResultPackage {
 	instance := JudgeResultPackage{
 		DeerPackageBase: DeerPackageBase{
-			Version:   1,
-			PackageID: uuid.NewV4(),
+			Version:     1,
+			PackageID:   uuid.NewV4(),
+			PackageType: PackageTypeJudgeResult,
 		},
 		JudgeResult: judgeResult,
 	}
@@ -143,9 +144,9 @@ func (pack *JudgeResultPackage) cleanWorkspace() {
 		return
 	}
 	pack.cleanWorkspaceCommon()
-	//if options.JudgeResultDataFile != "" {
-	//	_ = os.Remove(options.JudgeResultDataFile)
-	//}
+	if options.JudgeResultDataFile != "" {
+		_ = os.Remove(options.JudgeResultDataFile)
+	}
 	options.JudgeResultDataFile = ""
 }
 

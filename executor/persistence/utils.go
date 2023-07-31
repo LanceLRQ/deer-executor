@@ -359,11 +359,24 @@ func FindInZip(zipArchive *zip.ReadCloser, fileName string) (*io.ReadCloser, *zi
 	return &fileResult, fileInfo, nil
 }
 
-func isInArray(target interface{}, arr []interface{}) (int, bool) {
+func isInArray(target uint8, arr []uint8) (int, bool) {
 	for i, value := range arr {
 		if target == value {
 			return i, true
 		}
 	}
 	return -1, false
+}
+
+func FormatFileSize(size int64) string {
+	const unit = 1024
+	if size < unit {
+		return fmt.Sprintf("%d B", size)
+	}
+	div, exp := int64(unit), 0
+	for n := size / unit; n >= unit; n /= unit {
+		div *= unit
+		exp++
+	}
+	return fmt.Sprintf("%.1f %cB", float64(size)/float64(div), "KMGTPE"[exp])
 }

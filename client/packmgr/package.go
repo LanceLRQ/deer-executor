@@ -1,6 +1,7 @@
 package packmgr
 
 import (
+	"encoding/hex"
 	"fmt"
 	"github.com/LanceLRQ/deer-executor/v3/executor"
 	persistence "github.com/LanceLRQ/deer-executor/v3/executor/persistence"
@@ -12,7 +13,7 @@ import (
 	"strings"
 )
 
-// BuildProblemPackage  创建题目数据包
+// BuildProblemPackage build a problem project package with deer-package
 func BuildProblemPackage(c *cli.Context) error {
 
 	if c.String("passphrase") != "" {
@@ -70,21 +71,27 @@ func BuildProblemPackage(c *cli.Context) error {
 	return nil
 }
 
-// UnpackProblemPackage 题目包解包
-func UnpackProblemPackage(c *cli.Context) error {
+// UnpackDeerPackage Unpack deer-package
+func UnpackDeerPackage(c *cli.Context) error {
 	packageFile := c.Args().Get(0)
 	workDir := c.Args().Get(1)
 	if c.Bool("no-validate") {
 		log.Println("[warn] package validation had been disabled!")
 	}
-	// 检查是否为题目包
-	isDeerPack, err := utils.IsDeerPackage(packageFile)
+	// Check if the file belongs to deer-package
+	isDeerPack, packageType, err := utils.IsDeerPackage(packageFile)
 	if err != nil {
 		return err
 	}
-	// 解包
-	if isDeerPack {
-		pack, err := persistence.ParsePackageFile(packageFile, !c.Bool("no-validate"))
+	// Unpack deer package
+	if !isDeerPack {
+		return errors.Errorf("not a deer-executor package file")
+	}
+
+	switch packageType {
+
+	case persistence.PackageTypeProblem:
+		pack, err := persistence.ParseProblemPackageFile(packageFile, !c.Bool("no-validate"))
 		if err != nil {
 			return err
 		}
@@ -100,42 +107,95 @@ func UnpackProblemPackage(c *cli.Context) error {
 		if err != nil {
 			return err
 		}
-	} else {
-		return errors.Errorf("not a deer-executor problem package file")
+
+	case persistence.PackageTypeJudgeResult:
+		pack, err := persistence.ParseJudgeResultPackageFile(packageFile, !c.Bool("no-validate"))
+		if err != nil {
+			return err
+		}
+		// if <workDir> exists
+		if _, err := os.Stat(workDir); err == nil {
+			return errors.Errorf("work directory (%s) path exisis", workDir)
+		}
+		// create folder <workDir>
+		if err := os.MkdirAll(workDir, 0775); err != nil {
+			return err
+		}
+		err = pack.UnpackJudgeResult(workDir)
+		if err != nil {
+			return err
+		}
 	}
+
 	fmt.Println("Done.")
 	return nil
 }
 
-// ReadProblemInfo 访问题目包信息
-func ReadProblemInfo(c *cli.Context) error {
+// ReadDeerPackageInfo visit deer-package info
+func ReadDeerPackageInfo(c *cli.Context) error {
 	packageFile := c.Args().Get(0)
-	isDeerPack, err := utils.IsDeerPackage(packageFile)
+	isDeerPack, packageType, err := utils.IsDeerPackage(packageFile)
 	if err != nil {
 		return err
 	}
-	// 如果是题目包文件，进行解包
-	if isDeerPack {
-		pack, err := persistence.ParsePackageFile(packageFile, !c.Bool("no-validate"))
-		if err != nil {
-			return err
+	// Check if the file belongs to deer-package
+	if !isDeerPack {
+		return errors.Errorf("not a deer-executor problem package file")
+	}
+
+	printCommonInfo := func(base *persistence.DeerPackageBase) {
+		typeName, ok := persistence.PackageTypeNameMap[base.PackageType]
+		if !ok {
+			typeName = ""
 		}
-		err = pack.GetProblemConfig()
-		if err != nil {
-			return err
-		}
-		if c.Bool("gpg") {
-			g, err := pack.GetProblemGPGInfo()
+		fmt.Printf(
+			"Package ID: %s\nPackage Type: %s\nCommit Version: %d\nPackage File Size: %s\n",
+			base.PackageID, typeName, base.CommitVersion, persistence.FormatFileSize(base.GetPackageSize()),
+		)
+		fmt.Printf("Hash: %s\n", hex.EncodeToString(base.Signature[:]))
+		if base.GPGSignSize > 0 {
+			fmt.Printf("GPG Signature: Yes (%s...)\n", hex.EncodeToString(base.GPGSignature[:16]))
+			g, err := base.GetGPGInfo()
 			if err != nil {
 				fmt.Println(err.Error())
-				return nil
+			} else {
+				fmt.Printf("GPG Info: %s\n", g)
 			}
-			fmt.Println(g)
 		} else {
+			fmt.Printf("GPG Signature: No\n")
+		}
+	}
+
+	// If it is a DeerPackage file, unpack it.
+	switch packageType {
+
+	case persistence.PackageTypeProblem:
+		pack, err := persistence.ParseProblemPackageFile(packageFile, !c.Bool("no-validate"))
+		if err != nil {
+			return err
+		}
+		printCommonInfo(&pack.DeerPackageBase)
+		if c.Bool("json") {
+			err = pack.GetProblemConfig()
+			if err != nil {
+				return err
+			}
 			fmt.Println(utils.ObjectToJSONStringFormatted(pack.ProblemConfigs))
 		}
-	} else {
-		return errors.Errorf("not a deer-executor problem package file")
+
+	case persistence.PackageTypeJudgeResult:
+		pack, err := persistence.ParseJudgeResultPackageFile(packageFile, !c.Bool("no-validate"))
+		if err != nil {
+			return err
+		}
+		printCommonInfo(&pack.DeerPackageBase)
+		if c.Bool("json") {
+			err = pack.GetResult()
+			if err != nil {
+				return err
+			}
+			fmt.Println(utils.ObjectToJSONStringFormatted(pack.JudgeResult))
+		}
 	}
 	return nil
 }

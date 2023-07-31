@@ -25,12 +25,6 @@ var PackProblemFlags = []cli.Flag{
 		Value:   "",
 		Usage:   "GPG private key passphrase",
 	},
-	&cli.BoolFlag{
-		Name:    "zip",
-		Aliases: []string{"z"},
-		Value:   false,
-		Usage:   "Package as a zip file",
-	},
 }
 
 // AppPackageSubCommands for cli command 'pack'
@@ -46,7 +40,7 @@ var AppPackageSubCommands = cli.Commands{
 	{
 		Name:      "unpack",
 		HelpName:  "deer-executor package unpack",
-		Usage:     "unpack problem package",
+		Usage:     "unpack problem / judge_result package",
 		ArgsUsage: "<package_file> <output_dir>",
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
@@ -55,20 +49,20 @@ var AppPackageSubCommands = cli.Commands{
 				Usage: "disable package validation",
 			},
 		},
-		Action: packmgr.UnpackProblemPackage,
+		Action: packmgr.UnpackDeerPackage,
 	},
 	{
 		Name:      "info",
 		HelpName:  "deer-executor package info",
-		Usage:     "show problem package info",
+		Usage:     "show deer package info",
 		ArgsUsage: "<package_file>",
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
-				Name:  "gpg",
+				Name:  "json",
 				Value: false,
-				Usage: "output GPG signature info",
+				Usage: "output json info (problem config or judge result)",
 			},
 		},
-		Action: packmgr.ReadProblemInfo,
+		Action: packmgr.ReadDeerPackageInfo,
 	},
 }

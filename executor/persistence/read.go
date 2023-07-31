@@ -34,6 +34,9 @@ func (pack *DeerPackageBase) parseDeerPackageHeader(reader io.Reader) error {
 	if err := binary.Read(reader, binary.BigEndian, &pack.CommitVersion); err != nil {
 		return errorFunc("commit version", err)
 	}
+	if err := binary.Read(reader, binary.BigEndian, &pack.PackageType); err != nil {
+		return errorFunc("package type", err)
+	}
 	// uuid
 	uuidBytes := make([]byte, 16)
 	if err := binary.Read(reader, binary.BigEndian, &uuidBytes); err != nil {
@@ -120,6 +123,12 @@ func (pack *DeerPackageBase) parseDeerPackage(doValidate bool) error {
 	}
 	defer fp.Close()
 
+	fstat, err := fp.Stat()
+	if err != nil {
+		return err
+	}
+	pack.packageSize = fstat.Size()
+
 	reader := bufio.NewReader(fp)
 
 	// parse header
@@ -150,7 +159,7 @@ func (pack *DeerPackageBase) parseDeerPackage(doValidate bool) error {
 	return nil
 }
 
-func (pack *DeerPackageBase) walkDeerPackageBody(items []interface{}, callback func(uint8, int64, *io.SectionReader) (int64, error)) error {
+func (pack *DeerPackageBase) walkDeerPackageBody(items []uint8, callback func(uint8, int64, *io.SectionReader) (int64, error)) error {
 	// Open pack file
 	fp, err := os.Open(pack.presistFilePath)
 	if err != nil {
@@ -233,4 +242,27 @@ func (pack *DeerPackageBase) readPackageBodyChunkHeader(file *os.File) (uint8, i
 		}
 	}
 	return chunkType, int64(chunkSize), nil
+}
+
+// GetGPGInfo get GPG certification info
+func (pack *DeerPackageBase) GetGPGInfo() (string, error) {
+	if pack.GPGCertSize == 0 {
+		return "no GPG public key", nil
+	}
+	elist, err := openpgp.ReadArmoredKeyRing(bytes.NewReader(pack.GPGCertificate))
+	if err != nil {
+		return "", err
+	}
+	if len(elist) < 1 {
+		return "", errors.Errorf("GPG key error")
+	}
+	rel := ""
+	for _, identify := range elist[0].Identities {
+		rel += identify.Name + "\n"
+	}
+	return rel, nil
+}
+
+func (pack *DeerPackageBase) GetPackageSize() int64 {
+	return pack.packageSize
 }

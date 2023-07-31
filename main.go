@@ -61,7 +61,7 @@ func main() {
 						Usage: "template file name (found in ./lib/example/)",
 					},
 				},
-				Action: generate.InitProblemWorkDir,
+				Action: generate.InitProblemProjectDir,
 			},
 			{
 				Name:        "package",

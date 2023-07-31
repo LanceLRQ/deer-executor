@@ -8,7 +8,17 @@ import (
 )
 
 const (
-	PackageChunkTypeConfig uint8 = iota + 1 // GPG Certificate
+	PackageTypeProblem uint16 = iota + 1
+	PackageTypeJudgeResult
+)
+
+var PackageTypeNameMap = map[uint16]string{
+	PackageTypeProblem:     "Problem Project",
+	PackageTypeJudgeResult: "Judge Result",
+}
+
+const (
+	PackageChunkTypeConfig uint8 = iota + 1
 	PackageChunkTypeProject
 	PackageChunkTypeJudgeResult
 	PackageChunkTypeJudgeResultData
@@ -45,7 +55,6 @@ type ProblemProjectPersisOptions struct {
 // JudgeResultPersisOptions judge resule persis options
 type JudgeResultPersisOptions struct {
 	CommonPersisOptions
-	CompressorType      uint8
 	SessionDir          string
 	JudgeResultDataFile string
 	SaveAcceptedData    bool
@@ -60,7 +69,7 @@ type IDeerPackage interface {
 // DeerPackageBase deer executor data package binary struct definition
 //
 //	 ------------------------
-//		header: |MAG|VER|CMT|PID|SIG|<GPCZ|GPGCert|GPSZ|GPGSign>|0x00 0x00|<body>
+//		header: |MAG|VER|CMV|PKT|PID|SIG|<GPCZ|GPGCert|GPSZ|GPGSign>|0x00 0x00|<body>
 //		body: < | TYP | LEN | CNT | >
 //		------------------------
 //		Size
@@ -78,7 +87,8 @@ type DeerPackageBase struct {
 	IDeerPackage
 	// --- header
 	Version        uint16    // <VAR> Package Version
-	CommitVersion  uint16    // <CMT> Commit Version
+	CommitVersion  uint16    // <CMV> Commit Version
+	PackageType    uint16    // <PKT> Package Type
 	PackageID      uuid.UUID // <PID> Package ID
 	Signature      []byte    // <SIG> SHA256 Signature (sign body content)
 	GPGCertSize    uint16    // (GPCZ) Public Certificate Size
@@ -88,6 +98,7 @@ type DeerPackageBase struct {
 	// --- body
 	// ...
 	// -- meta
+	packageSize       int64
 	presistOptions    interface{}
 	presistHeaderSize int64
 	presistFilePath   string
@@ -97,9 +108,6 @@ type DeerPackageBase struct {
 // ProblemProjectPackage problem project package entity
 type ProblemProjectPackage struct {
 	DeerPackageBase
-	// --- body
-	problemConfigsBytes []byte // Problem Configs JSON [type: 0x1]
-	problemBodyTempFile string // Problem package temp file [type: 0x2]
 	// --- internal
 	ProblemConfigs *commonStructs.JudgeConfiguration
 }

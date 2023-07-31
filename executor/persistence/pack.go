@@ -261,6 +261,7 @@ func (pack *DeerPackageBase) createPackageHeader(file *os.File) error {
 	if _, err := writer.Write(buf32); err != nil {
 		return errorFunc("magic", err)
 	}
+
 	// Version
 	binary.BigEndian.PutUint16(buf16, pack.Version)
 	if _, err := writer.Write(buf16); err != nil {
@@ -271,6 +272,12 @@ func (pack *DeerPackageBase) createPackageHeader(file *os.File) error {
 	binary.BigEndian.PutUint16(buf16, pack.CommitVersion)
 	if _, err := writer.Write(buf16); err != nil {
 		return errorFunc("commit version", err)
+	}
+
+	// Package  Version
+	binary.BigEndian.PutUint16(buf16, pack.PackageType)
+	if _, err := writer.Write(buf16); err != nil {
+		return errorFunc("package type", err)
 	}
 
 	// Package ID

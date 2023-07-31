@@ -14,14 +14,14 @@ func loadProblemConfiguration(configFile string, workDir string) (string, bool, 
 	if err != nil && os.IsNotExist(err) {
 		return "", false, "", errors.Errorf("problem config file (%s) not found", configFile)
 	}
-	isDeerPack, err := utils.IsDeerPackage(configFile)
+	isDeerPack, packageType, err := utils.IsDeerPackage(configFile)
 	if err != nil {
 		return "", false, "", err
 	}
 	autoRemoveWorkDir := false
-	// 如果是题目包文件，进行解包，并返回解包后的配置文件位置
-	if isDeerPack {
-		pack, err := persistence.ParsePackageFile(configFile, true)
+	// If it is a deer-package file, unpack it and return the location of the extracted configuration file.
+	if isDeerPack && packageType == persistence.PackageTypeProblem {
+		pack, err := persistence.ParseProblemPackageFile(configFile, true)
 		if err != nil {
 			return "", false, "", err
 		}
@@ -45,6 +45,6 @@ func loadProblemConfiguration(configFile string, workDir string) (string, bool, 
 			return "", false, "", err
 		}
 	}
-	// 如果不是题包文件，返回的是配置文件的路径和工作目录，
+	// If not, return the path to the configuration file and the working directory.
 	return configFile, autoRemoveWorkDir, workDir, nil
 }

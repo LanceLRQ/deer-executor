@@ -122,9 +122,7 @@ func runRpcJudge(request *rpc.JudgementRequest) (*commonStructs.JudgeResult, str
 		return nil, "", fmt.Errorf("config_file is not exists or not a file")
 	}
 	// build persistence options
-	compressorType := uint8(request.CompressType)
 	jOption := persistence.JudgeResultPersisOptions{
-		CompressorType:   compressorType,
 		SaveAcceptedData: request.PersistWithAcData,
 	}
 	// Is enable persistence with sign

@@ -78,12 +78,7 @@ func runUserJudge(c *cli.Context, configFile, workDir string) (*commonStructs.Ju
 	// parse params
 	persistenceOn := c.String("persistence") != ""
 	digitalSign := c.Bool("sign")
-	compressorType := uint8(1)
-	if c.String("compress") == "none" {
-		compressorType = uint8(0)
-	}
 	jOption := persistence.JudgeResultPersisOptions{
-		CompressorType:   compressorType,
 		SaveAcceptedData: c.Bool("save-ac-data"),
 	}
 	jOption.OutFile = c.String("persistence")
