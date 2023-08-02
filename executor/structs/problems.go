@@ -10,12 +10,13 @@ type ProblemIOSample struct {
 type ProblemContent struct {
 	Author      string                   `json:"author"`       // Problem author
 	Source      string                   `json:"source"`       // Problem source
+	Title       string                   `json:"title"`        // Problem Title
 	Description string                   `json:"description"`  // Description
 	Input       string                   `json:"input"`        // Input requirements
 	Output      string                   `json:"output"`       // Output requirements
 	Sample      []ProblemIOSample        `json:"sample"`       // Sample cases
 	Tips        string                   `json:"tips"`         // Solution tips
-	ProblemType int                      `json:"problem_type"` // 题目类型
+	ProblemType int                      `json:"problem_type"` // Problem Type
 	DemoCases   map[string]JudgeDemoCase `json:"demo_cases"`   // 代码填空样例数据
 }
 
