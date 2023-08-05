@@ -10,6 +10,7 @@ import (
 	"github.com/urfave/cli/v2"
 	"os"
 	"path"
+	"path/filepath"
 )
 
 func makeProblmConfig() (*structs.JudgeConfiguration, error) {
@@ -74,7 +75,10 @@ func InitProblemProjectDir(c *cli.Context) error {
 	}
 	example := c.String("sample")
 	if example != "" {
-		packageFile := path.Join("./lib/example", example)
+		packageFile, err := filepath.Abs(example)
+		if err != nil {
+			return nil
+		}
 		// Check if the file belongs to deer-package
 		yes, packageType, err := utils.IsDeerPackage(packageFile)
 		if err != nil {

@@ -48,7 +48,7 @@ var AppPackageSubCommands = cli.Commands{
 			&cli.StringFlag{
 				Name:  "sample",
 				Value: "",
-				Usage: "template file name (found in ./lib/example/)",
+				Usage: "sample file name or problem package file",
 			},
 		},
 		Action: generate.InitProblemProjectDir,
