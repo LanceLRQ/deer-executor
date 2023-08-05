@@ -72,7 +72,7 @@ func InitProblemProjectDir(c *cli.Context) error {
 	if err := os.MkdirAll(workDir, 0775); err != nil {
 		return err
 	}
-	example := c.String("name")
+	example := c.String("sample")
 	if example != "" {
 		packageFile := path.Join("./lib/example", example)
 		// Check if the file belongs to deer-package

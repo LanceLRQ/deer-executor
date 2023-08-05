@@ -46,8 +46,8 @@ var AppPackageSubCommands = cli.Commands{
 		Usage:     "create a new problem with example",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:  "name",
-				Value: "a+b",
+				Name:  "sample",
+				Value: "",
 				Usage: "template file name (found in ./lib/example/)",
 			},
 		},
