@@ -5,7 +5,6 @@ import (
 	"github.com/LanceLRQ/deer-executor/v3/agent"
 	agentConfig "github.com/LanceLRQ/deer-executor/v3/agent/config"
 	"github.com/LanceLRQ/deer-executor/v3/client"
-	"github.com/LanceLRQ/deer-executor/v3/client/generate"
 	"github.com/LanceLRQ/deer-executor/v3/client/run"
 	"github.com/gookit/config/v2"
 	"github.com/gookit/config/v2/yamlv3"
@@ -48,20 +47,6 @@ func main() {
 				Aliases:     []string{"e"},
 				Usage:       "generate all kinds of configuration files",
 				Subcommands: client.AppGeneratorSubCommands,
-			},
-			{
-				Name:      "new",
-				Aliases:   []string{"n"},
-				ArgsUsage: "<output_dir>",
-				Usage:     "create a new problem with example",
-				Flags: []cli.Flag{
-					&cli.StringFlag{
-						Name:  "name",
-						Value: "a+b",
-						Usage: "template file name (found in ./lib/example/)",
-					},
-				},
-				Action: generate.InitProblemProjectDir,
 			},
 			{
 				Name:        "package",

@@ -1,6 +1,7 @@
 package client
 
 import (
+	"github.com/LanceLRQ/deer-executor/v3/client/generate"
 	"github.com/LanceLRQ/deer-executor/v3/client/packmgr"
 	"github.com/urfave/cli/v2"
 )
@@ -31,6 +32,7 @@ var PackProblemFlags = []cli.Flag{
 var AppPackageSubCommands = cli.Commands{
 	{
 		Name:      "build",
+		Aliases:   []string{"b"},
 		HelpName:  "deer-executor package build",
 		Usage:     "build problem package",
 		ArgsUsage: "<configs_file> <output_file>",
@@ -38,7 +40,22 @@ var AppPackageSubCommands = cli.Commands{
 		Action:    packmgr.BuildProblemPackage,
 	},
 	{
+		Name:      "new",
+		Aliases:   []string{"n"},
+		ArgsUsage: "<output_dir>",
+		Usage:     "create a new problem with example",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:  "name",
+				Value: "a+b",
+				Usage: "template file name (found in ./lib/example/)",
+			},
+		},
+		Action: generate.InitProblemProjectDir,
+	},
+	{
 		Name:      "unpack",
+		Aliases:   []string{"u"},
 		HelpName:  "deer-executor package unpack",
 		Usage:     "unpack problem / judge_result package",
 		ArgsUsage: "<package_file> <output_dir>",
@@ -53,6 +70,7 @@ var AppPackageSubCommands = cli.Commands{
 	},
 	{
 		Name:      "info",
+		Aliases:   []string{"i"},
 		HelpName:  "deer-executor package info",
 		Usage:     "show deer package info",
 		ArgsUsage: "<package_file>",
